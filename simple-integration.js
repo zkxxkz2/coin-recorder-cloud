@@ -309,8 +309,78 @@ class SimpleIntegration {
         // 登录后不自动同步，避免创建新的 bin ID
         // 用户可以通过手动点击同步按钮来控制同步行为
         
-        // 登录后始终显示排行榜横幅
-        await this.loadLeaderboardBanner();
+        // 登录后检查用户是否已加入排行榜
+        await this.checkAndLoadLeaderboard(user);
+    }
+
+    // 检查用户是否已加入排行榜并加载相应内容
+    async checkAndLoadLeaderboard(user) {
+        try {
+            // 检查本地存储中是否有加入记录
+            const isJoinedLocally = localStorage.getItem('joinedPublicLeaderboard') === 'true';
+            const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId') || '68eb2e76d0ea881f409e7470';
+            
+            if (isJoinedLocally) {
+                // 本地记录显示已加入，验证云端数据
+                const isJoinedInCloud = await this.verifyUserInLeaderboard(user, publicLeaderboardBinId);
+                
+                if (isJoinedInCloud) {
+                    // 云端确认已加入，显示排行榜内容
+                    console.log('用户已加入排行榜，显示排行榜内容');
+                    await this.loadLeaderboardBanner();
+                } else {
+                    // 云端未找到，清除本地记录并显示空白状态
+                    console.log('云端未找到用户，清除本地记录');
+                    localStorage.removeItem('joinedPublicLeaderboard');
+                    localStorage.removeItem('publicLeaderboardBinId');
+                    this.showLeaderboardBanner();
+                    this.showEmptyLeaderboard();
+                }
+            } else {
+                // 本地记录显示未加入，显示空白状态
+                console.log('用户未加入排行榜，显示空白状态');
+                this.showLeaderboardBanner();
+                this.showEmptyLeaderboard();
+            }
+        } catch (error) {
+            console.error('检查排行榜状态失败:', error);
+            // 出错时显示排行榜横幅和空白状态
+            this.showLeaderboardBanner();
+            this.showEmptyLeaderboard();
+        }
+    }
+
+    // 验证用户是否在云端排行榜中
+    async verifyUserInLeaderboard(user, publicLeaderboardBinId) {
+        try {
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': window.jsonbinConfig.apiKey
+                }
+            });
+
+            if (!response.ok) {
+                return false;
+            }
+
+            const result = await response.json();
+            const leaderboardData = result.record;
+
+            if (!leaderboardData.participants) {
+                return false;
+            }
+
+            // 检查用户是否在参与者列表中
+            const userBinId = localStorage.getItem('coinTrackerBinId');
+            return leaderboardData.participants.some(participant => 
+                participant.binId === userBinId && participant.isActive
+            );
+        } catch (error) {
+            console.error('验证用户排行榜状态失败:', error);
+            return false;
+        }
     }
 
     // 处理用户登出
@@ -1278,6 +1348,9 @@ class SimpleIntegration {
 
             // 更新按钮状态
             this.updateBannerButtons();
+            
+            // 确保本地存储状态正确
+            localStorage.setItem('joinedPublicLeaderboard', 'true');
 
         } catch (error) {
             console.error('加载排行榜横幅失败:', error);
@@ -1291,14 +1364,12 @@ class SimpleIntegration {
     updateBannerLeaderboard(userData) {
         const bannerLeaderboard = document.getElementById('bannerLeaderboard');
         const emptyBanner = bannerLeaderboard.querySelector('.empty-banner');
-        const podiumContainer = document.getElementById('podiumContainer');
         const leaderboardList = document.getElementById('leaderboardList');
         
         if (!bannerLeaderboard) return;
 
         if (!userData || userData.length === 0) {
             if (emptyBanner) emptyBanner.style.display = 'block';
-            if (podiumContainer) podiumContainer.style.display = 'none';
             if (leaderboardList) leaderboardList.style.display = 'none';
             return;
         }
@@ -1309,73 +1380,13 @@ class SimpleIntegration {
         // 按当前金币数排序
         const sortedUsers = userData.sort((a, b) => b.currentCoins - a.currentCoins);
 
-        // 更新前三名领奖台
-        this.updatePodium(sortedUsers.slice(0, 3));
+        // 更新排行榜列表（显示所有用户）
+        this.updateLeaderboardList(sortedUsers);
 
-        // 更新第四名开始的列表
-        this.updateLeaderboardList(sortedUsers.slice(3));
-
-        // 显示相应的容器
-        if (podiumContainer) podiumContainer.style.display = 'flex';
-        if (leaderboardList) leaderboardList.style.display = sortedUsers.length > 3 ? 'block' : 'none';
+        // 显示列表容器
+        if (leaderboardList) leaderboardList.style.display = 'block';
     }
 
-    // 更新领奖台
-    updatePodium(topThree) {
-        const podiumContainer = document.getElementById('podiumContainer');
-        if (!podiumContainer) return;
-
-        // 确保有足够的用户数据
-        const users = [null, null, null];
-        topThree.forEach((user, index) => {
-            users[index] = user;
-        });
-
-            // 更新第二名（左侧）
-            const secondPlace = podiumContainer.querySelector('.second-place');
-            if (secondPlace && users[1]) {
-                const usernameEl = secondPlace.querySelector('.podium-username');
-                const coinsEl = secondPlace.querySelector('.podium-coins');
-                if (usernameEl) {
-                    usernameEl.innerHTML = this.formatUserDisplay(users[1]);
-                }
-                if (coinsEl) coinsEl.textContent = users[1].currentCoins.toLocaleString();
-                secondPlace.style.display = 'flex';
-                secondPlace.onclick = () => this.showUserDetail(users[1], 2);
-            } else if (secondPlace) {
-                secondPlace.style.display = 'none';
-            }
-
-        // 更新第一名（中间）
-        const firstPlace = podiumContainer.querySelector('.first-place');
-        if (firstPlace && users[0]) {
-            const usernameEl = firstPlace.querySelector('.podium-username');
-            const coinsEl = firstPlace.querySelector('.podium-coins');
-            if (usernameEl) {
-                usernameEl.innerHTML = this.formatUserDisplay(users[0]);
-            }
-            if (coinsEl) coinsEl.textContent = users[0].currentCoins.toLocaleString();
-            firstPlace.style.display = 'flex';
-            firstPlace.onclick = () => this.showUserDetail(users[0], 1);
-        } else if (firstPlace) {
-            firstPlace.style.display = 'none';
-        }
-
-        // 更新第三名（右侧）
-        const thirdPlace = podiumContainer.querySelector('.third-place');
-        if (thirdPlace && users[2]) {
-            const usernameEl = thirdPlace.querySelector('.podium-username');
-            const coinsEl = thirdPlace.querySelector('.podium-coins');
-            if (usernameEl) {
-                usernameEl.innerHTML = this.formatUserDisplay(users[2]);
-            }
-            if (coinsEl) coinsEl.textContent = users[2].currentCoins.toLocaleString();
-            thirdPlace.style.display = 'flex';
-            thirdPlace.onclick = () => this.showUserDetail(users[2], 3);
-        } else if (thirdPlace) {
-            thirdPlace.style.display = 'none';
-        }
-    }
 
     // 更新排行榜列表
     updateLeaderboardList(users) {
@@ -1388,7 +1399,7 @@ class SimpleIntegration {
         }
 
             const html = users.map((user, index) => {
-                const rank = index + 4; // 从第四名开始
+                const rank = index + 1; // 从第一名开始
                 return `
                     <div class="leaderboard-list-item" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
                         <div class="rank">${rank}</div>
@@ -1850,7 +1861,7 @@ class SimpleIntegration {
         }
 
         // 隐藏所有排行榜内容
-        const leaderboards = ['podiumContainer', 'leaderboardList', 'growthLeaderboard', 'activityLeaderboard', 'achievementLeaderboard'];
+        const leaderboards = ['leaderboardList', 'growthLeaderboard', 'activityLeaderboard', 'achievementLeaderboard'];
         leaderboards.forEach(id => {
             const element = document.getElementById(id);
             if (element) element.style.display = 'none';
@@ -2194,14 +2205,11 @@ class SimpleIntegration {
         // 按当前金币数排序
         const sortedUsers = users.sort((a, b) => b.currentCoins - a.currentCoins);
         
-        // 更新领奖台和列表
-        this.updatePodium(sortedUsers.slice(0, 3));
-        this.updateLeaderboardList(sortedUsers.slice(3));
+        // 更新排行榜列表（显示所有用户）
+        this.updateLeaderboardList(sortedUsers);
 
         // 显示主排行榜
-        const podiumContainer = document.getElementById('podiumContainer');
         const leaderboardList = document.getElementById('leaderboardList');
-        if (podiumContainer) podiumContainer.style.display = 'flex';
         if (leaderboardList) leaderboardList.style.display = 'block';
     }
 
@@ -2303,6 +2311,9 @@ class SimpleIntegration {
     showEmptyLeaderboard() {
         const emptyBanner = document.querySelector('.empty-banner');
         if (emptyBanner) emptyBanner.style.display = 'block';
+        
+        // 更新按钮状态为未加入状态
+        this.updateBannerButtons();
     }
 
     showEmptyGrowthLeaderboard() {
