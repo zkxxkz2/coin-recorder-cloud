@@ -51,7 +51,7 @@
             <div class="header-content">
                 <div class="title-section">
                     <h1>金币记录器</h1>
-                    <p>记录每天的金币变化，追踪财富增长</p>
+                    <p>记录每天的金币变化，追踪金币增长</p>
                 </div>
                 <div class="header-controls">
                     <!-- 用户状态显示 -->
@@ -108,22 +108,22 @@
                         </svg>
                         登录
                     </button>
-                    <button id="themeToggle" class="theme-toggle" title="切换主题">
-                        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="5"/>
-                            <line x1="12" y1="1" x2="12" y2="3"/>
-                            <line x1="12" y1="21" x2="12" y2="23"/>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                            <line x1="1" y1="12" x2="3" y2="12"/>
-                            <line x1="21" y1="12" x2="23" y2="12"/>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                        </svg>
-                        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                        </svg>
-                    </button>
+                <button id="themeToggle" class="theme-toggle" title="切换主题">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
                 </div>
             </div>
         </header>
@@ -139,7 +139,7 @@
             <div class="section-content" id="inputContent">
                 <div class="input-header">
                     <div class="input-title-section">
-                        <h2>今日金币录入</h2>
+                    <h2>今日金币录入</h2>
                         <div class="current-time" id="currentTime">--:--</div>
                     </div>
                     <button id="batchInputBtn" class="batch-input-btn">批量录入</button>
@@ -165,7 +165,7 @@
                     <div class="banner-icon">🏆</div>
                     <div class="banner-title">
                         <h3>公开金币排行榜</h3>
-                        <p>与全球用户一起竞争，展示你的财富增长</p>
+                        <p>与全球用户一起竞争，展示你的金币增长</p>
                     </div>
                     <div class="banner-stats">
                         <div class="stat-item">
@@ -183,6 +183,13 @@
                     </div>
                 </div>
                 <div class="banner-leaderboard" id="bannerLeaderboard">
+                    <div class="leaderboard-tabs">
+                        <button class="leaderboard-tab active" data-tab="main">主排行榜</button>
+                        <button class="leaderboard-tab" data-tab="growth">增长榜</button>
+                        <button class="leaderboard-tab" data-tab="activity">活跃榜</button>
+                        <button class="leaderboard-tab" data-tab="achievement">成就榜</button>
+                    </div>
+                    
                     <div class="empty-banner">
                         <p>暂无排行榜数据</p>
                         <small>点击"加入排行榜"开始参与</small>
@@ -216,6 +223,33 @@
                     <!-- 第四名开始的列表 -->
                     <div class="leaderboard-list" id="leaderboardList" style="display: none;">
                         <!-- 动态生成 -->
+                    </div>
+                    
+                    <!-- 增长排行榜 -->
+                    <div class="growth-leaderboard" id="growthLeaderboard" style="display: none;">
+                        <div class="growth-tabs">
+                            <button class="growth-tab active" data-growth="daily">日增长</button>
+                            <button class="growth-tab" data-growth="weekly">周增长</button>
+                            <button class="growth-tab" data-growth="monthly">月增长</button>
+                            <button class="growth-tab" data-growth="total">总增长</button>
+                        </div>
+                        <div class="growth-list" id="growthList">
+                            <!-- 动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 活跃度排行榜 -->
+                    <div class="activity-leaderboard" id="activityLeaderboard" style="display: none;">
+                        <div class="activity-list" id="activityList">
+                            <!-- 动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 成就排行榜 -->
+                    <div class="achievement-leaderboard" id="achievementLeaderboard" style="display: none;">
+                        <div class="achievement-list" id="achievementList">
+                            <!-- 动态生成 -->
+                        </div>
                     </div>
                 </div>
                 <div class="banner-actions">
@@ -389,53 +423,78 @@
                         </div>
                         <div class="achievement-status" id="hundred_days_status">🔒</div>
                     </div>
-                    <div class="achievement-item" data-achievement="thousand_coins">
-                        <div class="achievement-icon">💰</div>
+                    <!-- 等级成就系统 -->
+                    <div class="achievement-item" data-achievement="novice_level">
+                        <div class="achievement-icon">🌱</div>
                         <div class="achievement-info">
-                            <div class="achievement-title">千金富翁</div>
-                            <div class="achievement-desc">累计获得1000金币</div>
+                            <div class="achievement-title">新手</div>
+                            <div class="achievement-desc">达到新手等级 (0-1,000金币)</div>
                         </div>
-                        <div class="achievement-status" id="thousand_coins_status">🔒</div>
+                        <div class="achievement-status" id="novice_level_status">🔒</div>
                     </div>
-                    <div class="achievement-item" data-achievement="ten_thousand">
-                        <div class="achievement-icon">🏆</div>
+                    <div class="achievement-item" data-achievement="silver_level">
+                        <div class="achievement-icon">🥈</div>
                         <div class="achievement-info">
-                            <div class="achievement-title">万元户</div>
-                            <div class="achievement-desc">累计获得10000金币</div>
+                            <div class="achievement-title">白银</div>
+                            <div class="achievement-desc">达到白银等级 (1,000-5,000金币)</div>
                         </div>
-                        <div class="achievement-status" id="ten_thousand_status">🔒</div>
+                        <div class="achievement-status" id="silver_level_status">🔒</div>
                     </div>
-                    <div class="achievement-item" data-achievement="twenty_thousand">
-                        <div class="achievement-icon">💎</div>
+                    <div class="achievement-item" data-achievement="gold_level">
+                        <div class="achievement-icon">🥇</div>
                         <div class="achievement-info">
-                            <div class="achievement-title">两万富翁</div>
-                            <div class="achievement-desc">累计获得20000金币</div>
+                            <div class="achievement-title">黄金</div>
+                            <div class="achievement-desc">达到黄金等级 (5,000-15,000金币)</div>
                         </div>
-                        <div class="achievement-status" id="twenty_thousand_status">🔒</div>
+                        <div class="achievement-status" id="gold_level_status">🔒</div>
                     </div>
-                    <div class="achievement-item" data-achievement="thirty_thousand">
-                        <div class="achievement-icon">🏅</div>
+                    <div class="achievement-item" data-achievement="black_gold_level">
+                        <div class="achievement-icon">⚫</div>
                         <div class="achievement-info">
-                            <div class="achievement-title">三万富翁</div>
-                            <div class="achievement-desc">累计获得30000金币</div>
+                            <div class="achievement-title">黑金</div>
+                            <div class="achievement-desc">达到黑金等级 (15,000-30,000金币)</div>
                         </div>
-                        <div class="achievement-status" id="thirty_thousand_status">🔒</div>
+                        <div class="achievement-status" id="black_gold_level_status">🔒</div>
                     </div>
-                    <div class="achievement-item" data-achievement="forty_thousand">
-                        <div class="achievement-icon">🎖️</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">四万富翁</div>
-                            <div class="achievement-desc">累计获得40000金币</div>
-                        </div>
-                        <div class="achievement-status" id="forty_thousand_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="fifty_thousand">
+                    <div class="achievement-item" data-achievement="legend_level">
                         <div class="achievement-icon">👑</div>
                         <div class="achievement-info">
-                            <div class="achievement-title">五万富翁</div>
-                            <div class="achievement-desc">累计获得50000金币</div>
+                            <div class="achievement-title">传奇</div>
+                            <div class="achievement-desc">达到传奇等级 (30,000-40,000金币)</div>
                         </div>
-                        <div class="achievement-status" id="fifty_thousand_status">🔒</div>
+                        <div class="achievement-status" id="legend_level_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="bronze_legend_level">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">青铜传奇</div>
+                            <div class="achievement-desc">达到青铜传奇等级 (40,000-50,000金币)</div>
+                        </div>
+                        <div class="achievement-status" id="bronze_legend_level_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="silver_legend_level">
+                        <div class="achievement-icon">💎</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">白银传奇</div>
+                            <div class="achievement-desc">达到白银传奇等级 (50,000-70,000金币)</div>
+                        </div>
+                        <div class="achievement-status" id="silver_legend_level_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="gold_legend_level">
+                        <div class="achievement-icon">⭐</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">黄金传奇</div>
+                            <div class="achievement-desc">达到黄金传奇等级 (70,000-100,000金币)</div>
+                        </div>
+                        <div class="achievement-status" id="gold_legend_level_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="black_gold_legend_level">
+                        <div class="achievement-icon">🌟</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">黑金传奇</div>
+                            <div class="achievement-desc">达到黑金传奇等级 (100,000+金币)</div>
+                        </div>
+                        <div class="achievement-status" id="black_gold_legend_level_status">🔒</div>
                     </div>
                 </div>
             </div>
@@ -508,7 +567,7 @@
         <!-- 底部信息 -->
         <footer class="footer">
             <p>&copy; 2025 金币记录器</p>
-            <p class="version-info">版本 v2.0.1</p>
+            <p class="version-info">版本 v2.1.0</p>
         </footer>
     </div>
 
@@ -571,9 +630,9 @@
                       <!-- 登录表单 -->
                       <form id="loginForm" class="auth-form">
                           <div class="form-group">
-                              <label for="loginUsername">用户名或账户ID：</label>
-                              <input type="text" id="loginUsername" placeholder="输入用户名或24位账户ID" required>
-                              <small class="form-hint">💡 支持用户名或直接使用账户ID登录</small>
+                              <label for="loginUsername">账户ID：</label>
+                              <input type="text" id="loginUsername" placeholder="输入24位账户ID" required>
+                              <small class="form-hint">💡 只能使用账户ID登录，请确保输入正确的24位ID</small>
                           </div>
                           <button type="submit" class="auth-submit-btn">登录</button>
                       </form>
@@ -582,7 +641,8 @@
                       <form id="registerForm" class="auth-form" style="display: none;">
                           <div class="form-group">
                               <label for="registerUsername">用户名：</label>
-                              <input type="text" id="registerUsername" required>
+                              <input type="text" id="registerUsername" placeholder="输入您的用户名" required>
+                              <small class="form-hint">💡 注册后将生成账户ID，请妥善保存</small>
                           </div>
                           <button type="submit" class="auth-submit-btn">注册</button>
                       </form>
@@ -619,7 +679,7 @@
                         <p>💡 <strong>重要提示：</strong></p>
                         <ul>
                             <li>账户ID是您账户的唯一标识</li>
-                            <li>在其他设备上可直接使用账户ID登录</li>
+                            <li>登录时必须使用账户ID，不支持用户名登录</li>
                             <li>请妥善保存，丢失后无法找回</li>
                         </ul>
                     </div>
@@ -789,6 +849,13 @@
                                 <div class="stat-value" id="userDetailAchievements">0</div>
                                 <div class="stat-label">成就数</div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-detail-titles" id="userDetailTitles">
+                        <h4>称号</h4>
+                        <div class="titles-list" id="userDetailTitlesList">
+                            <!-- 动态生成 -->
                         </div>
                     </div>
                     

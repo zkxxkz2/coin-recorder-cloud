@@ -111,6 +111,9 @@ class SimpleIntegration {
         
         // 用户详情模态框事件
         this.setupUserDetailModalEvents();
+        
+        // 多维度排行榜事件
+        this.bindMultiLeaderboardEvents();
     }
 
     // 设置认证模态框事件
@@ -251,7 +254,7 @@ class SimpleIntegration {
         const usernameOrBinId = document.getElementById('loginUsername').value;
 
         if (!usernameOrBinId) {
-            this.showMessage('请输入用户名或 Bin ID', 'error');
+            this.showMessage('请输入账户ID', 'error');
             return;
         }
 
@@ -285,7 +288,7 @@ class SimpleIntegration {
         
         if (result.success) {
             this.hideAuthModal();
-            // 显示 Bin ID 模态框
+            // 显示账户ID模态框
             this.showBinIdModal(result.binId);
         } else {
             this.showMessage(result.error || result.message, 'error');
@@ -545,7 +548,7 @@ class SimpleIntegration {
                 copyBtn.onclick = () => {
                     binIdDisplay.select();
                     document.execCommand('copy');
-                    this.showMessage('Bin ID 已复制到剪贴板', 'success');
+                    this.showMessage('账户ID 已复制到剪贴板', 'success');
                 };
             }
 
@@ -763,6 +766,91 @@ class SimpleIntegration {
             return users ? JSON.parse(users) : [];
         } catch (error) {
             console.error('获取排行榜用户失败:', error);
+            return [];
+        }
+    }
+
+    // 获取所有排行榜用户数据（用于多维度排行榜）
+    async getAllLeaderboardUsers() {
+        try {
+            const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId');
+            if (!publicLeaderboardBinId) {
+                return [];
+            }
+
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': window.jsonbinConfig.apiKey
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('无法获取排行榜数据');
+            }
+
+            const result = await response.json();
+            const leaderboardData = result.record;
+
+            if (!leaderboardData.participants) {
+                return [];
+            }
+
+            // 获取所有参与者的完整数据
+            const userData = [];
+            const promises = leaderboardData.participants.map(async (participant) => {
+                try {
+                    const userResponse = await fetch(`https://api.jsonbin.io/v3/b/${participant.binId}/latest`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': window.jsonbinConfig.apiKey
+                        }
+                    });
+
+                    if (userResponse.ok) {
+                        const userResult = await userResponse.json();
+                        const userData = userResult.record;
+                        
+                        if (userData.coinRecords) {
+                            // 计算当前金币数（最新记录的金币数）
+                            const currentCoins = this.calculateCurrentCoins(userData.coinRecords);
+                            const achievements = Object.keys(userData.achievements || {}).filter(key => userData.achievements[key].unlocked).length;
+                            
+                            // 计算等级信息
+                            const levelInfo = this.getLevelInfo(currentCoins);
+                            
+                            // 计算称号
+                            const titles = this.getTitles(userData.coinRecords, userData.streakData, userData.achievements);
+                            
+                            // 计算增长趋势
+                            const growthTrend = this.calculateGrowthTrend(userData.coinRecords);
+                            
+                            return {
+                                username: participant.username,
+                                currentCoins: currentCoins,
+                                coinRecords: userData.coinRecords || [],
+                                streakData: userData.streakData || {},
+                                achievements: userData.achievements || {},
+                                achievementCount: achievements,
+                                binId: participant.binId,
+                                levelInfo: levelInfo,
+                                titles: titles,
+                                growthTrend: growthTrend
+                            };
+                        }
+                    }
+                } catch (error) {
+                    console.error(`获取用户 ${participant.binId} 数据失败:`, error);
+                }
+                return null;
+            });
+
+            const results = await Promise.all(promises);
+            return results.filter(user => user !== null);
+        } catch (error) {
+            console.error('获取所有排行榜用户失败:', error);
             return [];
         }
     }
@@ -1080,6 +1168,15 @@ class SimpleIntegration {
                                 const currentCoins = this.calculateCurrentCoins(userData.coinRecords);
                                 const achievements = Object.keys(userData.achievements || {}).filter(key => userData.achievements[key].unlocked).length;
                                 
+                                // 计算等级信息
+                                const levelInfo = this.getLevelInfo(currentCoins);
+                                
+                                // 计算称号
+                                const titles = this.getTitles(userData.coinRecords, userData.streakData, userData.achievements);
+                                
+                                // 计算增长趋势
+                                const growthTrend = this.calculateGrowthTrend(userData.coinRecords);
+                                
                                 return {
                                     username: participant.username,
                                     currentCoins: currentCoins,
@@ -1087,7 +1184,10 @@ class SimpleIntegration {
                                     streakData: userData.streakData || {},
                                     achievements: userData.achievements || {},
                                     achievementCount: achievements,
-                                    binId: participant.binId
+                                    binId: participant.binId,
+                                    levelInfo: levelInfo,
+                                    titles: titles,
+                                    growthTrend: growthTrend
                                 };
                             }
                         }
@@ -1170,25 +1270,29 @@ class SimpleIntegration {
             users[index] = user;
         });
 
-        // 更新第二名（左侧）
-        const secondPlace = podiumContainer.querySelector('.second-place');
-        if (secondPlace && users[1]) {
-            const usernameEl = secondPlace.querySelector('.podium-username');
-            const coinsEl = secondPlace.querySelector('.podium-coins');
-            if (usernameEl) usernameEl.textContent = users[1].username;
-            if (coinsEl) coinsEl.textContent = users[1].currentCoins.toLocaleString();
-            secondPlace.style.display = 'flex';
-            secondPlace.onclick = () => this.showUserDetail(users[1], 2);
-        } else if (secondPlace) {
-            secondPlace.style.display = 'none';
-        }
+            // 更新第二名（左侧）
+            const secondPlace = podiumContainer.querySelector('.second-place');
+            if (secondPlace && users[1]) {
+                const usernameEl = secondPlace.querySelector('.podium-username');
+                const coinsEl = secondPlace.querySelector('.podium-coins');
+                if (usernameEl) {
+                    usernameEl.innerHTML = this.formatUserDisplay(users[1]);
+                }
+                if (coinsEl) coinsEl.textContent = users[1].currentCoins.toLocaleString();
+                secondPlace.style.display = 'flex';
+                secondPlace.onclick = () => this.showUserDetail(users[1], 2);
+            } else if (secondPlace) {
+                secondPlace.style.display = 'none';
+            }
 
         // 更新第一名（中间）
         const firstPlace = podiumContainer.querySelector('.first-place');
         if (firstPlace && users[0]) {
             const usernameEl = firstPlace.querySelector('.podium-username');
             const coinsEl = firstPlace.querySelector('.podium-coins');
-            if (usernameEl) usernameEl.textContent = users[0].username;
+            if (usernameEl) {
+                usernameEl.innerHTML = this.formatUserDisplay(users[0]);
+            }
             if (coinsEl) coinsEl.textContent = users[0].currentCoins.toLocaleString();
             firstPlace.style.display = 'flex';
             firstPlace.onclick = () => this.showUserDetail(users[0], 1);
@@ -1201,7 +1305,9 @@ class SimpleIntegration {
         if (thirdPlace && users[2]) {
             const usernameEl = thirdPlace.querySelector('.podium-username');
             const coinsEl = thirdPlace.querySelector('.podium-coins');
-            if (usernameEl) usernameEl.textContent = users[2].username;
+            if (usernameEl) {
+                usernameEl.innerHTML = this.formatUserDisplay(users[2]);
+            }
             if (coinsEl) coinsEl.textContent = users[2].currentCoins.toLocaleString();
             thirdPlace.style.display = 'flex';
             thirdPlace.onclick = () => this.showUserDetail(users[2], 3);
@@ -1220,23 +1326,23 @@ class SimpleIntegration {
             return;
         }
 
-        const html = users.map((user, index) => {
-            const rank = index + 4; // 从第四名开始
-            return `
-                <div class="leaderboard-list-item" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
-                    <div class="rank">${rank}</div>
-                    <div class="user-info">
-                        <div class="username">${user.username}</div>
-                        <div class="user-stats">
-                            <span>${user.coinRecords.length}条</span>
-                            <span>${user.streakData?.currentStreak || 0}天</span>
-                            <span>${user.achievementCount || 0}成就</span>
+            const html = users.map((user, index) => {
+                const rank = index + 4; // 从第四名开始
+                return `
+                    <div class="leaderboard-list-item" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
+                        <div class="rank">${rank}</div>
+                        <div class="user-info">
+                            <div class="username">${this.formatUserDisplay(user)}</div>
+                            <div class="user-stats">
+                                <span>${user.coinRecords.length}条</span>
+                                <span>${user.streakData?.currentStreak || 0}天</span>
+                                <span>${user.achievementCount || 0}成就</span>
+                            </div>
                         </div>
+                        <div class="coins">${user.currentCoins.toLocaleString()}</div>
                     </div>
-                    <div class="coins">${user.currentCoins.toLocaleString()}</div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
 
         leaderboardList.innerHTML = html;
     }
@@ -1346,6 +1452,176 @@ class SimpleIntegration {
         return sortedRecords[0].coins || 0;
     }
 
+    // 等级系统
+    getLevelInfo(currentCoins) {
+        const levels = [
+            { name: '新手', min: 0, max: 1000, color: '#95a5a6', icon: '🌱' },
+            { name: '白银', min: 1000, max: 5000, color: '#bdc3c7', icon: '🥈' },
+            { name: '黄金', min: 5000, max: 15000, color: '#f1c40f', icon: '🥇' },
+            { name: '黑金', min: 15000, max: 30000, color: '#34495e', icon: '⚫' },
+            { name: '传奇', min: 30000, max: 40000, color: '#9b59b6', icon: '👑' },
+            { name: '青铜传奇', min: 40000, max: 50000, color: '#cd7f32', icon: '🏆' },
+            { name: '白银传奇', min: 50000, max: 70000, color: '#c0c0c0', icon: '💎' },
+            { name: '黄金传奇', min: 70000, max: 100000, color: '#ffd700', icon: '⭐' },
+            { name: '黑金传奇', min: 100000, max: Infinity, color: '#2c3e50', icon: '🌟' }
+        ];
+
+        for (const level of levels) {
+            if (currentCoins >= level.min && currentCoins < level.max) {
+                const progress = Math.min((currentCoins - level.min) / (level.max - level.min), 1);
+                return {
+                    ...level,
+                    progress: progress,
+                    nextLevel: levels[levels.indexOf(level) + 1] || null
+                };
+            }
+        }
+        return levels[levels.length - 1];
+    }
+
+    // 称号系统
+    getTitles(coinRecords, streakData, achievements) {
+        const titles = [];
+        
+        if (!coinRecords || coinRecords.length === 0) {
+            return titles;
+        }
+
+        // 新手：前10条记录
+        if (coinRecords.length <= 10) {
+            titles.push({ name: '新手', icon: '🌱', color: '#95a5a6' });
+        }
+
+        // 成长者：连续7天记录
+        if (streakData && streakData.currentStreak >= 7) {
+            titles.push({ name: '成长者', icon: '📈', color: '#27ae60' });
+        }
+
+        // 坚持者：连续30天记录
+        if (streakData && streakData.currentStreak >= 30) {
+            titles.push({ name: '坚持者', icon: '💪', color: '#f39c12' });
+        }
+
+        // 爆发者：单日增长超过1000
+        const maxDailyGrowth = this.calculateMaxDailyGrowth(coinRecords);
+        if (maxDailyGrowth >= 1000) {
+            titles.push({ name: '爆发者', icon: '🚀', color: '#e74c3c' });
+        }
+
+        // 稳定者：连续10天增长
+        if (this.hasConsecutiveGrowth(coinRecords, 10)) {
+            titles.push({ name: '稳定者', icon: '📊', color: '#3498db' });
+        }
+
+        // 传奇：总金币超过100万
+        const totalCoins = coinRecords.reduce((sum, record) => sum + (record.coins || 0), 0);
+        if (totalCoins >= 1000000) {
+            titles.push({ name: '传奇', icon: '👑', color: '#9b59b6' });
+        }
+
+        return titles;
+    }
+
+    // 计算最大单日增长
+    calculateMaxDailyGrowth(coinRecords) {
+        if (!coinRecords || coinRecords.length < 2) return 0;
+        
+        const sortedRecords = coinRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeA - timeB;
+        });
+
+        let maxGrowth = 0;
+        for (let i = 1; i < sortedRecords.length; i++) {
+            const growth = sortedRecords[i].coins - sortedRecords[i-1].coins;
+            maxGrowth = Math.max(maxGrowth, growth);
+        }
+        return maxGrowth;
+    }
+
+    // 检查是否有连续增长
+    hasConsecutiveGrowth(coinRecords, days) {
+        if (!coinRecords || coinRecords.length < days) return false;
+        
+        const sortedRecords = coinRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeA - timeB;
+        });
+
+        let consecutiveCount = 0;
+        for (let i = 1; i < sortedRecords.length; i++) {
+            if (sortedRecords[i].coins > sortedRecords[i-1].coins) {
+                consecutiveCount++;
+                if (consecutiveCount >= days - 1) return true;
+            } else {
+                consecutiveCount = 0;
+            }
+        }
+        return false;
+    }
+
+    // 计算增长趋势
+    calculateGrowthTrend(coinRecords) {
+        if (!coinRecords || coinRecords.length < 2) return { trend: 'stable', percentage: 0 };
+        
+        const sortedRecords = coinRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeA - timeB;
+        });
+
+        const recent = sortedRecords.slice(-7); // 最近7天
+        const older = sortedRecords.slice(-14, -7); // 前7天
+
+        if (recent.length === 0 || older.length === 0) return { trend: 'stable', percentage: 0 };
+
+        const recentAvg = recent.reduce((sum, r) => sum + r.coins, 0) / recent.length;
+        const olderAvg = older.reduce((sum, r) => sum + r.coins, 0) / older.length;
+
+        const percentage = olderAvg > 0 ? ((recentAvg - olderAvg) / olderAvg) * 100 : 0;
+        
+        if (percentage > 5) return { trend: 'up', percentage: Math.round(percentage) };
+        if (percentage < -5) return { trend: 'down', percentage: Math.round(Math.abs(percentage)) };
+        return { trend: 'stable', percentage: 0 };
+    }
+
+    // 格式化用户显示（包含等级、称号、趋势）
+    formatUserDisplay(user) {
+        let html = `<span class="username-text">${user.username}</span>`;
+        
+        // 添加等级标识
+        if (user.levelInfo) {
+            html += ` <span class="level-badge" style="color: ${user.levelInfo.color};">${user.levelInfo.icon} ${user.levelInfo.name}</span>`;
+        }
+        
+        // 添加主要称号
+        if (user.titles && user.titles.length > 0) {
+            const mainTitle = user.titles[0]; // 显示第一个称号
+            html += ` <span class="title-badge" style="color: ${mainTitle.color};">${mainTitle.icon} ${mainTitle.name}</span>`;
+        }
+        
+        // 添加增长趋势
+        if (user.growthTrend) {
+            let trendIcon = '';
+            let trendColor = '';
+            if (user.growthTrend.trend === 'up') {
+                trendIcon = '📈';
+                trendColor = '#27ae60';
+            } else if (user.growthTrend.trend === 'down') {
+                trendIcon = '📉';
+                trendColor = '#e74c3c';
+            } else {
+                trendIcon = '➡️';
+                trendColor = '#95a5a6';
+            }
+            html += ` <span class="trend-badge" style="color: ${trendColor};">${trendIcon}</span>`;
+        }
+        
+        return html;
+    }
+
     // 显示用户详情
     showUserDetail(user, rank) {
         const modal = document.getElementById('userDetailModal');
@@ -1360,7 +1636,12 @@ class SimpleIntegration {
         const achievementsEl = document.getElementById('userDetailAchievements');
         const lastActiveEl = document.getElementById('userDetailLastActive');
 
-        if (usernameEl) usernameEl.textContent = user.username;
+        if (usernameEl) {
+            usernameEl.innerHTML = `<span class="username-text">${user.username}</span>`;
+            if (user.levelInfo) {
+                usernameEl.innerHTML += ` <span class="level-badge" style="color: ${user.levelInfo.color};">${user.levelInfo.icon} ${user.levelInfo.name}</span>`;
+            }
+        }
         if (rankEl) rankEl.textContent = `排名: ${rank}`;
         if (totalCoinsEl) totalCoinsEl.textContent = user.currentCoins.toLocaleString();
         if (recordCountEl) recordCountEl.textContent = user.coinRecords.length;
@@ -1372,6 +1653,9 @@ class SimpleIntegration {
             const lastActive = this.calculateLastActiveTime(user);
             lastActiveEl.textContent = lastActive;
         }
+
+        // 更新称号
+        this.updateUserDetailTitles(user);
 
         // 更新最近记录
         this.updateUserDetailRecords(user);
@@ -1450,6 +1734,433 @@ class SimpleIntegration {
         if (modal) {
             modal.style.display = 'none';
         }
+    }
+
+    // 更新用户详情称号
+    updateUserDetailTitles(user) {
+        const titlesList = document.getElementById('userDetailTitlesList');
+        if (!titlesList) return;
+
+        if (!user.titles || user.titles.length === 0) {
+            titlesList.innerHTML = '<div class="no-titles">暂无称号</div>';
+            return;
+        }
+
+        const html = user.titles.map(title => `
+            <div class="title-item" style="color: ${title.color};">
+                <span class="title-icon">${title.icon}</span>
+                <span class="title-name">${title.name}</span>
+            </div>
+        `).join('');
+
+        titlesList.innerHTML = html;
+    }
+
+    // 绑定多维度排行榜事件
+    bindMultiLeaderboardEvents() {
+        // 主排行榜标签页
+        const leaderboardTabs = document.querySelectorAll('.leaderboard-tab');
+        leaderboardTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabType = tab.getAttribute('data-tab');
+                this.switchLeaderboardTab(tabType);
+            });
+        });
+
+        // 增长排行榜子标签页
+        const growthTabs = document.querySelectorAll('.growth-tab');
+        growthTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const growthType = tab.getAttribute('data-growth');
+                this.switchGrowthTab(growthType);
+            });
+        });
+    }
+
+    // 切换排行榜标签页
+    switchLeaderboardTab(tabType) {
+        // 更新标签页状态
+        const tabs = document.querySelectorAll('.leaderboard-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        
+        const activeTab = document.querySelector(`[data-tab="${tabType}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+
+        // 隐藏所有排行榜内容
+        const leaderboards = ['podiumContainer', 'leaderboardList', 'growthLeaderboard', 'activityLeaderboard', 'achievementLeaderboard'];
+        leaderboards.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.style.display = 'none';
+        });
+
+        // 显示对应的排行榜内容
+        switch (tabType) {
+            case 'main':
+                const podiumContainer = document.getElementById('podiumContainer');
+                const leaderboardList = document.getElementById('leaderboardList');
+                if (podiumContainer) podiumContainer.style.display = 'flex';
+                if (leaderboardList) leaderboardList.style.display = 'block';
+                break;
+            case 'growth':
+                const growthLeaderboard = document.getElementById('growthLeaderboard');
+                if (growthLeaderboard) growthLeaderboard.style.display = 'block';
+                // 默认显示日增长
+                this.switchGrowthTab('daily');
+                break;
+            case 'activity':
+                const activityLeaderboard = document.getElementById('activityLeaderboard');
+                if (activityLeaderboard) activityLeaderboard.style.display = 'block';
+                // 加载活跃度排行榜数据
+                this.loadActivityLeaderboard();
+                break;
+            case 'achievement':
+                const achievementLeaderboard = document.getElementById('achievementLeaderboard');
+                if (achievementLeaderboard) achievementLeaderboard.style.display = 'block';
+                // 加载成就排行榜数据
+                this.loadAchievementLeaderboard();
+                break;
+        }
+    }
+
+    // 切换增长排行榜子标签页
+    switchGrowthTab(growthType) {
+        // 更新子标签页状态
+        const tabs = document.querySelectorAll('.growth-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        
+        const activeTab = document.querySelector(`[data-growth="${growthType}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+
+        // 加载对应的增长排行榜数据
+        this.loadGrowthLeaderboard(growthType);
+    }
+
+    // 加载增长排行榜
+    async loadGrowthLeaderboard(growthType) {
+        try {
+            const userData = await this.getAllLeaderboardUsers();
+            if (!userData || userData.length === 0) {
+                this.updateGrowthLeaderboard([]);
+                return;
+            }
+
+            // 计算增长数据
+            const growthData = userData.map(user => {
+                let growthValue = 0;
+                switch (growthType) {
+                    case 'daily':
+                        growthValue = this.calculateDailyGrowth(user.coinRecords);
+                        break;
+                    case 'weekly':
+                        growthValue = this.calculateWeeklyGrowth(user.coinRecords);
+                        break;
+                    case 'monthly':
+                        growthValue = this.calculateMonthlyGrowth(user.coinRecords);
+                        break;
+                    case 'total':
+                        growthValue = this.calculateTotalGrowth(user.coinRecords);
+                        break;
+                }
+                return {
+                    ...user,
+                    growthValue: growthValue
+                };
+            }).filter(user => user.growthValue > 0);
+
+            // 按增长值排序
+            growthData.sort((a, b) => b.growthValue - a.growthValue);
+            this.updateGrowthLeaderboard(growthData);
+        } catch (error) {
+            console.error('加载增长排行榜失败:', error);
+            this.updateGrowthLeaderboard([]);
+        }
+    }
+
+    // 计算日增长（最近24小时）
+    calculateDailyGrowth(coinRecords) {
+        if (!coinRecords || coinRecords.length < 2) return 0;
+        
+        const now = new Date();
+        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        
+        const recentRecords = coinRecords.filter(record => {
+            const recordTime = new Date(record.timestamp || record.date);
+            return recordTime >= yesterday;
+        });
+        
+        if (recentRecords.length === 0) return 0;
+        
+        const sortedRecords = recentRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeA - timeB;
+        });
+        
+        return sortedRecords[sortedRecords.length - 1].coins - sortedRecords[0].coins;
+    }
+
+    // 计算周增长（最近7天）
+    calculateWeeklyGrowth(coinRecords) {
+        if (!coinRecords || coinRecords.length < 2) return 0;
+        
+        const now = new Date();
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        const recentRecords = coinRecords.filter(record => {
+            const recordTime = new Date(record.timestamp || record.date);
+            return recordTime >= weekAgo;
+        });
+        
+        if (recentRecords.length === 0) return 0;
+        
+        const sortedRecords = recentRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeA - timeB;
+        });
+        
+        return sortedRecords[sortedRecords.length - 1].coins - sortedRecords[0].coins;
+    }
+
+    // 计算月增长（最近30天）
+    calculateMonthlyGrowth(coinRecords) {
+        if (!coinRecords || coinRecords.length < 2) return 0;
+        
+        const now = new Date();
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        
+        const recentRecords = coinRecords.filter(record => {
+            const recordTime = new Date(record.timestamp || record.date);
+            return recordTime >= monthAgo;
+        });
+        
+        if (recentRecords.length === 0) return 0;
+        
+        const sortedRecords = recentRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeA - timeB;
+        });
+        
+        return sortedRecords[sortedRecords.length - 1].coins - sortedRecords[0].coins;
+    }
+
+    // 计算总增长（累计增长）
+    calculateTotalGrowth(coinRecords) {
+        if (!coinRecords || coinRecords.length < 2) return 0;
+        
+        const sortedRecords = coinRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeA - timeB;
+        });
+        
+        return sortedRecords[sortedRecords.length - 1].coins - sortedRecords[0].coins;
+    }
+
+    // 更新增长排行榜显示
+    updateGrowthLeaderboard(growthData) {
+        const growthList = document.getElementById('growthList');
+        if (!growthList) return;
+
+        if (!growthData || growthData.length === 0) {
+            growthList.innerHTML = '<div class="no-data">暂无增长数据</div>';
+            return;
+        }
+
+        const html = growthData.map((user, index) => {
+            const rank = index + 1;
+            return `
+                <div class="growth-item" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
+                    <div class="user-info">
+                        <div class="rank">${rank}</div>
+                        <div class="username">${this.formatUserDisplay(user)}</div>
+                    </div>
+                    <div class="growth-value">+${user.growthValue.toLocaleString()}</div>
+                </div>
+            `;
+        }).join('');
+
+        growthList.innerHTML = html;
+    }
+
+    // 加载活跃度排行榜
+    async loadActivityLeaderboard() {
+        try {
+            const userData = await this.getAllLeaderboardUsers();
+            if (!userData || userData.length === 0) {
+                this.updateActivityLeaderboard([]);
+                return;
+            }
+
+            // 计算活跃度数据
+            const activityData = userData.map(user => {
+                const streakDays = user.streakData?.currentStreak || 0;
+                const totalRecords = user.coinRecords.length;
+                const avgFrequency = this.calculateAverageFrequency(user.coinRecords);
+                const lastActive = this.calculateLastActiveTime(user);
+                
+                // 活跃度评分 = 连续天数 * 2 + 总记录数 + 平均频率 * 10
+                const activityScore = streakDays * 2 + totalRecords + avgFrequency * 10;
+                
+                return {
+                    ...user,
+                    streakDays: streakDays,
+                    totalRecords: totalRecords,
+                    avgFrequency: avgFrequency,
+                    lastActive: lastActive,
+                    activityScore: activityScore
+                };
+            });
+
+            // 按活跃度评分排序
+            activityData.sort((a, b) => b.activityScore - a.activityScore);
+            this.updateActivityLeaderboard(activityData);
+        } catch (error) {
+            console.error('加载活跃度排行榜失败:', error);
+            this.updateActivityLeaderboard([]);
+        }
+    }
+
+    // 计算平均记录频率（每天记录数）
+    calculateAverageFrequency(coinRecords) {
+        if (!coinRecords || coinRecords.length === 0) return 0;
+        
+        const sortedRecords = coinRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeA - timeB;
+        });
+        
+        const firstRecord = new Date(sortedRecords[0].timestamp || sortedRecords[0].date);
+        const lastRecord = new Date(sortedRecords[sortedRecords.length - 1].timestamp || sortedRecords[sortedRecords.length - 1].date);
+        
+        const daysDiff = Math.max(1, (lastRecord - firstRecord) / (1000 * 60 * 60 * 24));
+        return coinRecords.length / daysDiff;
+    }
+
+    // 更新活跃度排行榜显示
+    updateActivityLeaderboard(activityData) {
+        const activityList = document.getElementById('activityList');
+        if (!activityList) return;
+
+        if (!activityData || activityData.length === 0) {
+            activityList.innerHTML = '<div class="no-data">暂无活跃度数据</div>';
+            return;
+        }
+
+        const html = activityData.map((user, index) => {
+            const rank = index + 1;
+            return `
+                <div class="activity-item" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
+                    <div class="user-info">
+                        <div class="rank">${rank}</div>
+                        <div class="username">${this.formatUserDisplay(user)}</div>
+                    </div>
+                    <div class="activity-value">
+                        <div class="activity-stats">
+                            <span>${user.streakDays}天</span>
+                            <span>${user.totalRecords}条</span>
+                            <span>${user.avgFrequency.toFixed(1)}/天</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        activityList.innerHTML = html;
+    }
+
+    // 加载成就排行榜
+    async loadAchievementLeaderboard() {
+        try {
+            const userData = await this.getAllLeaderboardUsers();
+            if (!userData || userData.length === 0) {
+                this.updateAchievementLeaderboard([]);
+                return;
+            }
+
+            // 计算成就数据
+            const achievementData = userData.map(user => {
+                const achievementCount = user.achievementCount || 0;
+                const achievementPoints = this.calculateAchievementPoints(user.achievements);
+                
+                return {
+                    ...user,
+                    achievementCount: achievementCount,
+                    achievementPoints: achievementPoints
+                };
+            });
+
+            // 按成就点数排序
+            achievementData.sort((a, b) => b.achievementPoints - a.achievementPoints);
+            this.updateAchievementLeaderboard(achievementData);
+        } catch (error) {
+            console.error('加载成就排行榜失败:', error);
+            this.updateAchievementLeaderboard([]);
+        }
+    }
+
+    // 计算成就点数
+    calculateAchievementPoints(achievements) {
+        if (!achievements) return 0;
+        
+        const achievementWeights = {
+            'first_record': 10,
+            'week_streak': 20,
+            'month_streak': 50,
+            'hundred_days': 100,
+            'thousand_coins': 30,
+            'ten_thousand': 60,
+            'twenty_thousand': 80,
+            'thirty_thousand': 100,
+            'forty_thousand': 120,
+            'fifty_thousand': 150
+        };
+        
+        let totalPoints = 0;
+        Object.keys(achievements).forEach(key => {
+            if (achievements[key].unlocked) {
+                totalPoints += achievementWeights[key] || 10;
+            }
+        });
+        
+        return totalPoints;
+    }
+
+    // 更新成就排行榜显示
+    updateAchievementLeaderboard(achievementData) {
+        const achievementList = document.getElementById('achievementList');
+        if (!achievementList) return;
+
+        if (!achievementData || achievementData.length === 0) {
+            achievementList.innerHTML = '<div class="no-data">暂无成就数据</div>';
+            return;
+        }
+
+        const html = achievementData.map((user, index) => {
+            const rank = index + 1;
+            return `
+                <div class="achievement-item" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
+                    <div class="user-info">
+                        <div class="rank">${rank}</div>
+                        <div class="username">${this.formatUserDisplay(user)}</div>
+                    </div>
+                    <div class="achievement-value">
+                        <div class="achievement-stats">
+                            <span>${user.achievementCount}个</span>
+                            <span>${user.achievementPoints}分</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        achievementList.innerHTML = html;
     }
 
     // 设置用户详情模态框事件

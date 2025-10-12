@@ -260,45 +260,34 @@ class SimpleAuthService {
         }
     }
 
-    // 登录用户（支持用户名+密码或 bin ID）
-    async login(usernameOrBinId) {
+    // 登录用户（仅支持账户ID）
+    async login(binId) {
         try {
             // 验证输入
-            if (!usernameOrBinId) {
+            if (!binId) {
                 return {
                     success: false,
-                    error: '用户名或 Bin ID 不能为空',
+                    error: '账户ID不能为空',
                     message: '登录失败'
                 };
             }
 
-            let user = null;
-            let binId = null;
-
-            // 判断是 bin ID 还是用户名
-            if (this.isValidBinId(usernameOrBinId)) {
-                // 通过 bin ID 登录
-                const result = await this.loginByBinId(usernameOrBinId);
-                if (!result.success) {
-                    return result;
-                }
-                user = result.user;
-                binId = usernameOrBinId;
-            } else {
-                // 通过用户名登录（无需密码）
-                // 查找用户（从云端查找）
-                user = await this.getUserByUsernameFromCloud(usernameOrBinId);
-                if (!user) {
-                    return {
-                        success: false,
-                        error: '用户不存在',
-                        message: '登录失败'
-                    };
-                }
-
-                // 获取用户的 bin ID
-                binId = localStorage.getItem('coinTrackerBinId');
+            // 验证账户ID格式
+            if (!this.isValidBinId(binId)) {
+                return {
+                    success: false,
+                    error: '账户ID格式不正确，请输入24位账户ID',
+                    message: '登录失败'
+                };
             }
+
+            // 通过账户ID登录
+            const result = await this.loginByBinId(binId);
+            if (!result.success) {
+                return result;
+            }
+            
+            const user = result.user;
 
             // 更新最后登录时间
             user.lastLogin = new Date().toISOString();
@@ -306,15 +295,13 @@ class SimpleAuthService {
             this.currentUser = user;
             this.notifyAuthStateChange(user);
 
-            // 保存 binId
-            if (binId) {
-                localStorage.setItem('coinTrackerBinId', binId);
-                this.saveKnownBinId(binId);
-                
-                // 确保同步服务设置了正确的 binId
-                if (this.syncService) {
-                    this.syncService.binId = binId;
-                }
+            // 保存账户ID
+            localStorage.setItem('coinTrackerBinId', binId);
+            this.saveKnownBinId(binId);
+            
+            // 确保同步服务设置了正确的 binId
+            if (this.syncService) {
+                this.syncService.binId = binId;
             }
 
             return {
@@ -333,7 +320,7 @@ class SimpleAuthService {
         }
     }
 
-    // 通过 bin ID 登录
+    // 通过账户ID登录
     async loginByBinId(binId) {
         try {
             // 读取 bin 数据
@@ -341,7 +328,7 @@ class SimpleAuthService {
             if (!binData.success) {
                 return {
                     success: false,
-                    error: 'Bin ID 无效或不存在',
+                    error: '账户ID无效或不存在',
                     message: '登录失败'
                 };
             }
@@ -350,7 +337,7 @@ class SimpleAuthService {
             if (!binData.data.users || binData.data.users.length === 0) {
                 return {
                     success: false,
-                    error: '该 Bin ID 没有关联的用户',
+                    error: '该账户ID没有关联的用户',
                     message: '登录失败'
                 };
             }
@@ -374,21 +361,21 @@ class SimpleAuthService {
                 success: true,
                 user: user,
                 binId: binId,
-                message: 'Bin ID 登录成功'
+                message: '账户ID登录成功'
             };
         } catch (error) {
-            console.error('Bin ID 登录失败:', error);
+            console.error('账户ID登录失败:', error);
             return {
                 success: false,
                 error: error.message,
-                message: 'Bin ID 登录失败'
+                message: '账户ID登录失败'
             };
         }
     }
 
-    // 验证是否为有效的 bin ID
+    // 验证是否为有效的账户ID
     isValidBinId(input) {
-        // JSONBin.io bin ID 通常是 24 位十六进制字符串
+        // JSONBin.io 账户ID通常是 24 位十六进制字符串
         return /^[a-f0-9]{24}$/i.test(input);
     }
 
@@ -442,7 +429,7 @@ class SimpleAuthService {
         }
     }
 
-    // 获取所有可能的 bin ID
+    // 获取所有可能的账户ID
     async getAllPossibleBinIds() {
         const binIds = [];
         
@@ -460,11 +447,11 @@ class SimpleAuthService {
             }
         });
         
-        console.log('所有可能的 bin ID:', binIds);
+        console.log('所有可能的账户ID:', binIds);
         return binIds;
     }
 
-    // 保存 binId 到已知列表
+    // 保存账户ID到已知列表
     saveKnownBinId(binId) {
         const knownBinIds = JSON.parse(localStorage.getItem('knownBinIds') || '[]');
         if (!knownBinIds.includes(binId)) {

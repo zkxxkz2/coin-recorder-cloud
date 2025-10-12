@@ -844,6 +844,23 @@ class CoinTracker {
         return this.coinData.length > 0 ? this.coinData[this.coinData.length - 1].coins : 0;
     }
 
+    // 计算当前金币数（最新记录的金币数）
+    calculateCurrentCoins() {
+        if (!this.coinData || this.coinData.length === 0) {
+            return 0;
+        }
+        
+        // 按时间戳排序，获取最新的记录
+        const sortedRecords = this.coinData.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeB - timeA; // 降序排列，最新的在前
+        });
+
+        // 返回最新记录的金币数
+        return sortedRecords[0].coins || 0;
+    }
+
     formatDate(dateString) {
         const date = new Date(dateString);
         return date.toLocaleDateString('zh-CN', {
@@ -1632,12 +1649,16 @@ class CoinTracker {
             week_streak: { unlocked: false, unlockedDate: null },
             month_streak: { unlocked: false, unlockedDate: null },
             hundred_days: { unlocked: false, unlockedDate: null },
-            thousand_coins: { unlocked: false, unlockedDate: null },
-            ten_thousand: { unlocked: false, unlockedDate: null },
-            twenty_thousand: { unlocked: false, unlockedDate: null },
-            thirty_thousand: { unlocked: false, unlockedDate: null },
-            forty_thousand: { unlocked: false, unlockedDate: null },
-            fifty_thousand: { unlocked: false, unlockedDate: null }
+            // 等级成就系统
+            novice_level: { unlocked: false, unlockedDate: null },
+            silver_level: { unlocked: false, unlockedDate: null },
+            gold_level: { unlocked: false, unlockedDate: null },
+            black_gold_level: { unlocked: false, unlockedDate: null },
+            legend_level: { unlocked: false, unlockedDate: null },
+            bronze_legend_level: { unlocked: false, unlockedDate: null },
+            silver_legend_level: { unlocked: false, unlockedDate: null },
+            gold_legend_level: { unlocked: false, unlockedDate: null },
+            black_gold_legend_level: { unlocked: false, unlockedDate: null }
         };
     }
 
@@ -1674,35 +1695,52 @@ class CoinTracker {
             newUnlocked.push('hundred_days');
         }
 
-        // 检查金币成就
-        if (totalCoins >= 1000 && !this.achievements.thousand_coins.unlocked) {
-            this.unlockAchievement('thousand_coins');
-            newUnlocked.push('thousand_coins');
+        // 检查等级成就（基于当前金币数）
+        const currentCoins = this.calculateCurrentCoins();
+        
+        if (currentCoins >= 0 && !this.achievements.novice_level.unlocked) {
+            this.unlockAchievement('novice_level');
+            newUnlocked.push('novice_level');
         }
 
-        if (totalCoins >= 10000 && !this.achievements.ten_thousand.unlocked) {
-            this.unlockAchievement('ten_thousand');
-            newUnlocked.push('ten_thousand');
+        if (currentCoins >= 1000 && !this.achievements.silver_level.unlocked) {
+            this.unlockAchievement('silver_level');
+            newUnlocked.push('silver_level');
         }
 
-        if (totalCoins >= 20000 && !this.achievements.twenty_thousand.unlocked) {
-            this.unlockAchievement('twenty_thousand');
-            newUnlocked.push('twenty_thousand');
+        if (currentCoins >= 5000 && !this.achievements.gold_level.unlocked) {
+            this.unlockAchievement('gold_level');
+            newUnlocked.push('gold_level');
         }
 
-        if (totalCoins >= 30000 && !this.achievements.thirty_thousand.unlocked) {
-            this.unlockAchievement('thirty_thousand');
-            newUnlocked.push('thirty_thousand');
+        if (currentCoins >= 15000 && !this.achievements.black_gold_level.unlocked) {
+            this.unlockAchievement('black_gold_level');
+            newUnlocked.push('black_gold_level');
         }
 
-        if (totalCoins >= 40000 && !this.achievements.forty_thousand.unlocked) {
-            this.unlockAchievement('forty_thousand');
-            newUnlocked.push('forty_thousand');
+        if (currentCoins >= 30000 && !this.achievements.legend_level.unlocked) {
+            this.unlockAchievement('legend_level');
+            newUnlocked.push('legend_level');
         }
 
-        if (totalCoins >= 50000 && !this.achievements.fifty_thousand.unlocked) {
-            this.unlockAchievement('fifty_thousand');
-            newUnlocked.push('fifty_thousand');
+        if (currentCoins >= 40000 && !this.achievements.bronze_legend_level.unlocked) {
+            this.unlockAchievement('bronze_legend_level');
+            newUnlocked.push('bronze_legend_level');
+        }
+
+        if (currentCoins >= 50000 && !this.achievements.silver_legend_level.unlocked) {
+            this.unlockAchievement('silver_legend_level');
+            newUnlocked.push('silver_legend_level');
+        }
+
+        if (currentCoins >= 70000 && !this.achievements.gold_legend_level.unlocked) {
+            this.unlockAchievement('gold_legend_level');
+            newUnlocked.push('gold_legend_level');
+        }
+
+        if (currentCoins >= 100000 && !this.achievements.black_gold_legend_level.unlocked) {
+            this.unlockAchievement('black_gold_legend_level');
+            newUnlocked.push('black_gold_legend_level');
         }
 
         // 显示成就解锁提示
@@ -1759,12 +1797,16 @@ class CoinTracker {
             week_streak: '坚持7天',
             month_streak: '坚持30天',
             hundred_days: '百日坚持',
-            thousand_coins: '千金富翁',
-            ten_thousand: '万元户',
-            twenty_thousand: '两万富翁',
-            thirty_thousand: '三万富翁',
-            forty_thousand: '四万富翁',
-            fifty_thousand: '五万富翁'
+            // 等级成就名称
+            novice_level: '新手',
+            silver_level: '白银',
+            gold_level: '黄金',
+            black_gold_level: '黑金',
+            legend_level: '传奇',
+            bronze_legend_level: '青铜传奇',
+            silver_legend_level: '白银传奇',
+            gold_legend_level: '黄金传奇',
+            black_gold_legend_level: '黑金传奇'
         };
 
         // 创建成就解锁动画元素
@@ -1858,12 +1900,16 @@ class CoinTracker {
             week_streak: '坚持7天',
             month_streak: '坚持30天',
             hundred_days: '百日坚持',
-            thousand_coins: '千金富翁',
-            ten_thousand: '万元户',
-            twenty_thousand: '两万富翁',
-            thirty_thousand: '三万富翁',
-            forty_thousand: '四万富翁',
-            fifty_thousand: '五万富翁'
+            // 等级成就名称
+            novice_level: '新手',
+            silver_level: '白银',
+            gold_level: '黄金',
+            black_gold_level: '黑金',
+            legend_level: '传奇',
+            bronze_legend_level: '青铜传奇',
+            silver_legend_level: '白银传奇',
+            gold_legend_level: '黄金传奇',
+            black_gold_legend_level: '黑金传奇'
         };
 
         const unlockDate = new Date(achievement.unlockedDate);
