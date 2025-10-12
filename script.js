@@ -75,6 +75,7 @@ class CoinTracker {
         this.updateChallengeDisplay();
         this.initCharts();
         this.checkAchievements(); // 检查是否有新成就可以解锁
+        this.startTimeUpdate(); // 开始更新时间显示
         
         // 初始化简单集成
         await this.initSimpleIntegration();
@@ -686,7 +687,7 @@ class CoinTracker {
     }
 
 
-    // 计算周统计
+    // 计算周统计（自然周，显示周末的数额）
     calculateWeeklyStats() {
         const weeks = {};
         this.coinData.forEach(record => {
@@ -709,21 +710,35 @@ class CoinTracker {
             }
 
             if (!weeks[weekKey]) {
-                weeks[weekKey] = { total: 0, count: 0 };
+                weeks[weekKey] = { 
+                    total: 0, 
+                    count: 0, 
+                    weekStart: weekKey,
+                    records: []
+                };
             }
             weeks[weekKey].total += record.coins;
             weeks[weekKey].count++;
+            weeks[weekKey].records.push(record);
         });
 
+        // 计算每周末的数额（该周最后一天的金币数）
         return Object.entries(weeks)
-            .map(([weekStart, data], index) => ({
-                week: index + 1,
-                total: data.total
-            }))
+            .map(([weekStart, data], index) => {
+                // 按日期排序，获取该周最后一天的金币数
+                const sortedRecords = data.records.sort((a, b) => new Date(a.date) - new Date(b.date));
+                const lastRecord = sortedRecords[sortedRecords.length - 1];
+                
+                return {
+                    week: index + 1,
+                    total: lastRecord ? lastRecord.coins : 0,
+                    weekStart: weekStart
+                };
+            })
             .slice(-8); // 只显示最近8周
     }
 
-    // 计算月统计
+    // 计算月统计（自然月，显示月末的数额）
     calculateMonthlyStats() {
         const months = {};
         this.coinData.forEach(record => {
@@ -732,17 +747,31 @@ class CoinTracker {
             const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
 
             if (!months[monthKey]) {
-                months[monthKey] = { total: 0, count: 0, year: date.getFullYear(), month: date.getMonth() + 1 };
+                months[monthKey] = { 
+                    total: 0, 
+                    count: 0, 
+                    year: date.getFullYear(), 
+                    month: date.getMonth() + 1,
+                    records: []
+                };
             }
             months[monthKey].total += record.coins;
             months[monthKey].count++;
+            months[monthKey].records.push(record);
         });
 
+        // 计算每月末的数额（该月最后一天的金币数）
         return Object.values(months)
-            .map(month => ({
-                ...month,
-                total: month.total
-            }))
+            .map(month => {
+                // 按日期排序，获取该月最后一天的金币数
+                const sortedRecords = month.records.sort((a, b) => new Date(a.date) - new Date(b.date));
+                const lastRecord = sortedRecords[sortedRecords.length - 1];
+                
+                return {
+                    ...month,
+                    total: lastRecord ? lastRecord.coins : 0
+                };
+            })
             .slice(-6); // 只显示最近6个月
     }
 
@@ -1925,6 +1954,29 @@ class CoinTracker {
             console.log('同步到云端:', type, data);
         } catch (error) {
             console.error('云端同步失败:', error);
+        }
+    }
+
+    // 开始更新时间显示
+    startTimeUpdate() {
+        this.updateCurrentTime();
+        // 每分钟更新一次时间
+        setInterval(() => {
+            this.updateCurrentTime();
+        }, 60000); // 60秒 = 1分钟
+    }
+
+    // 更新当前时间显示
+    updateCurrentTime() {
+        const timeElement = document.getElementById('currentTime');
+        if (timeElement) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            timeElement.textContent = timeString;
         }
     }
 }

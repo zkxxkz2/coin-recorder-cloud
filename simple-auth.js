@@ -393,6 +393,10 @@ class SimpleAuthService {
                 this.syncService.binId = binId;
             }
 
+            // 设置当前用户
+            this.currentUser = user;
+            this.notifyAuthStateChange(user);
+
             return {
                 success: true,
                 user: user,

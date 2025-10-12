@@ -1,0 +1,27 @@
+{
+  "description": "公开排行榜数据库结构",
+  "version": "1.0",
+  "createdAt": "2025-10-12T12:00:00.000Z",
+  "lastUpdated": "2025-10-12T12:00:00.000Z",
+  "participants": [
+    {
+      "binId": "68eb240aae596e708f0f32f7",
+      "username": "zkxxkz2",
+      "joinedAt": "2025-10-12T12:00:00.000Z",
+      "isActive": true,
+      "lastSync": "2025-10-12T12:00:00.000Z"
+    }
+  ],
+  "settings": {
+    "maxParticipants": 1000,
+    "allowSelfJoin": true,
+    "requireVerification": true,
+    "updateInterval": 300000
+  },
+  "statistics": {
+    "totalParticipants": 1,
+    "totalCoins": 0,
+    "averageCoins": 0,
+    "lastCalculated": "2025-10-12T12:00:00.000Z"
+  }
+}

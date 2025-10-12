@@ -81,6 +81,8 @@ class SimpleIntegration {
         // 同步按钮
         const syncFromCloudBtn = document.getElementById('syncFromCloudBtn');
         const syncToCloudBtn = document.getElementById('syncToCloudBtn');
+        const joinLeaderboardBtn = document.getElementById('joinLeaderboardBtn');
+        const showBinIdBtn = document.getElementById('showBinIdBtn');
         
         if (syncFromCloudBtn) {
             syncFromCloudBtn.addEventListener('click', () => this.syncFromCloud());
@@ -88,12 +90,27 @@ class SimpleIntegration {
         if (syncToCloudBtn) {
             syncToCloudBtn.addEventListener('click', () => this.syncToCloud());
         }
+        if (joinLeaderboardBtn) {
+            joinLeaderboardBtn.addEventListener('click', () => this.showJoinLeaderboardModal());
+        }
+        if (showBinIdBtn) {
+            showBinIdBtn.addEventListener('click', () => this.showBinId());
+        }
 
         // 认证模态框事件
         this.setupAuthModalEvents();
         
         // 数据迁移模态框事件
         this.setupMigrationModalEvents();
+        
+        // 公开排行榜横幅事件
+        this.setupLeaderboardBannerEvents();
+        
+        // 加入排行榜模态框事件
+        this.setupJoinLeaderboardModalEvents();
+        
+        // 用户详情模态框事件
+        this.setupUserDetailModalEvents();
     }
 
     // 设置认证模态框事件
@@ -558,6 +575,924 @@ class SimpleIntegration {
                     modal.style.display = 'none';
                 }
             };
+        }
+    }
+
+    // 设置公开排行榜横幅事件
+    setupLeaderboardBannerEvents() {
+        const joinBtn = document.getElementById('joinPublicLeaderboardBtn');
+        const refreshBtn = document.getElementById('refreshBannerBtn');
+        const leaveBtn = document.getElementById('leaveLeaderboardBtn');
+
+        if (joinBtn) {
+            joinBtn.addEventListener('click', () => this.showJoinLeaderboardModal());
+        }
+
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.refreshLeaderboardBanner());
+        }
+
+        if (leaveBtn) {
+            leaveBtn.addEventListener('click', () => this.leavePublicLeaderboard());
+        }
+    }
+
+    // 设置加入排行榜模态框事件
+    setupJoinLeaderboardModalEvents() {
+        const modal = document.getElementById('joinLeaderboardModal');
+        if (!modal) return;
+
+        const closeBtn = modal.querySelector('.join-leaderboard-modal-close');
+        const cancelBtn = document.getElementById('cancelJoinBtn');
+        const confirmBtn = document.getElementById('confirmJoinBtn');
+
+        // 关闭模态框
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hideJoinLeaderboardModal());
+        }
+
+        // 点击背景关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.hideJoinLeaderboardModal();
+            }
+        });
+
+        // 取消加入
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.hideJoinLeaderboardModal());
+        }
+
+        // 确认加入
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => this.confirmJoinPublicLeaderboard());
+        }
+    }
+
+    // 显示加入排行榜模态框
+    showJoinLeaderboardModal() {
+        const modal = document.getElementById('joinLeaderboardModal');
+        if (!modal) return;
+
+        // 获取当前用户信息
+        const currentUser = this.authService?.currentUser || JSON.parse(localStorage.getItem('coinTrackerUser') || 'null');
+        const currentBinId = this.syncService?.binId || 
+                           localStorage.getItem('coinTrackerBinId') ||
+                           localStorage.getItem('binId');
+
+        if (!currentUser || !currentBinId) {
+            this.showMessage('请先登录', 'error');
+            return;
+        }
+
+        // 计算当前金币数 - 从CoinTracker实例获取最新数据
+        let currentCoins = 0;
+        if (window.coinTracker && window.coinTracker.coinRecords) {
+            currentCoins = this.calculateCurrentCoins(window.coinTracker.coinRecords);
+        } else {
+            // 备用方案：从localStorage获取
+            const coinRecords = JSON.parse(localStorage.getItem('coinRecords') || '[]');
+            currentCoins = this.calculateCurrentCoins(coinRecords);
+        }
+
+        // 更新模态框内容
+        const usernameEl = document.getElementById('joinModalUsername');
+        const coinsEl = document.getElementById('joinModalCoins');
+        const binIdEl = document.getElementById('joinModalBinId');
+
+        if (usernameEl) usernameEl.textContent = currentUser.username;
+        if (coinsEl) coinsEl.textContent = currentCoins.toLocaleString();
+        if (binIdEl) binIdEl.textContent = currentBinId;
+
+        modal.style.display = 'flex';
+    }
+
+    // 隐藏加入排行榜模态框
+    hideJoinLeaderboardModal() {
+        const modal = document.getElementById('joinLeaderboardModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // 显示账户ID
+    showBinId() {
+        // 从多个来源获取账户ID
+        const currentBinId = this.syncService?.binId || 
+                           localStorage.getItem('coinTrackerBinId') ||
+                           localStorage.getItem('binId');
+        
+        if (!currentBinId) {
+            this.showMessage('未找到账户ID，请先登录', 'error');
+            return;
+        }
+
+        // 使用现有的showBinIdModal方法，它包含了完整的事件绑定
+        this.showBinIdModal(currentBinId);
+    }
+
+    // 添加用户到排行榜
+    async addUserToLeaderboard() {
+        const binIdInput = document.getElementById('leaderboardBinId');
+        const addBtn = document.getElementById('addToLeaderboardBtn');
+        
+        if (!binIdInput || !addBtn) return;
+
+        const binId = binIdInput.value.trim();
+        if (!binId) {
+            this.showMessage('请输入账户ID', 'error');
+            return;
+        }
+
+        if (binId.length !== 24) {
+            this.showMessage('账户ID长度应为24位', 'error');
+            return;
+        }
+
+        // 检查是否已存在
+        const existingUsers = this.getLeaderboardUsers();
+        if (existingUsers.includes(binId)) {
+            this.showMessage('该用户已在排行榜中', 'warning');
+            return;
+        }
+
+        addBtn.disabled = true;
+        addBtn.textContent = '添加中...';
+
+        try {
+            // 验证binId是否有效
+            const isValid = await this.validateBinId(binId);
+            if (!isValid) {
+                this.showMessage('无效的账户ID', 'error');
+                return;
+            }
+
+            // 添加到本地存储
+            existingUsers.push(binId);
+            localStorage.setItem('leaderboardUsers', JSON.stringify(existingUsers));
+
+            // 清空输入框
+            binIdInput.value = '';
+
+            // 刷新排行榜
+            await this.loadLeaderboard();
+            
+            this.showMessage('用户添加成功', 'success');
+        } catch (error) {
+            console.error('添加用户失败:', error);
+            this.showMessage('添加用户失败', 'error');
+        } finally {
+            addBtn.disabled = false;
+            addBtn.textContent = '添加';
+        }
+    }
+
+    // 验证binId是否有效
+    async validateBinId(binId) {
+        try {
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': window.jsonbinConfig.apiKey
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                return result.record && result.record.users && result.record.users.length > 0;
+            }
+            return false;
+        } catch (error) {
+            console.error('验证binId失败:', error);
+            return false;
+        }
+    }
+
+    // 获取排行榜用户列表
+    getLeaderboardUsers() {
+        try {
+            const users = localStorage.getItem('leaderboardUsers');
+            return users ? JSON.parse(users) : [];
+        } catch (error) {
+            console.error('获取排行榜用户失败:', error);
+            return [];
+        }
+    }
+
+    // 加载排行榜数据
+    async loadLeaderboard() {
+        const users = this.getLeaderboardUsers();
+        if (users.length === 0) {
+            this.showEmptyLeaderboard();
+            return;
+        }
+
+        const leaderboardList = document.getElementById('leaderboardList');
+        const leaderboardStats = document.getElementById('leaderboardStats');
+        
+        if (!leaderboardList || !leaderboardStats) return;
+
+        try {
+            // 显示加载状态
+            leaderboardList.innerHTML = '<div class="empty-leaderboard"><div class="empty-icon">⏳</div><p>加载中...</p></div>';
+
+            const userData = [];
+            let totalCoins = 0;
+
+            // 并行获取所有用户数据
+            const promises = users.map(async (binId) => {
+                try {
+                    const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': window.jsonbinConfig.apiKey
+                        }
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        const data = result.record;
+                        
+                        if (data.users && data.users.length > 0) {
+                            const user = data.users[0];
+                            const coins = data.coinRecords?.reduce((sum, record) => sum + (record.coins || 0), 0) || 0;
+                            
+                            userData.push({
+                                username: user.username,
+                                totalCoins: coins,
+                                coinRecords: data.coinRecords || [],
+                                streakData: data.streakData || {},
+                                achievements: data.achievements || {},
+                                binId: binId
+                            });
+                            
+                            totalCoins += coins;
+                        }
+                    }
+                } catch (error) {
+                    console.error(`获取用户 ${binId} 数据失败:`, error);
+                }
+            });
+
+            await Promise.all(promises);
+
+            // 按金币数排序
+            userData.sort((a, b) => b.totalCoins - a.totalCoins);
+
+            // 更新统计信息
+            this.updateLeaderboardStats(userData.length, totalCoins);
+            leaderboardStats.style.display = 'flex';
+
+            // 更新排行榜列表
+            this.updateLeaderboardList(userData);
+
+        } catch (error) {
+            console.error('加载排行榜失败:', error);
+            leaderboardList.innerHTML = '<div class="empty-leaderboard"><div class="empty-icon">❌</div><p>加载失败</p></div>';
+        }
+    }
+
+    // 更新排行榜统计信息
+    updateLeaderboardStats(userCount, totalCoins) {
+        const participantCount = document.getElementById('participantCount');
+        const totalCoinsEl = document.getElementById('totalCoins');
+        const averageCoins = document.getElementById('averageCoins');
+
+        if (participantCount) participantCount.textContent = userCount;
+        if (totalCoinsEl) totalCoinsEl.textContent = totalCoins.toLocaleString();
+        if (averageCoins) averageCoins.textContent = userCount > 0 ? Math.round(totalCoins / userCount).toLocaleString() : '0';
+    }
+
+    // 更新排行榜列表
+    updateLeaderboardList(userData) {
+        const leaderboardList = document.getElementById('leaderboardList');
+        if (!leaderboardList) return;
+
+        if (userData.length === 0) {
+            this.showEmptyLeaderboard();
+            return;
+        }
+
+        const html = userData.map((user, index) => {
+            const rank = index + 1;
+            let rankClass = '';
+            if (rank === 1) rankClass = 'rank-gold';
+            else if (rank === 2) rankClass = 'rank-silver';
+            else if (rank === 3) rankClass = 'rank-bronze';
+
+            const achievements = Object.keys(user.achievements).filter(key => user.achievements[key].unlocked).length;
+
+            return `
+                <div class="leaderboard-item">
+                    <div class="rank-number ${rankClass}">${rank}</div>
+                    <div class="user-info">
+                        <div class="username">${user.username}</div>
+                        <div class="user-stats">
+                            记录数: ${user.coinRecords.length} | 
+                            连续天数: ${user.streakData.currentStreak || 0} | 
+                            成就数: ${achievements}
+                        </div>
+                    </div>
+                    <div class="total-coins">${user.totalCoins.toLocaleString()}</div>
+                </div>
+            `;
+        }).join('');
+
+        leaderboardList.innerHTML = html;
+    }
+
+    // 显示空排行榜
+    showEmptyLeaderboard() {
+        const leaderboardList = document.getElementById('leaderboardList');
+        const leaderboardStats = document.getElementById('leaderboardStats');
+        
+        if (leaderboardList) {
+            leaderboardList.innerHTML = `
+                <div class="empty-leaderboard">
+                    <div class="empty-icon">📊</div>
+                    <p>暂无排行榜数据</p>
+                    <small>添加用户账户ID开始查看排行榜</small>
+                </div>
+            `;
+        }
+        
+        if (leaderboardStats) {
+            leaderboardStats.style.display = 'none';
+        }
+    }
+
+    // 刷新排行榜
+    async refreshLeaderboard() {
+        await this.loadLeaderboard();
+        this.showMessage('排行榜已刷新', 'success');
+    }
+
+    // 确认加入公开排行榜
+    async confirmJoinPublicLeaderboard() {
+        const currentUser = this.authService?.currentUser || JSON.parse(localStorage.getItem('coinTrackerUser') || 'null');
+        const currentBinId = this.syncService?.binId || 
+                           localStorage.getItem('coinTrackerBinId') ||
+                           localStorage.getItem('binId');
+
+        if (!currentUser || !currentBinId) {
+            this.showMessage('请先登录', 'error');
+            return;
+        }
+
+        try {
+            // TODO: 这里需要您提供公开排行榜数据库的Bin ID
+            const publicLeaderboardBinId = '68eb2e76d0ea881f409e7470';
+            
+            // 获取当前公开排行榜数据
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': window.jsonbinConfig.apiKey
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('无法获取公开排行榜数据');
+            }
+
+            const result = await response.json();
+            const leaderboardData = result.record;
+
+            // 检查用户是否已经在排行榜中
+            const existingParticipant = leaderboardData.participants?.find(p => p.binId === currentBinId);
+            if (existingParticipant) {
+                this.showMessage('您已经在公开排行榜中', 'warning');
+                this.hideJoinLeaderboardModal();
+                
+                // 保存到本地存储并显示排行榜横幅
+                localStorage.setItem('joinedPublicLeaderboard', 'true');
+                localStorage.setItem('publicLeaderboardBinId', publicLeaderboardBinId);
+                this.showLeaderboardBanner();
+                await this.loadLeaderboardBanner();
+                return;
+            }
+
+            // 添加用户到公开排行榜
+            const newParticipant = {
+                binId: currentBinId,
+                username: currentUser.username,
+                joinedAt: new Date().toISOString(),
+                isActive: true,
+                lastSync: new Date().toISOString()
+            };
+
+            if (!leaderboardData.participants) {
+                leaderboardData.participants = [];
+            }
+            leaderboardData.participants.push(newParticipant);
+            leaderboardData.lastUpdated = new Date().toISOString();
+
+            // 更新公开排行榜数据
+            const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': window.jsonbinConfig.apiKey
+                },
+                body: JSON.stringify(leaderboardData)
+            });
+
+            if (!updateResponse.ok) {
+                throw new Error('加入公开排行榜失败');
+            }
+
+            // 保存到本地存储
+            localStorage.setItem('joinedPublicLeaderboard', 'true');
+            localStorage.setItem('publicLeaderboardBinId', publicLeaderboardBinId);
+
+            this.hideJoinLeaderboardModal();
+            this.showMessage('成功加入公开排行榜！', 'success');
+            
+            // 显示排行榜横幅
+            this.showLeaderboardBanner();
+            await this.loadLeaderboardBanner();
+
+        } catch (error) {
+            console.error('加入公开排行榜失败:', error);
+            this.showMessage('加入失败，请稍后重试', 'error');
+        }
+    }
+
+    // 显示排行榜横幅
+    showLeaderboardBanner() {
+        const banner = document.getElementById('leaderboardBanner');
+        if (banner) {
+            banner.style.display = 'block';
+        }
+    }
+
+    // 隐藏排行榜横幅
+    hideLeaderboardBanner() {
+        const banner = document.getElementById('leaderboardBanner');
+        if (banner) {
+            banner.style.display = 'none';
+        }
+    }
+
+    // 加载排行榜横幅数据
+    async loadLeaderboardBanner() {
+        try {
+            const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId');
+            if (!publicLeaderboardBinId) {
+                this.hideLeaderboardBanner();
+                return;
+            }
+
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': window.jsonbinConfig.apiKey
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('无法获取排行榜数据');
+            }
+
+            const result = await response.json();
+            const leaderboardData = result.record;
+
+            // 更新统计信息
+            const participantCount = leaderboardData.participants?.length || 0;
+            const participantCountEl = document.getElementById('bannerParticipantCount');
+            if (participantCountEl) {
+                participantCountEl.textContent = participantCount;
+            }
+
+            // 获取所有参与者的金币数据
+            const userData = [];
+            let totalCoins = 0;
+            let totalRecords = 0;
+
+            if (leaderboardData.participants) {
+                const promises = leaderboardData.participants.map(async (participant) => {
+                    try {
+                        const userResponse = await fetch(`https://api.jsonbin.io/v3/b/${participant.binId}/latest`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Master-Key': window.jsonbinConfig.apiKey
+                            }
+                        });
+
+                        if (userResponse.ok) {
+                            const userResult = await userResponse.json();
+                            const userData = userResult.record;
+                            
+                            if (userData.coinRecords) {
+                                // 计算当前金币数（最新记录的金币数）
+                                const currentCoins = this.calculateCurrentCoins(userData.coinRecords);
+                                const achievements = Object.keys(userData.achievements || {}).filter(key => userData.achievements[key].unlocked).length;
+                                
+                                return {
+                                    username: participant.username,
+                                    currentCoins: currentCoins,
+                                    coinRecords: userData.coinRecords || [],
+                                    streakData: userData.streakData || {},
+                                    achievements: userData.achievements || {},
+                                    achievementCount: achievements,
+                                    binId: participant.binId
+                                };
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`获取用户 ${participant.binId} 数据失败:`, error);
+                    }
+                    return null;
+                });
+
+                const results = await Promise.all(promises);
+                userData.push(...results.filter(result => result !== null));
+                totalCoins = userData.reduce((sum, user) => sum + user.currentCoins, 0);
+                totalRecords = userData.reduce((sum, user) => sum + user.coinRecords.length, 0);
+            }
+
+            // 更新统计信息
+            const totalCoinsEl = document.getElementById('bannerTotalCoins');
+            const averageCoinsEl = document.getElementById('bannerAverageCoins');
+            
+            if (totalCoinsEl) {
+                totalCoinsEl.textContent = totalCoins.toLocaleString();
+            }
+            if (averageCoinsEl) {
+                averageCoinsEl.textContent = participantCount > 0 ? Math.round(totalCoins / participantCount).toLocaleString() : '0';
+            }
+
+            // 更新排行榜列表
+            this.updateBannerLeaderboard(userData);
+
+            // 更新按钮状态
+            this.updateBannerButtons();
+
+        } catch (error) {
+            console.error('加载排行榜横幅失败:', error);
+            this.showMessage('加载排行榜失败', 'error');
+        }
+    }
+
+    // 更新横幅排行榜列表
+    updateBannerLeaderboard(userData) {
+        const bannerLeaderboard = document.getElementById('bannerLeaderboard');
+        const emptyBanner = bannerLeaderboard.querySelector('.empty-banner');
+        const podiumContainer = document.getElementById('podiumContainer');
+        const leaderboardList = document.getElementById('leaderboardList');
+        
+        if (!bannerLeaderboard) return;
+
+        if (!userData || userData.length === 0) {
+            if (emptyBanner) emptyBanner.style.display = 'block';
+            if (podiumContainer) podiumContainer.style.display = 'none';
+            if (leaderboardList) leaderboardList.style.display = 'none';
+            return;
+        }
+
+        // 隐藏空状态
+        if (emptyBanner) emptyBanner.style.display = 'none';
+
+        // 按当前金币数排序
+        const sortedUsers = userData.sort((a, b) => b.currentCoins - a.currentCoins);
+
+        // 更新前三名领奖台
+        this.updatePodium(sortedUsers.slice(0, 3));
+
+        // 更新第四名开始的列表
+        this.updateLeaderboardList(sortedUsers.slice(3));
+
+        // 显示相应的容器
+        if (podiumContainer) podiumContainer.style.display = 'flex';
+        if (leaderboardList) leaderboardList.style.display = sortedUsers.length > 3 ? 'block' : 'none';
+    }
+
+    // 更新领奖台
+    updatePodium(topThree) {
+        const podiumContainer = document.getElementById('podiumContainer');
+        if (!podiumContainer) return;
+
+        // 确保有足够的用户数据
+        const users = [null, null, null];
+        topThree.forEach((user, index) => {
+            users[index] = user;
+        });
+
+        // 更新第二名（左侧）
+        const secondPlace = podiumContainer.querySelector('.second-place');
+        if (secondPlace && users[1]) {
+            const usernameEl = secondPlace.querySelector('.podium-username');
+            const coinsEl = secondPlace.querySelector('.podium-coins');
+            if (usernameEl) usernameEl.textContent = users[1].username;
+            if (coinsEl) coinsEl.textContent = users[1].currentCoins.toLocaleString();
+            secondPlace.style.display = 'flex';
+            secondPlace.onclick = () => this.showUserDetail(users[1], 2);
+        } else if (secondPlace) {
+            secondPlace.style.display = 'none';
+        }
+
+        // 更新第一名（中间）
+        const firstPlace = podiumContainer.querySelector('.first-place');
+        if (firstPlace && users[0]) {
+            const usernameEl = firstPlace.querySelector('.podium-username');
+            const coinsEl = firstPlace.querySelector('.podium-coins');
+            if (usernameEl) usernameEl.textContent = users[0].username;
+            if (coinsEl) coinsEl.textContent = users[0].currentCoins.toLocaleString();
+            firstPlace.style.display = 'flex';
+            firstPlace.onclick = () => this.showUserDetail(users[0], 1);
+        } else if (firstPlace) {
+            firstPlace.style.display = 'none';
+        }
+
+        // 更新第三名（右侧）
+        const thirdPlace = podiumContainer.querySelector('.third-place');
+        if (thirdPlace && users[2]) {
+            const usernameEl = thirdPlace.querySelector('.podium-username');
+            const coinsEl = thirdPlace.querySelector('.podium-coins');
+            if (usernameEl) usernameEl.textContent = users[2].username;
+            if (coinsEl) coinsEl.textContent = users[2].currentCoins.toLocaleString();
+            thirdPlace.style.display = 'flex';
+            thirdPlace.onclick = () => this.showUserDetail(users[2], 3);
+        } else if (thirdPlace) {
+            thirdPlace.style.display = 'none';
+        }
+    }
+
+    // 更新排行榜列表
+    updateLeaderboardList(users) {
+        const leaderboardList = document.getElementById('leaderboardList');
+        if (!leaderboardList) return;
+
+        if (!users || users.length === 0) {
+            leaderboardList.innerHTML = '';
+            return;
+        }
+
+        const html = users.map((user, index) => {
+            const rank = index + 4; // 从第四名开始
+            return `
+                <div class="leaderboard-list-item" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
+                    <div class="rank">${rank}</div>
+                    <div class="user-info">
+                        <div class="username">${user.username}</div>
+                        <div class="user-stats">
+                            <span>${user.coinRecords.length}条</span>
+                            <span>${user.streakData?.currentStreak || 0}天</span>
+                            <span>${user.achievementCount || 0}成就</span>
+                        </div>
+                    </div>
+                    <div class="coins">${user.currentCoins.toLocaleString()}</div>
+                </div>
+            `;
+        }).join('');
+
+        leaderboardList.innerHTML = html;
+    }
+
+    // 更新横幅按钮状态
+    updateBannerButtons() {
+        const joinBtn = document.getElementById('joinPublicLeaderboardBtn');
+        const leaveBtn = document.getElementById('leaveLeaderboardBtn');
+
+        const isJoined = localStorage.getItem('joinedPublicLeaderboard') === 'true';
+
+        if (joinBtn) {
+            joinBtn.style.display = isJoined ? 'none' : 'block';
+        }
+
+        if (leaveBtn) {
+            leaveBtn.style.display = isJoined ? 'block' : 'none';
+        }
+    }
+
+    // 刷新排行榜横幅
+    async refreshLeaderboardBanner() {
+        await this.loadLeaderboardBanner();
+        this.showMessage('排行榜已刷新', 'success');
+    }
+
+    // 退出公开排行榜
+    async leavePublicLeaderboard() {
+        if (!confirm('确定要退出公开排行榜吗？')) {
+            return;
+        }
+
+        try {
+            const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId');
+            const currentBinId = this.syncService?.binId || 
+                               localStorage.getItem('coinTrackerBinId') ||
+                               localStorage.getItem('binId');
+
+            if (!publicLeaderboardBinId || !currentBinId) {
+                this.showMessage('无法退出排行榜', 'error');
+                return;
+            }
+
+            // 获取当前公开排行榜数据
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': window.jsonbinConfig.apiKey
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('无法获取公开排行榜数据');
+            }
+
+            const result = await response.json();
+            const leaderboardData = result.record;
+
+            // 移除用户
+            if (leaderboardData.participants) {
+                leaderboardData.participants = leaderboardData.participants.filter(p => p.binId !== currentBinId);
+                leaderboardData.lastUpdated = new Date().toISOString();
+
+                // 更新公开排行榜数据
+                const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.jsonbinConfig.apiKey
+                    },
+                    body: JSON.stringify(leaderboardData)
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error('退出公开排行榜失败');
+                }
+            }
+
+            // 清除本地存储
+            localStorage.removeItem('joinedPublicLeaderboard');
+            localStorage.removeItem('publicLeaderboardBinId');
+
+            this.hideLeaderboardBanner();
+            this.showMessage('已退出公开排行榜', 'success');
+
+        } catch (error) {
+            console.error('退出公开排行榜失败:', error);
+            this.showMessage('退出失败，请稍后重试', 'error');
+        }
+    }
+
+    // 计算当前金币数（最新记录的金币数）
+    calculateCurrentCoins(coinRecords) {
+        if (!coinRecords || coinRecords.length === 0) {
+            return 0;
+        }
+
+        // 按时间排序，获取最新的记录
+        const sortedRecords = coinRecords.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date);
+            const timeB = new Date(b.timestamp || b.date);
+            return timeB - timeA;
+        });
+
+        // 返回最新记录的金币数
+        return sortedRecords[0].coins || 0;
+    }
+
+    // 显示用户详情
+    showUserDetail(user, rank) {
+        const modal = document.getElementById('userDetailModal');
+        if (!modal || !user) return;
+
+        // 更新用户信息
+        const usernameEl = document.getElementById('userDetailUsername');
+        const rankEl = document.getElementById('userDetailRank');
+        const totalCoinsEl = document.getElementById('userDetailTotalCoins');
+        const recordCountEl = document.getElementById('userDetailRecordCount');
+        const streakEl = document.getElementById('userDetailStreak');
+        const achievementsEl = document.getElementById('userDetailAchievements');
+        const lastActiveEl = document.getElementById('userDetailLastActive');
+
+        if (usernameEl) usernameEl.textContent = user.username;
+        if (rankEl) rankEl.textContent = `排名: ${rank}`;
+        if (totalCoinsEl) totalCoinsEl.textContent = user.currentCoins.toLocaleString();
+        if (recordCountEl) recordCountEl.textContent = user.coinRecords.length;
+        if (streakEl) streakEl.textContent = user.streakData?.currentStreak || 0;
+        if (achievementsEl) achievementsEl.textContent = user.achievementCount || 0;
+
+        // 计算最后活跃时间
+        if (lastActiveEl) {
+            const lastActive = this.calculateLastActiveTime(user);
+            lastActiveEl.textContent = lastActive;
+        }
+
+        // 更新最近记录
+        this.updateUserDetailRecords(user);
+
+        // 显示模态框
+        modal.style.display = 'block';
+    }
+
+    // 计算最后活跃时间
+    calculateLastActiveTime(user) {
+        if (!user.coinRecords || user.coinRecords.length === 0) {
+            return '从未记录';
+        }
+
+        // 找到最新的记录时间
+        const latestRecord = user.coinRecords.reduce((latest, record) => {
+            const recordTime = new Date(record.timestamp || record.date);
+            const latestTime = new Date(latest.timestamp || latest.date);
+            return recordTime > latestTime ? record : latest;
+        });
+
+        const lastActiveTime = new Date(latestRecord.timestamp || latestRecord.date);
+        const now = new Date();
+        const diffMs = now - lastActiveTime;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffDays > 0) {
+            return `${diffDays}天前`;
+        } else if (diffHours > 0) {
+            return `${diffHours}小时前`;
+        } else {
+            const diffMinutes = Math.floor(diffMs / (1000 * 60));
+            if (diffMinutes > 0) {
+                return `${diffMinutes}分钟前`;
+            } else {
+                return '刚刚';
+            }
+        }
+    }
+
+    // 更新用户详情记录
+    updateUserDetailRecords(user) {
+        const recordsList = document.getElementById('userDetailRecordsList');
+        if (!recordsList || !user.coinRecords) return;
+
+        // 按时间排序，显示最近10条记录
+        const sortedRecords = user.coinRecords
+            .sort((a, b) => {
+                const timeA = new Date(a.timestamp || a.date);
+                const timeB = new Date(b.timestamp || b.date);
+                return timeB - timeA;
+            })
+            .slice(0, 10);
+
+        if (sortedRecords.length === 0) {
+            recordsList.innerHTML = '<div class="record-item"><span class="record-date">暂无记录</span></div>';
+            return;
+        }
+
+        const html = sortedRecords.map(record => {
+            const date = new Date(record.timestamp || record.date);
+            const dateStr = date.toLocaleDateString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            return `
+                <div class="record-item">
+                    <span class="record-date">${dateStr}</span>
+                    <span class="record-coins">+${record.coins}</span>
+                </div>
+            `;
+        }).join('');
+
+        recordsList.innerHTML = html;
+    }
+
+    // 隐藏用户详情模态框
+    hideUserDetailModal() {
+        const modal = document.getElementById('userDetailModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // 设置用户详情模态框事件
+    setupUserDetailModalEvents() {
+        const modal = document.getElementById('userDetailModal');
+        const closeBtn = document.getElementById('closeUserDetailBtn');
+        const closeIcon = modal?.querySelector('.user-detail-modal-close');
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hideUserDetailModal());
+        }
+
+        if (closeIcon) {
+            closeIcon.addEventListener('click', () => this.hideUserDetailModal());
+        }
+
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal || e.target.classList.contains('user-detail-modal-backdrop')) {
+                    this.hideUserDetailModal();
+                }
+            });
         }
     }
 }

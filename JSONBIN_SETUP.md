@@ -24,26 +24,6 @@ JSONBin.io 是一个超级简单的云端存储服务，完美适合我们的需
 
 ## 2. 配置项目
 
-### 步骤 1：更新 `index.html`
-找到以下代码并替换为您的实际 API 密钥：
-```html
-<!-- JSONBin.io 配置 -->
-<script type="module">
-    // JSONBin.io 配置 - 请替换为您的实际 API 密钥
-    window.jsonbinConfig = {
-        apiKey: "your-jsonbin-api-key"  // 替换为您的 API 密钥
-    };
-</script>
-```
-
-### 步骤 2：更新 `jsonbin-config.js`
-```javascript
-const jsonbinConfig = {
-    baseUrl: 'https://api.jsonbin.io/v3',
-    // 请替换为您的 JSONBin.io API 密钥
-    apiKey: 'your-jsonbin-api-key',  // 替换为您的 API 密钥
-    binId: null
-};
 ```
 
 ## 3. 使用说明
