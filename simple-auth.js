@@ -195,13 +195,13 @@ class SimpleAuthService {
     }
 
     // 注册用户
-    async register(username, password, email = '') {
+    async register(username, email = '') {
         try {
             // 验证输入
-            if (!username || !password) {
+            if (!username) {
                 return {
                     success: false,
-                    error: '用户名和密码不能为空',
+                    error: '用户名不能为空',
                     message: '注册失败'
                 };
             }
@@ -210,14 +210,6 @@ class SimpleAuthService {
                 return {
                     success: false,
                     error: '用户名至少3个字符',
-                    message: '注册失败'
-                };
-            }
-
-            if (password.length < 6) {
-                return {
-                    success: false,
-                    error: '密码至少6个字符',
                     message: '注册失败'
                 };
             }
@@ -237,7 +229,6 @@ class SimpleAuthService {
                 id: SimpleCrypto.hash(username + Date.now()),
                 username: username,
                 email: email,
-                passwordHash: SimpleCrypto.hash(password),
                 createdAt: new Date().toISOString(),
                 lastLogin: new Date().toISOString()
             };
@@ -270,7 +261,7 @@ class SimpleAuthService {
     }
 
     // 登录用户（支持用户名+密码或 bin ID）
-    async login(usernameOrBinId, password) {
+    async login(usernameOrBinId) {
         try {
             // 验证输入
             if (!usernameOrBinId) {
@@ -294,31 +285,13 @@ class SimpleAuthService {
                 user = result.user;
                 binId = usernameOrBinId;
             } else {
-                // 通过用户名+密码登录
-                if (!password) {
-                    return {
-                        success: false,
-                        error: '密码不能为空',
-                        message: '登录失败'
-                    };
-                }
-
+                // 通过用户名登录（无需密码）
                 // 查找用户（从云端查找）
                 user = await this.getUserByUsernameFromCloud(usernameOrBinId);
                 if (!user) {
                     return {
                         success: false,
                         error: '用户不存在',
-                        message: '登录失败'
-                    };
-                }
-
-                // 验证密码
-                const passwordHash = SimpleCrypto.hash(password);
-                if (user.passwordHash !== passwordHash) {
-                    return {
-                        success: false,
-                        error: '密码错误',
                         message: '登录失败'
                     };
                 }

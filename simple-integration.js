@@ -249,14 +249,13 @@ class SimpleIntegration {
         e.preventDefault();
         
         const usernameOrBinId = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
 
         if (!usernameOrBinId) {
             this.showMessage('请输入用户名或 Bin ID', 'error');
             return;
         }
 
-        const result = await authService.login(usernameOrBinId, password);
+        const result = await authService.login(usernameOrBinId);
         
         if (result.success) {
             this.hideAuthModal();
@@ -271,16 +270,9 @@ class SimpleIntegration {
         e.preventDefault();
         
         const username = document.getElementById('registerUsername').value;
-        const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
 
-        if (!username || !password || !confirmPassword) {
-            this.showMessage('请填写完整信息', 'error');
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            this.showMessage('两次输入的密码不一致', 'error');
+        if (!username) {
+            this.showMessage('请输入用户名', 'error');
             return;
         }
 
@@ -289,12 +281,7 @@ class SimpleIntegration {
             return;
         }
 
-        if (password.length < 6) {
-            this.showMessage('密码长度至少6位', 'error');
-            return;
-        }
-
-        const result = await authService.register(username, password);
+        const result = await authService.register(username);
         
         if (result.success) {
             this.hideAuthModal();
@@ -1407,23 +1394,15 @@ class SimpleIntegration {
         });
 
         const lastActiveTime = new Date(latestRecord.timestamp || latestRecord.date);
-        const now = new Date();
-        const diffMs = now - lastActiveTime;
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffDays = Math.floor(diffHours / 24);
-
-        if (diffDays > 0) {
-            return `${diffDays}天前`;
-        } else if (diffHours > 0) {
-            return `${diffHours}小时前`;
-        } else {
-            const diffMinutes = Math.floor(diffMs / (1000 * 60));
-            if (diffMinutes > 0) {
-                return `${diffMinutes}分钟前`;
-            } else {
-                return '刚刚';
-            }
-        }
+        
+        // 格式化为年月日小时
+        return lastActiveTime.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            hour12: false
+        });
     }
 
     // 更新用户详情记录
