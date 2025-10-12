@@ -292,13 +292,8 @@ class SimpleIntegration {
     async handleUserLogin(user) {
         console.log('用户登录:', user.username);
         
-        // 检查是否需要数据迁移
-        if (syncService.needsMigration()) {
-            this.showMigrationModal();
-        } else {
-            // 直接同步数据
-            await syncService.syncAllData();
-        }
+        // 登录后不自动同步，避免创建新的 bin ID
+        // 用户可以通过手动点击同步按钮来控制同步行为
     }
 
     // 处理用户登出
