@@ -29,6 +29,9 @@ class SimpleIntegration {
         // 设置认证服务到同步服务
         syncService.setAuthService(authService);
         
+        // 初始化排行榜设置 - 确保所有用户都能访问排行榜数据
+        this.initLeaderboardSettings();
+        
         // 直接绑定事件（此时DOM已经加载完成）
         this.bindEvents();
         this.isInitialized = true;
@@ -46,6 +49,24 @@ class SimpleIntegration {
         });
         
         console.log('SimpleIntegration 初始化完成');
+    }
+
+    // 初始化排行榜设置
+    initLeaderboardSettings() {
+        // 设置默认的公开排行榜Bin ID，确保所有用户都能访问排行榜数据
+        const defaultPublicLeaderboardBinId = '68eb2e76d0ea881f409e7470';
+        
+        // 如果localStorage中没有publicLeaderboardBinId，设置默认值
+        if (!localStorage.getItem('publicLeaderboardBinId')) {
+            localStorage.setItem('publicLeaderboardBinId', defaultPublicLeaderboardBinId);
+            console.log('设置默认公开排行榜Bin ID:', defaultPublicLeaderboardBinId);
+        }
+        
+        // 确保排行榜横幅始终显示
+        this.showLeaderboardBanner();
+        
+        // 加载排行榜数据
+        this.loadLeaderboardBanner();
     }
 
     // 等待同步服务初始化完成
@@ -897,8 +918,11 @@ class SimpleIntegration {
         try {
             const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId');
             if (!publicLeaderboardBinId) {
+                console.warn('未找到公开排行榜Bin ID');
                 return [];
             }
+
+            console.log('获取排行榜数据，Bin ID:', publicLeaderboardBinId);
 
             const response = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}/latest`, {
                 method: 'GET',
@@ -909,20 +933,28 @@ class SimpleIntegration {
             });
 
             if (!response.ok) {
-                throw new Error('无法获取排行榜数据');
+                console.error('获取排行榜数据失败，状态码:', response.status);
+                throw new Error(`无法获取排行榜数据: ${response.status}`);
             }
 
             const result = await response.json();
             const leaderboardData = result.record;
 
-            if (!leaderboardData.participants) {
+            console.log('排行榜数据结构:', leaderboardData);
+
+            if (!leaderboardData.participants || !Array.isArray(leaderboardData.participants)) {
+                console.warn('排行榜数据中没有参与者信息');
                 return [];
             }
+
+            console.log(`找到 ${leaderboardData.participants.length} 个参与者`);
 
             // 获取所有参与者的完整数据
             const userData = [];
             const promises = leaderboardData.participants.map(async (participant) => {
                 try {
+                    console.log(`获取用户数据: ${participant.username} (${participant.binId})`);
+                    
                     const userResponse = await fetch(`https://api.jsonbin.io/v3/b/${participant.binId}/latest`, {
                         method: 'GET',
                         headers: {
@@ -935,7 +967,7 @@ class SimpleIntegration {
                         const userResult = await userResponse.json();
                         const userData = userResult.record;
                         
-                        if (userData.coinRecords) {
+                        if (userData.coinRecords && Array.isArray(userData.coinRecords)) {
                             // 计算当前金币数（最新记录的金币数）
                             const currentCoins = this.calculateCurrentCoins(userData.coinRecords);
                             const achievements = Object.keys(userData.achievements || {}).filter(key => userData.achievements[key].unlocked).length;
@@ -949,6 +981,8 @@ class SimpleIntegration {
                             // 计算增长趋势
                             const growthTrend = this.calculateGrowthTrend(userData.coinRecords);
                             
+                            console.log(`用户 ${participant.username} 数据获取成功，当前金币: ${currentCoins}`);
+                            
                             return {
                                 username: participant.username,
                                 currentCoins: currentCoins,
@@ -961,7 +995,11 @@ class SimpleIntegration {
                                 titles: titles,
                                 growthTrend: growthTrend
                             };
+                        } else {
+                            console.warn(`用户 ${participant.username} 没有金币记录数据`);
                         }
+                    } else {
+                        console.error(`获取用户 ${participant.username} 数据失败，状态码: ${userResponse.status}`);
                     }
                 } catch (error) {
                     console.error(`获取用户 ${participant.binId} 数据失败:`, error);
@@ -970,7 +1008,10 @@ class SimpleIntegration {
             });
 
             const results = await Promise.all(promises);
-            return results.filter(user => user !== null);
+            const validUsers = results.filter(user => user !== null);
+            
+            console.log(`成功获取 ${validUsers.length} 个用户的数据`);
+            return validUsers;
         } catch (error) {
             console.error('获取所有排行榜用户失败:', error);
             return [];
@@ -1187,7 +1228,8 @@ class SimpleIntegration {
             leaderboardData.participants.push(newParticipant);
             leaderboardData.lastUpdated = new Date().toISOString();
 
-            // 更新公开排行榜数据
+            // 更新公开排行榜数据到云端
+            console.log('正在同步用户到云端排行榜数据库...');
             const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}`, {
                 method: 'PUT',
                 headers: {
@@ -1198,8 +1240,12 @@ class SimpleIntegration {
             });
 
             if (!updateResponse.ok) {
-                throw new Error('加入公开排行榜失败');
+                const errorText = await updateResponse.text();
+                console.error('云端同步失败:', updateResponse.status, errorText);
+                throw new Error(`加入公开排行榜失败: ${updateResponse.status}`);
             }
+
+            console.log('用户已成功同步到云端排行榜数据库');
 
             // 保存到本地存储
             localStorage.setItem('joinedPublicLeaderboard', 'true');
@@ -1239,11 +1285,16 @@ class SimpleIntegration {
         try {
             // 始终显示排行榜横幅，不管用户是否加入
             const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId') || '68eb2e76d0ea881f409e7470';
+            
+            console.log('加载排行榜横幅，Bin ID:', publicLeaderboardBinId);
 
             // 使用缓存数据加载排行榜横幅
             const users = await this.loadAllLeaderboardData();
+            console.log('排行榜横幅获取到用户数据:', users.length);
+            
             if (users.length === 0) {
                 // 即使没有用户数据也显示排行榜横幅，显示空状态
+                console.log('没有用户数据，显示空状态');
                 this.showLeaderboardBanner();
                 this.showEmptyLeaderboard();
                 return;
@@ -1479,7 +1530,8 @@ class SimpleIntegration {
                 leaderboardData.participants = leaderboardData.participants.filter(p => p.binId !== currentBinId);
                 leaderboardData.lastUpdated = new Date().toISOString();
 
-                // 更新公开排行榜数据
+                // 更新公开排行榜数据到云端
+                console.log('正在从云端排行榜数据库移除用户...');
                 const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}`, {
                     method: 'PUT',
                     headers: {
@@ -1490,8 +1542,12 @@ class SimpleIntegration {
                 });
 
                 if (!updateResponse.ok) {
-                    throw new Error('退出公开排行榜失败');
+                    const errorText = await updateResponse.text();
+                    console.error('云端同步失败:', updateResponse.status, errorText);
+                    throw new Error(`退出公开排行榜失败: ${updateResponse.status}`);
                 }
+
+                console.log('用户已成功从云端排行榜数据库移除');
             }
 
             // 清除本地存储
@@ -1504,6 +1560,73 @@ class SimpleIntegration {
         } catch (error) {
             console.error('退出公开排行榜失败:', error);
             this.showMessage('退出失败，请稍后重试', 'error');
+        }
+    }
+
+    // 同步用户数据到排行榜（当用户数据更新时调用）
+    async syncUserDataToLeaderboard() {
+        try {
+            const isJoined = localStorage.getItem('joinedPublicLeaderboard') === 'true';
+            if (!isJoined) {
+                console.log('用户未加入排行榜，跳过数据同步');
+                return;
+            }
+
+            const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId');
+            const currentBinId = this.syncService?.binId || 
+                               localStorage.getItem('coinTrackerBinId') ||
+                               localStorage.getItem('binId');
+
+            if (!publicLeaderboardBinId || !currentBinId) {
+                console.warn('缺少必要的Bin ID，无法同步用户数据到排行榜');
+                return;
+            }
+
+            console.log('同步用户数据到排行榜...');
+
+            // 获取当前公开排行榜数据
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': window.jsonbinConfig.apiKey
+                }
+            });
+
+            if (!response.ok) {
+                console.error('获取排行榜数据失败:', response.status);
+                return;
+            }
+
+            const result = await response.json();
+            const leaderboardData = result.record;
+
+            // 更新用户的最后同步时间
+            if (leaderboardData.participants) {
+                const userIndex = leaderboardData.participants.findIndex(p => p.binId === currentBinId);
+                if (userIndex !== -1) {
+                    leaderboardData.participants[userIndex].lastSync = new Date().toISOString();
+                    leaderboardData.lastUpdated = new Date().toISOString();
+
+                    // 更新到云端
+                    const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${publicLeaderboardBinId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': window.jsonbinConfig.apiKey
+                        },
+                        body: JSON.stringify(leaderboardData)
+                    });
+
+                    if (updateResponse.ok) {
+                        console.log('用户数据已同步到排行榜');
+                    } else {
+                        console.error('同步用户数据到排行榜失败:', updateResponse.status);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('同步用户数据到排行榜失败:', error);
         }
     }
 
@@ -2429,17 +2552,32 @@ class SimpleIntegration {
 
     // 刷新排行榜数据
     async refreshLeaderboardData() {
-        console.log('用户手动刷新排行榜数据');
-        await this.loadAllLeaderboardData(true); // 强制刷新
-        
-        // 更新当前显示的排行榜
-        const activeTab = document.querySelector('.leaderboard-tab.active');
-        if (activeTab) {
-            const tabType = activeTab.getAttribute('data-tab');
-            this.switchLeaderboardTab(tabType);
+        try {
+            console.log('用户手动刷新排行榜数据');
+            
+            // 清除缓存并强制刷新
+            this.leaderboardDataCache.users = null;
+            this.leaderboardDataCache.lastUpdate = null;
+            this.leaderboardDataCache.isRefreshing = false;
+            
+            const users = await this.loadAllLeaderboardData(true); // 强制刷新
+            console.log('排行榜数据刷新完成，获取到用户数:', users.length);
+            
+            // 重新加载排行榜横幅
+            await this.loadLeaderboardBanner();
+            
+            // 更新当前显示的排行榜
+            const activeTab = document.querySelector('.leaderboard-tab.active');
+            if (activeTab) {
+                const tabType = activeTab.getAttribute('data-tab');
+                this.switchLeaderboardTab(tabType);
+            }
+            
+            this.showMessage(`排行榜已刷新，共 ${users.length} 个用户`, 'success');
+        } catch (error) {
+            console.error('刷新排行榜数据失败:', error);
+            this.showMessage('排行榜刷新失败', 'error');
         }
-        
-        this.showMessage('排行榜数据已刷新', 'success');
     }
 }
 

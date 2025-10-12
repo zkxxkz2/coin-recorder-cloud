@@ -1998,6 +1998,11 @@ class CoinTracker {
             // 由于模块导入的限制，这里先留空
             // 实际实现会在simple-integration.js中处理
             console.log('同步到云端:', type, data);
+            
+            // 如果用户已加入排行榜，同步用户数据到排行榜
+            if (this.simpleIntegration && typeof this.simpleIntegration.syncUserDataToLeaderboard === 'function') {
+                await this.simpleIntegration.syncUserDataToLeaderboard();
+            }
         } catch (error) {
             console.error('云端同步失败:', error);
         }
