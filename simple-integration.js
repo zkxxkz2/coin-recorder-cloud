@@ -308,6 +308,9 @@ class SimpleIntegration {
         
         // 登录后不自动同步，避免创建新的 bin ID
         // 用户可以通过手动点击同步按钮来控制同步行为
+        
+        // 登录后始终显示排行榜横幅
+        await this.loadLeaderboardBanner();
     }
 
     // 处理用户登出
@@ -1164,16 +1167,15 @@ class SimpleIntegration {
     // 加载排行榜横幅数据
     async loadLeaderboardBanner() {
         try {
-            const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId');
-            if (!publicLeaderboardBinId) {
-                this.hideLeaderboardBanner();
-                return;
-            }
+            // 始终显示排行榜横幅，不管用户是否加入
+            const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId') || '68eb2e76d0ea881f409e7470';
 
             // 使用缓存数据加载排行榜横幅
             const users = await this.loadAllLeaderboardData();
             if (users.length === 0) {
-                this.hideLeaderboardBanner();
+                // 即使没有用户数据也显示排行榜横幅，显示空状态
+                this.showLeaderboardBanner();
+                this.showEmptyLeaderboard();
                 return;
             }
 
@@ -1279,7 +1281,9 @@ class SimpleIntegration {
 
         } catch (error) {
             console.error('加载排行榜横幅失败:', error);
-            this.showMessage('加载排行榜失败', 'error');
+            // 即使出错也显示排行榜横幅，显示空状态
+            this.showLeaderboardBanner();
+            this.showEmptyLeaderboard();
         }
     }
 
@@ -2034,59 +2038,7 @@ class SimpleIntegration {
     }
 
     // 加载活跃度排行榜
-    async loadActivityLeaderboard() {
-        try {
-            const userData = await this.getAllLeaderboardUsers();
-            if (!userData || userData.length === 0) {
-                this.updateActivityLeaderboard([]);
-                return;
-            }
 
-            // 计算活跃度数据
-            const activityData = userData.map(user => {
-                const streakDays = user.streakData?.currentStreak || 0;
-                const totalRecords = user.coinRecords.length;
-                const avgFrequency = this.calculateAverageFrequency(user.coinRecords);
-                const lastActive = this.calculateLastActiveTime(user);
-                
-                // 活跃度评分 = 连续天数 * 2 + 总记录数 + 平均频率 * 10
-                const activityScore = streakDays * 2 + totalRecords + avgFrequency * 10;
-                
-                return {
-                    ...user,
-                    streakDays: streakDays,
-                    totalRecords: totalRecords,
-                    avgFrequency: avgFrequency,
-                    lastActive: lastActive,
-                    activityScore: activityScore
-                };
-            });
-
-            // 按活跃度评分排序
-            activityData.sort((a, b) => b.activityScore - a.activityScore);
-            this.updateActivityLeaderboard(activityData);
-        } catch (error) {
-            console.error('加载活跃度排行榜失败:', error);
-            this.updateActivityLeaderboard([]);
-        }
-    }
-
-    // 计算平均记录频率（每天记录数）
-    calculateAverageFrequency(coinRecords) {
-        if (!coinRecords || coinRecords.length === 0) return 0;
-        
-        const sortedRecords = coinRecords.sort((a, b) => {
-            const timeA = new Date(a.timestamp || a.date);
-            const timeB = new Date(b.timestamp || b.date);
-            return timeA - timeB;
-        });
-        
-        const firstRecord = new Date(sortedRecords[0].timestamp || sortedRecords[0].date);
-        const lastRecord = new Date(sortedRecords[sortedRecords.length - 1].timestamp || sortedRecords[sortedRecords.length - 1].date);
-        
-        const daysDiff = Math.max(1, (lastRecord - firstRecord) / (1000 * 60 * 60 * 24));
-        return coinRecords.length / daysDiff;
-    }
 
     // 更新活跃度排行榜显示
     updateActivityLeaderboard(activityData) {
@@ -2303,20 +2255,16 @@ class SimpleIntegration {
         // 计算活跃度数据
         const activityData = users.map(user => {
             const streakData = user.streakData || {};
-            const avgFrequency = this.calculateAverageFrequency(user.coinRecords);
-            const activityScore = (streakData.currentStreak || 0) * 10 + (user.coinRecords?.length || 0) * 2 + avgFrequency * 5;
             
             return {
                 ...user,
-                activityScore,
                 currentStreak: streakData.currentStreak || 0,
-                totalRecords: user.coinRecords?.length || 0,
-                avgFrequency
+                totalRecords: user.coinRecords?.length || 0
             };
         });
 
-        // 按活跃度评分排序
-        activityData.sort((a, b) => b.activityScore - a.activityScore);
+        // 按连续记录天数排序
+        activityData.sort((a, b) => b.currentStreak - a.currentStreak);
         
         // 更新显示
         this.updateActivityLeaderboardDisplay(activityData);
@@ -2429,11 +2377,9 @@ class SimpleIntegration {
                         <div class="username">${this.formatUserDisplay(user)}</div>
                     </div>
                     <div class="activity-stats">
-                        <span>连续${user.currentStreak}天</span>
                         <span>${user.totalRecords}条记录</span>
-                        <span>频率${user.avgFrequency.toFixed(1)}</span>
                     </div>
-                    <div class="activity-value">${user.activityScore}</div>
+                    <div class="activity-value">${user.currentStreak}天</div>
                 </div>
             `;
         }).join('');

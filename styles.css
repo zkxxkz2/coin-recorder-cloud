@@ -1279,6 +1279,38 @@ body {
         font-size: 1rem;
     }
 
+    /* 用户状态区域手机端优化 */
+    .user-status {
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 15px;
+        min-width: 280px;
+        max-width: 100%;
+    }
+
+    .user-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .sync-buttons {
+        flex-direction: row;
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .sync-btn, .logout-btn {
+        min-width: 50px;
+        height: 45px;
+        padding: 8px;
+    }
+
+    .sync-btn span {
+        font-size: 9px;
+    }
+
     .theme-toggle {
         width: 45px;
         height: 45px;
@@ -1536,6 +1568,22 @@ body {
     .form-group input {
         padding: 12px 14px;
         font-size: 0.95rem;
+    }
+
+    /* 用户状态区域小屏幕优化 */
+    .user-status {
+        min-width: 260px;
+        padding: 10px 12px;
+    }
+
+    .sync-btn, .logout-btn {
+        min-width: 45px;
+        height: 40px;
+        padding: 6px;
+    }
+
+    .sync-btn span {
+        font-size: 8px;
     }
 
     .submit-btn {
@@ -3910,6 +3958,8 @@ body {
     .leaderboard-banner {
         margin: 15px 0;
         padding: 15px;
+        max-width: 100%;
+        overflow-x: auto;
     }
     
     .banner-header {
@@ -3920,6 +3970,8 @@ body {
     
     .banner-stats {
         justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
     }
     
     .banner-title h3 {
@@ -3927,7 +3979,70 @@ body {
     }
     
     .banner-title p {
-        font-size: 12px;
+        font-size: 14px;
+    }
+
+    /* 排行榜内容区域手机端优化 */
+    .banner-leaderboard {
+        padding: 20px 15px;
+        min-height: 400px;
+    }
+
+    .leaderboard-tabs {
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .leaderboard-tab {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .podium-container {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px 10px;
+    }
+
+    .podium-user {
+        min-width: 120px;
+        padding: 12px 15px;
+    }
+
+    .podium-username {
+        font-size: 14px;
+    }
+
+    .podium-coins {
+        font-size: 16px;
+    }
+
+    .leaderboard-list {
+        max-height: 300px;
+    }
+
+    .leaderboard-list-item {
+        padding: 12px 15px;
+        margin-bottom: 8px;
+    }
+
+    .leaderboard-list-item .rank {
+        font-size: 14px;
+        min-width: 30px;
+    }
+
+    .leaderboard-list-item .username {
+        font-size: 13px;
+    }
+
+    .leaderboard-list-item .user-stats {
+        font-size: 11px;
+        gap: 8px;
+    }
+
+    .leaderboard-list-item .coins {
+        font-size: 16px;
     }
     
     .banner-leaderboard-list {
