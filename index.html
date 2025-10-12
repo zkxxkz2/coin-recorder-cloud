@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金币记录器</title>
+
+    <!-- PWA支持 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="金币记录器">
+
+    <!-- 移动端优化 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#007bff">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- 防止缩放和优化触摸 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <!-- iOS Safari优化 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+
+    <!-- 桌面快捷方式图标 -->
+    <link rel="shortcut icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- 预加载资源 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- JSONBin.io 配置 -->
+    <script type="module">
+        // JSONBin.io 配置 - 请替换为您的实际 API 密钥
+        window.jsonbinConfig = {
+            apiKey: "$2a$10$lzTGizSjITzjqFfFLVRKK.D6sTi07OqOE7Nea1t5pWQNFQEfe/k9C"
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部标题 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="title-section">
+                    <h1>金币记录器</h1>
+                    <p>记录每天的金币变化，追踪财富增长</p>
+                </div>
+                <div class="header-controls">
+                    <!-- 用户状态显示 -->
+                    <div id="userStatus" class="user-status" style="display: none;">
+                        <span id="userEmail" class="user-email"></span>
+                        <div class="sync-buttons">
+                            <button id="syncFromCloudBtn" class="sync-btn sync-from-cloud" title="从云端下载数据">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                                    <path d="M21 3v5h-5"/>
+                                </svg>
+                                <span>下载</span>
+                            </button>
+                            <button id="syncToCloudBtn" class="sync-btn sync-to-cloud" title="上传数据到云端">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                                    <path d="M3 21v-5h5"/>
+                                </svg>
+                                <span>上传</span>
+                            </button>
+                        </div>
+                        <button id="logoutBtn" class="logout-btn" title="退出登录">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16,17 21,12 16,7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- 登录按钮 -->
+                    <button id="loginBtn" class="login-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                            <polyline points="10,17 15,12 10,7"/>
+                            <line x1="15" y1="12" x2="3" y2="12"/>
+                        </svg>
+                        登录
+                    </button>
+                    <button id="themeToggle" class="theme-toggle" title="切换主题">
+                        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"/>
+                            <line x1="12" y1="1" x2="12" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="23"/>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                            <line x1="1" y1="12" x2="3" y2="12"/>
+                            <line x1="21" y1="12" x2="23" y2="12"/>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                        </svg>
+                        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 金币输入区域 -->
+        <section class="input-section">
+            <div class="skeleton" id="inputSkeleton" style="display: none;">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-input"></div>
+                <div class="skeleton-input"></div>
+                <div class="skeleton-button"></div>
+            </div>
+            <div class="section-content" id="inputContent">
+                <div class="input-header">
+                    <h2>今日金币录入</h2>
+                    <button id="batchInputBtn" class="batch-input-btn">批量录入</button>
+                </div>
+                <form id="coinForm" class="coin-form">
+                    <div class="form-group">
+                        <label for="coinAmount">今日金币数量：</label>
+                        <input type="number" id="coinAmount" name="coinAmount" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="note">备注（可选）：</label>
+                        <input type="text" id="note" name="note" maxlength="50">
+                    </div>
+                    <button type="submit" class="submit-btn">记录金币</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 今日统计显示区域 -->
+        <section class="stats-section">
+            <div class="skeleton" id="statsSkeleton" style="display: none;">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-stats">
+                    <div class="skeleton-stat-item"></div>
+                    <div class="skeleton-stat-item"></div>
+                    <div class="skeleton-stat-item"></div>
+                    <div class="skeleton-stat-item"></div>
+                </div>
+            </div>
+            <div class="section-content" id="statsContent">
+                <h2>今日统计</h2>
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-label">今日金币：</span>
+                        <span class="stat-value" id="todayCoins">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">与昨日差值：</span>
+                        <span class="stat-value" id="difference">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">总金币数：</span>
+                        <span class="stat-value" id="totalCoins">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">记录天数：</span>
+                        <span class="stat-value" id="recordDays">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 连击统计区域 -->
+        <section class="streak-section">
+            <div class="skeleton" id="streakSkeleton" style="display: none;">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-streak-container">
+                    <div class="skeleton-streak-item"></div>
+                    <div class="skeleton-streak-item"></div>
+                    <div class="skeleton-streak-item"></div>
+                    <div class="skeleton-streak-button"></div>
+                </div>
+            </div>
+            <div class="section-content" id="streakContent">
+                <h2>连击统计</h2>
+                <div class="streak-container">
+                    <div class="streak-item">
+                        <span class="streak-label">当前连击：</span>
+                        <span class="streak-value" id="currentStreak">0天</span>
+                    </div>
+                    <div class="streak-item">
+                        <span class="streak-label">最长连击：</span>
+                        <span class="streak-value" id="longestStreak">0天</span>
+                    </div>
+                    <div class="streak-item">
+                        <span class="streak-label">今日完成：</span>
+                        <span class="streak-value" id="todayComplete">未完成</span>
+                    </div>
+                    <button id="makeupRecordBtn" class="makeup-btn" style="display: none;">补签昨日</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 个人挑战区域 -->
+        <section class="challenge-section">
+            <div class="skeleton" id="challengeSkeleton" style="display: none;">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-challenge-container">
+                    <div class="skeleton-challenge-item"></div>
+                    <div class="skeleton-challenge-item"></div>
+                    <div class="skeleton-challenge-button"></div>
+                </div>
+            </div>
+            <div class="section-content" id="challengeContent">
+                <h2>个人挑战</h2>
+                <div class="challenge-container">
+                    <div class="challenge-current">
+                        <div class="challenge-header">
+                            <h3>当前挑战</h3>
+                            <div class="challenge-controls">
+                                <button id="refreshChallengeBtn" class="challenge-btn refresh-btn" title="刷新挑战进度">🔄 刷新</button>
+                                <button id="setChallengeBtn" class="challenge-btn">设定挑战</button>
+                            </div>
+                        </div>
+                        <div class="challenge-info" id="currentChallengeInfo" style="display: none;">
+                            <div class="challenge-detail">
+                                <span class="challenge-label">目标金币：</span>
+                                <span class="challenge-value" id="challengeTarget">0</span>
+                            </div>
+                            <div class="challenge-detail">
+                                <span class="challenge-label">当前进度：</span>
+                                <span class="challenge-value" id="challengeProgress">0</span>
+                            </div>
+                            <div class="challenge-detail">
+                                <span class="challenge-label">完成百分比：</span>
+                                <span class="challenge-value" id="challengePercentage">0%</span>
+                            </div>
+                            <div class="challenge-progress-bar">
+                                <div class="challenge-progress-fill" id="challengeProgressFill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="no-challenge" id="noChallengeInfo">
+                            <p>还没有设定挑战，快来设定一个吧！</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成就系统 -->
+        <section class="achievements-section">
+            <div class="skeleton" id="achievementsSkeleton" style="display: none;">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-achievements">
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                    <div class="skeleton-achievement-item"></div>
+                </div>
+            </div>
+            <div class="section-content" id="achievementsContent">
+                <h2>成就系统</h2>
+                <div class="achievements-container">
+                    <div class="achievement-item" data-achievement="first_record">
+                        <div class="achievement-icon">🎯</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">首次记录</div>
+                            <div class="achievement-desc">完成第一次金币记录</div>
+                        </div>
+                        <div class="achievement-status" id="first_record_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="week_streak">
+                        <div class="achievement-icon">🔥</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">坚持7天</div>
+                            <div class="achievement-desc">连续记录7天金币</div>
+                        </div>
+                        <div class="achievement-status" id="week_streak_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="month_streak">
+                        <div class="achievement-icon">📅</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">坚持30天</div>
+                            <div class="achievement-desc">连续记录30天金币</div>
+                        </div>
+                        <div class="achievement-status" id="month_streak_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="hundred_days">
+                        <div class="achievement-icon">💯</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">百日坚持</div>
+                            <div class="achievement-desc">连续记录100天金币</div>
+                        </div>
+                        <div class="achievement-status" id="hundred_days_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="thousand_coins">
+                        <div class="achievement-icon">💰</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">千金富翁</div>
+                            <div class="achievement-desc">累计获得1000金币</div>
+                        </div>
+                        <div class="achievement-status" id="thousand_coins_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="ten_thousand">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">万元户</div>
+                            <div class="achievement-desc">累计获得10000金币</div>
+                        </div>
+                        <div class="achievement-status" id="ten_thousand_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="twenty_thousand">
+                        <div class="achievement-icon">💎</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">两万富翁</div>
+                            <div class="achievement-desc">累计获得20000金币</div>
+                        </div>
+                        <div class="achievement-status" id="twenty_thousand_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="thirty_thousand">
+                        <div class="achievement-icon">🏅</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">三万富翁</div>
+                            <div class="achievement-desc">累计获得30000金币</div>
+                        </div>
+                        <div class="achievement-status" id="thirty_thousand_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="forty_thousand">
+                        <div class="achievement-icon">🎖️</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">四万富翁</div>
+                            <div class="achievement-desc">累计获得40000金币</div>
+                        </div>
+                        <div class="achievement-status" id="forty_thousand_status">🔒</div>
+                    </div>
+                    <div class="achievement-item" data-achievement="fifty_thousand">
+                        <div class="achievement-icon">👑</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">五万富翁</div>
+                            <div class="achievement-desc">累计获得50000金币</div>
+                        </div>
+                        <div class="achievement-status" id="fifty_thousand_status">🔒</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 图表可视化区域 -->
+        <section class="chart-section">
+            <div class="skeleton" id="chartSkeleton" style="display: none;">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-chart-controls">
+                    <div class="skeleton-tabs"></div>
+                    <div class="skeleton-button"></div>
+                </div>
+                <div class="skeleton-chart"></div>
+            </div>
+            <div class="section-content" id="chartContent">
+                <h2>数据可视化</h2>
+                <div class="chart-controls">
+                    <div class="chart-tabs">
+                        <button class="tab-btn active" data-tab="totalChart">总金币趋势</button>
+                        <button class="tab-btn" data-tab="dailyChart">每日变化</button>
+                        <button class="tab-btn" data-tab="weeklyChart">周统计</button>
+                        <button class="tab-btn" data-tab="monthlyChart">月统计</button>
+                    </div>
+                    <button id="resetZoomBtn" class="reset-zoom-btn" title="重置缩放">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                            <path d="M21 3v5h-5"/>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                            <path d="M3 21v-5h5"/>
+                        </svg>
+                        重置视图
+                    </button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="totalChart"></canvas>
+                    <canvas id="dailyChart" style="display: none;"></canvas>
+                    <canvas id="weeklyChart" style="display: none;"></canvas>
+                    <canvas id="monthlyChart" style="display: none;"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- 历史记录显示区域 -->
+        <section class="history-section">
+            <div class="skeleton" id="historySkeleton" style="display: none;">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-history-controls">
+                    <div class="skeleton-button"></div>
+                    <div class="skeleton-button"></div>
+                </div>
+                <div class="skeleton-history-list">
+                    <div class="skeleton-history-item"></div>
+                    <div class="skeleton-history-item"></div>
+                    <div class="skeleton-history-item"></div>
+                </div>
+            </div>
+            <div class="section-content" id="historyContent">
+                <h2>历史记录</h2>
+                <div class="history-controls">
+                    <button id="exportBtn" class="export-btn">导出数据</button>
+                    <button id="clearBtn" class="clear-btn">清空记录</button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <!-- 历史记录将在这里动态显示 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 底部信息 -->
+        <footer class="footer">
+            <p>&copy; 2025 金币记录器</p>
+            <p class="version-info">版本 v1.2.1</p>
+        </footer>
+    </div>
+
+    <!-- 批量录入模态框 -->
+    <div id="batchInputModal" class="batch-input-modal" style="display: none;">
+        <div class="batch-input-backdrop">
+            <div class="batch-input-content">
+                <button class="batch-input-close">&times;</button>
+                <div class="batch-input-icon">📊</div>
+                <h3>批量录入金币数据</h3>
+                <p>选择要录入的日期范围和对应的金币数量</p>
+
+                <div class="batch-input-form">
+                    <div class="form-group">
+                        <label for="startDate">开始日期：</label>
+                        <input type="date" id="startDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endDate">结束日期：</label>
+                        <input type="date" id="endDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="batchCoins">每日金币数量：</label>
+                        <input type="number" id="batchCoins" min="0" placeholder="请输入每日金币数量" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="batchNote">备注（可选）：</label>
+                        <input type="text" id="batchNote" maxlength="50" placeholder="为这些天的数据添加备注">
+                    </div>
+
+                    <div class="batch-input-actions">
+                        <button id="cancelBatchBtn" class="batch-cancel-btn">取消</button>
+                        <button id="confirmBatchBtn" class="batch-confirm-btn">开始录入</button>
+                    </div>
+                </div>
+
+                <div id="batchPreview" class="batch-preview" style="display: none;">
+                    <h4>预览录入数据</h4>
+                    <div id="batchPreviewList" class="batch-preview-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="authModal" class="auth-modal" style="display: none;">
+        <div class="auth-modal-backdrop">
+            <div class="auth-modal-content">
+                <button class="auth-modal-close">&times;</button>
+                <div class="auth-modal-header">
+                    <div class="auth-modal-icon">🔐</div>
+                    <h3 id="authModalTitle">登录</h3>
+                    <p id="authModalSubtitle">登录以同步您的数据到云端</p>
+                </div>
+                
+                <div class="auth-modal-body">
+                      <!-- 登录表单 -->
+                      <form id="loginForm" class="auth-form">
+                          <div class="form-group">
+                              <label for="loginUsername">用户名或 Bin ID：</label>
+                              <input type="text" id="loginUsername" placeholder="输入用户名或24位Bin ID" required>
+                              <small class="form-hint">💡 支持用户名+密码或直接使用Bin ID登录</small>
+                          </div>
+                          <div class="form-group" id="passwordGroup">
+                              <label for="loginPassword">密码：</label>
+                              <input type="password" id="loginPassword" placeholder="输入密码（使用Bin ID登录时可为空）">
+                          </div>
+                          <button type="submit" class="auth-submit-btn">登录</button>
+                      </form>
+                    
+                      <!-- 注册表单 -->
+                      <form id="registerForm" class="auth-form" style="display: none;">
+                          <div class="form-group">
+                              <label for="registerUsername">用户名：</label>
+                              <input type="text" id="registerUsername" required>
+                          </div>
+                          <div class="form-group">
+                              <label for="registerPassword">密码：</label>
+                              <input type="password" id="registerPassword" required>
+                          </div>
+                          <div class="form-group">
+                              <label for="confirmPassword">确认密码：</label>
+                              <input type="password" id="confirmPassword" required>
+                          </div>
+                          <button type="submit" class="auth-submit-btn">注册</button>
+                      </form>
+                    
+                </div>
+                
+                <div class="auth-modal-footer">
+                      <div class="auth-tabs">
+                          <button id="showLoginTab" class="auth-tab active">登录</button>
+                          <button id="showRegisterTab" class="auth-tab">注册</button>
+                      </div>
+                    
+                      <div class="auth-info">
+                          <p>💡 提示：注册后您的数据将自动同步到云端</p>
+                      </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bin ID 显示模态框 -->
+    <div id="binIdModal" class="bin-id-modal" style="display: none;">
+        <div class="bin-id-modal-backdrop">
+            <div class="bin-id-modal-content">
+                <div class="bin-id-modal-icon">🔑</div>
+                <h3>注册成功！</h3>
+                <p>您的专属 Bin ID 已生成，请妥善保存：</p>
+                <div class="bin-id-container">
+                    <div class="bin-id-display">
+                        <input type="text" id="binIdDisplay" readonly>
+                        <button id="copyBinIdBtn" class="copy-btn" title="复制 Bin ID">📋</button>
+                    </div>
+                    <div class="bin-id-info">
+                        <p>💡 <strong>重要提示：</strong></p>
+                        <ul>
+                            <li>Bin ID 是您账户的唯一标识</li>
+                            <li>在其他设备上可直接使用 Bin ID 登录</li>
+                            <li>请妥善保存，丢失后无法找回</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bin-id-modal-footer">
+                    <button id="binIdModalClose" class="bin-id-btn primary">我知道了</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据迁移提示模态框 -->
+    <div id="migrationModal" class="migration-modal" style="display: none;">
+        <div class="migration-modal-backdrop">
+            <div class="migration-modal-content">
+                <div class="migration-modal-icon">☁️</div>
+                <h3>数据迁移</h3>
+                <p>检测到您有本地数据，是否要迁移到云端？</p>
+                <div class="migration-info">
+                    <div class="migration-item">
+                        <span class="migration-label">金币记录：</span>
+                        <span id="migrationRecordsCount" class="migration-value">0</span>
+                    </div>
+                    <div class="migration-item">
+                        <span class="migration-label">连击数据：</span>
+                        <span id="migrationStreakStatus" class="migration-value">无</span>
+                    </div>
+                    <div class="migration-item">
+                        <span class="migration-label">成就数据：</span>
+                        <span id="migrationAchievementsStatus" class="migration-value">无</span>
+                    </div>
+                </div>
+                <div class="migration-actions">
+                    <button id="migrationSkipBtn" class="migration-skip-btn">跳过</button>
+                    <button id="migrationConfirmBtn" class="migration-confirm-btn">迁移到云端</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+
+    <!-- Service Worker注册 -->
+    <script>
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // PWA安装提示
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // 阻止默认的安装提示
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // 可以在这里显示自定义安装按钮
+            // showInstallButton();
+        });
+
+        // 安装应用
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+    </script>
+</body>
+</html>
