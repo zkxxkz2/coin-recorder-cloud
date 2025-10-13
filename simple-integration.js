@@ -26,6 +26,9 @@ class SimpleIntegration {
         // 等待认证服务初始化完成
         await authService.init();
         
+        // 尝试加载已保存的用户信息
+        await authService.loadSavedUser();
+        
         // 设置认证服务到同步服务
         syncService.setAuthService(authService);
         
@@ -65,8 +68,13 @@ class SimpleIntegration {
         // 确保排行榜横幅始终显示
         this.showLeaderboardBanner();
         
-        // 加载排行榜数据
-        this.loadLeaderboardBanner();
+        // 只有在用户已登录时才加载排行榜数据
+        if (this.currentUser) {
+            this.loadLeaderboardBanner();
+        } else {
+            // 未登录时显示空白状态
+            this.showEmptyLeaderboard();
+        }
     }
 
     // 等待同步服务初始化完成
@@ -286,13 +294,22 @@ class SimpleIntegration {
             return;
         }
 
-        const result = await authService.login(usernameOrBinId);
+        // 显示登录进度提示
+        this.showMessage('正在验证账户ID...', 'info');
         
-        if (result.success) {
-            this.hideAuthModal();
-            this.showMessage(result.message, 'success');
-        } else {
-            this.showMessage(result.error || result.message, 'error');
+        try {
+            const result = await authService.login(usernameOrBinId);
+            
+            if (result.success) {
+                this.showMessage('登录成功，正在加载数据...', 'info');
+                this.hideAuthModal();
+                this.showMessage(result.message, 'success');
+            } else {
+                this.showMessage(result.error || result.message, 'error');
+            }
+        } catch (error) {
+            console.error('登录过程出错:', error);
+            this.showMessage('登录失败，请稍后重试', 'error');
         }
     }
 
@@ -312,14 +329,23 @@ class SimpleIntegration {
             return;
         }
 
-        const result = await authService.register(username);
+        // 显示注册进度提示
+        this.showMessage('正在创建账户...', 'info');
         
-        if (result.success) {
-            this.hideAuthModal();
-            // 显示账户ID模态框
-            this.showBinIdModal(result.binId);
-        } else {
-            this.showMessage(result.error || result.message, 'error');
+        try {
+            const result = await authService.register(username);
+            
+            if (result.success) {
+                this.showMessage('账户创建成功，正在生成账户ID...', 'info');
+                this.hideAuthModal();
+                // 显示账户ID模态框
+                this.showBinIdModal(result.binId);
+            } else {
+                this.showMessage(result.error || result.message, 'error');
+            }
+        } catch (error) {
+            console.error('注册过程出错:', error);
+            this.showMessage('注册失败，请稍后重试', 'error');
         }
     }
 
@@ -327,11 +353,34 @@ class SimpleIntegration {
     async handleUserLogin(user) {
         console.log('用户登录:', user.username);
         
-        // 登录后不自动同步，避免创建新的 bin ID
-        // 用户可以通过手动点击同步按钮来控制同步行为
+        // 登录后自动同步未登录时的记录到云端
+        await this.syncPendingRecords();
         
         // 登录后检查用户是否已加入排行榜
         await this.checkAndLoadLeaderboard(user);
+    }
+
+    // 同步未登录时的记录到云端
+    async syncPendingRecords() {
+        try {
+            // 检查是否有本地数据需要同步
+            const localData = localStorage.getItem('coinTrackerData');
+            if (localData && JSON.parse(localData).length > 0) {
+                this.showMessage('正在同步本地记录到云端...', 'info');
+                
+                // 同步到云端
+                const result = await syncService.syncToCloud();
+                if (result.success) {
+                    this.showMessage('本地记录已同步到云端', 'success');
+                } else {
+                    console.warn('云端同步失败:', result.message);
+                    this.showMessage('云端同步失败，请稍后手动同步', 'warning');
+                }
+            }
+        } catch (error) {
+            console.error('同步本地记录失败:', error);
+            this.showMessage('同步本地记录失败', 'error');
+        }
     }
 
     // 检查用户是否已加入排行榜并加载相应内容
@@ -358,7 +407,7 @@ class SimpleIntegration {
                     this.showEmptyLeaderboard();
                 }
             } else {
-                // 本地记录显示未加入，显示空白状态
+                // 本地记录显示未加入，显示空白状态（不加载排行榜数据）
                 console.log('用户未加入排行榜，显示空白状态');
                 this.showLeaderboardBanner();
                 this.showEmptyLeaderboard();
@@ -409,6 +458,10 @@ class SimpleIntegration {
         console.log('用户登出');
         // 清理云端同步状态
         syncService.clearPendingChanges();
+        
+        // 隐藏排行榜数据，显示空白状态
+        this.showLeaderboardBanner();
+        this.showEmptyLeaderboard();
     }
 
     // 显示数据迁移模态框
@@ -486,10 +539,14 @@ class SimpleIntegration {
         }
 
         try {
+            // 显示下载进度提示
+            this.showMessage('正在从云端下载数据...', 'info');
+            
             const result = await syncService.syncFromCloud();
             
             if (result.success) {
-                this.showMessage('从云端下载成功', 'success');
+                this.showMessage('正在更新本地数据...', 'info');
+                
                 // 立即刷新页面数据，无需手动刷新页面
                 if (window.coinTracker) {
                     // 重新加载所有数据
@@ -502,13 +559,19 @@ class SimpleIntegration {
                     window.coinTracker.updateDisplay();
                     window.coinTracker.renderHistory();
                     window.coinTracker.updateAchievements();
+                    window.coinTracker.checkAchievements(); // 检查并激活成就
                     window.coinTracker.updateStreakDisplay();
                     window.coinTracker.updateChallengeDisplay();
                     window.coinTracker.updateCharts();
                 }
+                
+                this.showMessage('从云端下载成功', 'success');
             } else {
                 this.showMessage(result.message, 'error');
             }
+        } catch (error) {
+            console.error('云端下载失败:', error);
+            this.showMessage('云端下载失败，请稍后重试', 'error');
         } finally {
             if (syncFromCloudBtn) {
                 syncFromCloudBtn.style.opacity = '1';
@@ -526,13 +589,19 @@ class SimpleIntegration {
         }
 
         try {
+            // 显示上传进度提示
+            this.showMessage('正在上传数据到云端...', 'info');
+            
             const result = await syncService.syncToCloud();
             
             if (result.success) {
-                this.showMessage(result.message, 'success');
+                this.showMessage('数据上传成功', 'success');
             } else {
                 this.showMessage(result.message, 'error');
             }
+        } catch (error) {
+            console.error('云端上传失败:', error);
+            this.showMessage('云端上传失败，请稍后重试', 'error');
         } finally {
             if (syncToCloudBtn) {
                 syncToCloudBtn.style.opacity = '1';
@@ -571,7 +640,7 @@ class SimpleIntegration {
     }
 
     // 显示消息
-    showMessage(message, type) {
+    showMessage(message, type, duration = 3000) {
         // 创建消息元素
         const messageEl = document.createElement('div');
         messageEl.className = `message ${type}`;
@@ -586,7 +655,7 @@ class SimpleIntegration {
             borderRadius: '8px',
             color: 'white',
             fontWeight: '600',
-            zIndex: '1000',
+            zIndex: '10001',
             transform: 'translateX(400px)',
             transition: 'transform 0.3s ease'
         });
@@ -615,7 +684,80 @@ class SimpleIntegration {
                     document.body.removeChild(messageEl);
                 }
             }, 300);
-        }, 3000);
+        }, duration);
+    }
+
+    // 显示持久化消息（用于长时间操作）
+    showPersistentMessage(message, type) {
+        // 清除之前的持久化消息
+        this.hidePersistentMessage();
+
+        // 创建消息元素
+        const messageEl = document.createElement('div');
+        messageEl.id = 'persistentMessage';
+        messageEl.className = `message ${type} persistent`;
+        messageEl.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <span>${message}</span>
+            </div>
+        `;
+
+        // 添加样式
+        Object.assign(messageEl.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: '8px',
+            color: 'white',
+            fontWeight: '600',
+            zIndex: '10001',
+            transform: 'translateX(400px)',
+            transition: 'transform 0.3s ease'
+        });
+
+        // 根据类型设置背景色
+        const colors = {
+            success: '#27ae60',
+            error: '#e74c3c',
+            warning: '#f39c12',
+            info: '#3498db'
+        };
+        messageEl.style.backgroundColor = colors[type] || colors.info;
+
+        // 添加旋转动画样式
+        if (!document.getElementById('loadingSpinnerStyle')) {
+            const style = document.createElement('style');
+            style.id = 'loadingSpinnerStyle';
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(messageEl);
+
+        // 显示动画
+        setTimeout(() => {
+            messageEl.style.transform = 'translateX(0)';
+        }, 100);
+    }
+
+    // 隐藏持久化消息
+    hidePersistentMessage() {
+        const messageEl = document.getElementById('persistentMessage');
+        if (messageEl) {
+            messageEl.style.transform = 'translateX(400px)';
+            setTimeout(() => {
+                if (messageEl.parentNode) {
+                    document.body.removeChild(messageEl);
+                }
+            }, 300);
+        }
     }
 
     // 获取当前用户
@@ -890,7 +1032,13 @@ class SimpleIntegration {
         // 防止重复请求
         if (this.leaderboardDataCache.isRefreshing) {
             console.log('排行榜数据正在刷新中，等待完成...');
-            return this.leaderboardDataCache.users;
+            // 等待刷新完成，最多等待10秒
+            let waitTime = 0;
+            while (this.leaderboardDataCache.isRefreshing && waitTime < 10000) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                waitTime += 100;
+            }
+            return this.leaderboardDataCache.users || [];
         }
 
         this.leaderboardDataCache.isRefreshing = true;
@@ -899,13 +1047,17 @@ class SimpleIntegration {
             console.log('开始获取排行榜数据...');
             const users = await this.getAllLeaderboardUsers();
             
-            // 缓存数据
-            this.leaderboardDataCache.users = users;
-            this.leaderboardDataCache.lastUpdate = Date.now();
+            // 只有在成功获取数据后才更新缓存
+            if (users && users.length >= 0) {
+                this.leaderboardDataCache.users = users;
+                this.leaderboardDataCache.lastUpdate = Date.now();
+                console.log(`排行榜数据获取完成，共 ${users.length} 个用户`);
+            } else {
+                console.warn('获取到的排行榜数据为空，保持原有缓存');
+            }
+            
             this.leaderboardDataCache.isRefreshing = false;
-
-            console.log(`排行榜数据获取完成，共 ${users.length} 个用户`);
-            return users;
+            return this.leaderboardDataCache.users || [];
         } catch (error) {
             console.error('获取排行榜数据失败:', error);
             this.leaderboardDataCache.isRefreshing = false;
@@ -949,66 +1101,96 @@ class SimpleIntegration {
 
             console.log(`找到 ${leaderboardData.participants.length} 个参与者`);
 
-            // 获取所有参与者的完整数据
-            const userData = [];
-            const promises = leaderboardData.participants.map(async (participant) => {
-                try {
-                    console.log(`获取用户数据: ${participant.username} (${participant.binId})`);
-                    
-                    const userResponse = await fetch(`https://api.jsonbin.io/v3/b/${participant.binId}/latest`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': window.jsonbinConfig.apiKey
-                        }
-                    });
-
-                    if (userResponse.ok) {
-                        const userResult = await userResponse.json();
-                        const userData = userResult.record;
+            // 获取所有参与者的完整数据（添加请求间隔避免限流）
+            const validUsers = [];
+            
+            // 分批处理，每批最多2个请求，间隔800ms（增加间隔减少并发冲突）
+            const batchSize = 2;
+            const delay = 800;
+            
+            // 记录获取开始时间，确保所有数据在同一时间点获取
+            const fetchStartTime = Date.now();
+            
+            // 显示获取数据的进度提示
+            this.showPersistentMessage(`正在获取数据 (0/${leaderboardData.participants.length}) - 0%`, 'info');
+            
+            for (let i = 0; i < leaderboardData.participants.length; i += batchSize) {
+                const batch = leaderboardData.participants.slice(i, i + batchSize);
+                
+                const batchPromises = batch.map(async (participant) => {
+                    try {
+                        console.log(`获取用户数据: ${participant.username} (${participant.binId})`);
                         
-                        if (userData.coinRecords && Array.isArray(userData.coinRecords)) {
-                            // 计算当前金币数（最新记录的金币数）
-                            const currentCoins = this.calculateCurrentCoins(userData.coinRecords);
-                            const achievements = Object.keys(userData.achievements || {}).filter(key => userData.achievements[key].unlocked).length;
-                            
-                            // 计算等级信息
-                            const levelInfo = this.getLevelInfo(currentCoins);
-                            
-                            // 计算称号
-                            const titles = this.getTitles(userData.coinRecords, userData.streakData, userData.achievements);
-                            
-                            // 计算增长趋势
-                            const growthTrend = this.calculateGrowthTrend(userData.coinRecords);
-                            
-                            console.log(`用户 ${participant.username} 数据获取成功，当前金币: ${currentCoins}`);
-                            
-                            return {
-                                username: participant.username,
-                                currentCoins: currentCoins,
-                                coinRecords: userData.coinRecords || [],
-                                streakData: userData.streakData || {},
-                                achievements: userData.achievements || {},
-                                achievementCount: achievements,
-                                binId: participant.binId,
-                                levelInfo: levelInfo,
-                                titles: titles,
-                                growthTrend: growthTrend
-                            };
-                        } else {
-                            console.warn(`用户 ${participant.username} 没有金币记录数据`);
-                        }
-                    } else {
-                        console.error(`获取用户 ${participant.username} 数据失败，状态码: ${userResponse.status}`);
-                    }
-                } catch (error) {
-                    console.error(`获取用户 ${participant.binId} 数据失败:`, error);
-                }
-                return null;
-            });
+                        const userResponse = await fetch(`https://api.jsonbin.io/v3/b/${participant.binId}/latest`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Master-Key': window.jsonbinConfig.apiKey
+                            }
+                        });
 
-            const results = await Promise.all(promises);
-            const validUsers = results.filter(user => user !== null);
+                        if (userResponse.ok) {
+                            const userResult = await userResponse.json();
+                            const userData = userResult.record;
+                            
+                            if (userData.coinRecords && Array.isArray(userData.coinRecords)) {
+                                // 计算当前金币数（最新记录的金币数）
+                                const currentCoins = this.calculateCurrentCoins(userData.coinRecords);
+                                const achievements = Object.keys(userData.achievements || {}).filter(key => userData.achievements[key].unlocked).length;
+                                
+                                // 计算等级信息
+                                const levelInfo = this.getLevelInfo(currentCoins);
+                                
+                                // 计算称号
+                                const titles = this.getTitles(userData.coinRecords, userData.streakData, userData.achievements);
+                                
+                                // 计算增长趋势
+                                const growthTrend = this.calculateGrowthTrend(userData.coinRecords);
+                                
+                                console.log(`用户 ${participant.username} 数据获取成功，当前金币: ${currentCoins}`);
+                                
+                                return {
+                                    username: participant.username,
+                                    currentCoins: currentCoins,
+                                    coinRecords: userData.coinRecords || [],
+                                    streakData: userData.streakData || {},
+                                    achievements: userData.achievements || {},
+                                    achievementCount: achievements,
+                                    binId: participant.binId,
+                                    levelInfo: levelInfo,
+                                    titles: titles,
+                                    growthTrend: growthTrend,
+                                    fetchTime: fetchStartTime // 添加获取时间戳，确保数据一致性
+                                };
+                            } else {
+                                console.warn(`用户 ${participant.username} 没有金币记录数据`);
+                            }
+                        } else {
+                            console.error(`获取用户 ${participant.username} 数据失败，状态码: ${userResponse.status}`);
+                        }
+                    } catch (error) {
+                        console.error(`获取用户 ${participant.binId} 数据失败:`, error);
+                    }
+                    return null;
+                });
+
+                const batchResults = await Promise.all(batchPromises);
+                const batchValidUsers = batchResults.filter(user => user !== null);
+                validUsers.push(...batchValidUsers);
+                
+                // 更新进度提示
+                const processedCount = Math.min(i + batchSize, leaderboardData.participants.length);
+                const progressPercentage = Math.round((processedCount / leaderboardData.participants.length) * 100);
+                this.showPersistentMessage(`正在获取数据 (${processedCount}/${leaderboardData.participants.length}) - ${progressPercentage}%`, 'info');
+                
+                // 如果不是最后一批，等待一段时间再继续
+                if (i + batchSize < leaderboardData.participants.length) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            
+            // 按用户名排序，确保每次获取的数据顺序一致
+            validUsers.sort((a, b) => a.username.localeCompare(b.username));
             
             console.log(`成功获取 ${validUsers.length} 个用户的数据`);
             return validUsers;
@@ -1288,6 +1470,11 @@ class SimpleIntegration {
             
             console.log('加载排行榜横幅，Bin ID:', publicLeaderboardBinId);
 
+            // 显示加载提示（仅在初始化时显示，避免频繁提示）
+            if (!this.leaderboardDataCache.users) {
+                this.showPersistentMessage('正在初始化排行榜数据...', 'info');
+            }
+
             // 使用缓存数据加载排行榜横幅
             const users = await this.loadAllLeaderboardData();
             console.log('排行榜横幅获取到用户数据:', users.length);
@@ -1297,6 +1484,8 @@ class SimpleIntegration {
                 console.log('没有用户数据，显示空状态');
                 this.showLeaderboardBanner();
                 this.showEmptyLeaderboard();
+                // 隐藏持久化消息
+                this.hidePersistentMessage();
                 return;
             }
 
@@ -1328,59 +1517,86 @@ class SimpleIntegration {
             let totalCoins = 0;
             let totalRecords = 0;
 
-            if (leaderboardData.participants) {
-                const promises = leaderboardData.participants.map(async (participant) => {
-                    try {
-                        const userResponse = await fetch(`https://api.jsonbin.io/v3/b/${participant.binId}/latest`, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Master-Key': window.jsonbinConfig.apiKey
-                            }
-                        });
+            if (leaderboardData.participants && leaderboardData.participants.length > 0) {
+                // 分批处理，每批最多2个请求，间隔300ms
+                const batchSize = 2;
+                const delay = 300;
+                
+                // 显示获取横幅数据的进度提示
+                this.showPersistentMessage(`正在获取横幅数据 (0/${leaderboardData.participants.length}) - 0%`, 'info');
+                
+                for (let i = 0; i < leaderboardData.participants.length; i += batchSize) {
+                    const batch = leaderboardData.participants.slice(i, i + batchSize);
+                    
+                    const batchPromises = batch.map(async (participant) => {
+                        try {
+                            const userResponse = await fetch(`https://api.jsonbin.io/v3/b/${participant.binId}/latest`, {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Master-Key': window.jsonbinConfig.apiKey
+                                }
+                            });
 
-                        if (userResponse.ok) {
-                            const userResult = await userResponse.json();
-                            const userData = userResult.record;
-                            
-                            if (userData.coinRecords) {
-                                // 计算当前金币数（最新记录的金币数）
-                                const currentCoins = this.calculateCurrentCoins(userData.coinRecords);
-                                const achievements = Object.keys(userData.achievements || {}).filter(key => userData.achievements[key].unlocked).length;
+                            if (userResponse.ok) {
+                                const userResult = await userResponse.json();
+                                const userData = userResult.record;
                                 
-                                // 计算等级信息
-                                const levelInfo = this.getLevelInfo(currentCoins);
-                                
-                                // 计算称号
-                                const titles = this.getTitles(userData.coinRecords, userData.streakData, userData.achievements);
-                                
-                                // 计算增长趋势
-                                const growthTrend = this.calculateGrowthTrend(userData.coinRecords);
-                                
-                                return {
-                                    username: participant.username,
-                                    currentCoins: currentCoins,
-                                    coinRecords: userData.coinRecords || [],
-                                    streakData: userData.streakData || {},
-                                    achievements: userData.achievements || {},
-                                    achievementCount: achievements,
-                                    binId: participant.binId,
-                                    levelInfo: levelInfo,
-                                    titles: titles,
-                                    growthTrend: growthTrend
-                                };
+                                if (userData.coinRecords) {
+                                    // 计算当前金币数（最新记录的金币数）
+                                    const currentCoins = this.calculateCurrentCoins(userData.coinRecords);
+                                    const achievements = Object.keys(userData.achievements || {}).filter(key => userData.achievements[key].unlocked).length;
+                                    
+                                    // 计算等级信息
+                                    const levelInfo = this.getLevelInfo(currentCoins);
+                                    
+                                    // 计算称号
+                                    const titles = this.getTitles(userData.coinRecords, userData.streakData, userData.achievements);
+                                    
+                                    // 计算增长趋势
+                                    const growthTrend = this.calculateGrowthTrend(userData.coinRecords);
+                                    
+                                    return {
+                                        username: participant.username,
+                                        currentCoins: currentCoins,
+                                        coinRecords: userData.coinRecords || [],
+                                        streakData: userData.streakData || {},
+                                        achievements: userData.achievements || {},
+                                        achievementCount: achievements,
+                                        binId: participant.binId,
+                                        levelInfo: levelInfo,
+                                        titles: titles,
+                                        growthTrend: growthTrend
+                                    };
+                                }
                             }
+                        } catch (error) {
+                            console.error(`获取用户 ${participant.binId} 数据失败:`, error);
                         }
-                    } catch (error) {
-                        console.error(`获取用户 ${participant.binId} 数据失败:`, error);
-                    }
-                    return null;
-                });
+                        return null;
+                    });
 
-                const results = await Promise.all(promises);
-                userData.push(...results.filter(result => result !== null));
+                    const batchResults = await Promise.all(batchPromises);
+                    const batchValidUsers = batchResults.filter(result => result !== null);
+                    userData.push(...batchValidUsers);
+                    
+                    // 更新进度提示
+                    const processedCount = Math.min(i + batchSize, leaderboardData.participants.length);
+                    const progressPercentage = Math.round((processedCount / leaderboardData.participants.length) * 100);
+                    this.showPersistentMessage(`正在获取横幅数据 (${processedCount}/${leaderboardData.participants.length}) - ${progressPercentage}%`, 'info');
+                    
+                    // 如果不是最后一批，等待一段时间再继续
+                    if (i + batchSize < leaderboardData.participants.length) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+                
                 totalCoins = userData.reduce((sum, user) => sum + user.currentCoins, 0);
                 totalRecords = userData.reduce((sum, user) => sum + user.coinRecords.length, 0);
+            } else {
+                // 没有参与者数据，等待UI更新后隐藏持久化消息
+                await new Promise(resolve => setTimeout(resolve, 200));
+                this.hidePersistentMessage();
             }
 
             // 更新统计信息
@@ -1403,11 +1619,17 @@ class SimpleIntegration {
             // 确保本地存储状态正确
             localStorage.setItem('joinedPublicLeaderboard', 'true');
 
+            // 等待UI更新完成后再隐藏持久化消息
+            await new Promise(resolve => setTimeout(resolve, 200));
+            this.hidePersistentMessage();
+
         } catch (error) {
             console.error('加载排行榜横幅失败:', error);
             // 即使出错也显示排行榜横幅，显示空状态
             this.showLeaderboardBanner();
             this.showEmptyLeaderboard();
+            // 隐藏持久化消息
+            this.hidePersistentMessage();
         }
     }
 
@@ -1636,11 +1858,18 @@ class SimpleIntegration {
             return 0;
         }
 
-        // 按时间排序，获取最新的记录
-        const sortedRecords = coinRecords.sort((a, b) => {
-            const timeA = new Date(a.timestamp || a.date);
-            const timeB = new Date(b.timestamp || b.date);
-            return timeB - timeA;
+        // 按时间排序，获取最新的记录（确保排序稳定）
+        const sortedRecords = [...coinRecords].sort((a, b) => {
+            // 优先使用 timestamp，如果没有则使用 date
+            const timeA = a.timestamp ? new Date(a.timestamp) : new Date(a.date);
+            const timeB = b.timestamp ? new Date(b.timestamp) : new Date(b.date);
+            
+            // 如果时间相同，按金币数降序排序（确保排序稳定）
+            if (timeA.getTime() === timeB.getTime()) {
+                return (b.coins || 0) - (a.coins || 0);
+            }
+            
+            return timeB.getTime() - timeA.getTime();
         });
 
         // 返回最新记录的金币数
@@ -2555,28 +2784,50 @@ class SimpleIntegration {
         try {
             console.log('用户手动刷新排行榜数据');
             
+            // 检查用户是否已加入排行榜
+            const isJoinedLocally = localStorage.getItem('joinedPublicLeaderboard') === 'true';
+            if (!isJoinedLocally) {
+                this.showMessage('请先加入排行榜', 'warning');
+                return;
+            }
+            
+            // 显示持久化加载提示
+            this.showPersistentMessage('正在刷新排行榜数据，请稍候...', 'info');
+            
+            // 保存当前显示的标签页
+            const activeTab = document.querySelector('.leaderboard-tab.active');
+            const currentTabType = activeTab ? activeTab.getAttribute('data-tab') : 'main';
+            
             // 清除缓存并强制刷新
             this.leaderboardDataCache.users = null;
             this.leaderboardDataCache.lastUpdate = null;
             this.leaderboardDataCache.isRefreshing = false;
             
+            // 更新进度提示 - 获取排行榜结构
+            this.showPersistentMessage('正在获取排行榜参与者信息...', 'info');
+            
             const users = await this.loadAllLeaderboardData(true); // 强制刷新
             console.log('排行榜数据刷新完成，获取到用户数:', users.length);
+            
+            // 更新进度提示 - 更新显示
+            this.showPersistentMessage('正在更新排行榜界面...', 'info');
             
             // 重新加载排行榜横幅
             await this.loadLeaderboardBanner();
             
-            // 更新当前显示的排行榜
-            const activeTab = document.querySelector('.leaderboard-tab.active');
-            if (activeTab) {
-                const tabType = activeTab.getAttribute('data-tab');
-                this.switchLeaderboardTab(tabType);
-            }
+            // 等待一小段时间确保UI更新完成
+            await new Promise(resolve => setTimeout(resolve, 100));
             
-            this.showMessage(`排行榜已刷新，共 ${users.length} 个用户`, 'success');
+            // 更新当前显示的排行榜
+            this.switchLeaderboardTab(currentTabType);
+            
+            // 隐藏持久化消息并显示成功消息
+            this.hidePersistentMessage();
+            this.showMessage(`排行榜刷新完成，共 ${users.length} 位参与者`, 'success', 5000);
         } catch (error) {
             console.error('刷新排行榜数据失败:', error);
-            this.showMessage('排行榜刷新失败', 'error');
+            this.hidePersistentMessage();
+            this.showMessage('排行榜刷新失败', 'error', 5000);
         }
     }
 }

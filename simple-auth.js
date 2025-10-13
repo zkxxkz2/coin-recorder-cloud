@@ -25,9 +25,18 @@ class SimpleAuthService {
         try {
             // 首先尝试从本地存储加载
             const savedUser = localStorage.getItem('coinTrackerUser');
-            if (savedUser) {
+            const savedBinId = localStorage.getItem('coinTrackerBinId');
+            
+            if (savedUser && savedBinId) {
                 this.currentUser = JSON.parse(savedUser);
+                
+                // 设置同步服务的 binId
+                if (this.syncService) {
+                    this.syncService.binId = savedBinId;
+                }
+                
                 this.notifyAuthStateChange(this.currentUser);
+                console.log('已加载保存的用户信息:', this.currentUser.username);
                 return;
             }
 
@@ -36,6 +45,7 @@ class SimpleAuthService {
         } catch (error) {
             console.error('加载用户信息失败:', error);
             localStorage.removeItem('coinTrackerUser');
+            localStorage.removeItem('coinTrackerBinId');
         }
     }
 
@@ -588,6 +598,13 @@ class SimpleAuthService {
             this.currentUser = null;
             localStorage.removeItem('coinTrackerUser');
             localStorage.removeItem('coinTrackerUserId');
+            localStorage.removeItem('coinTrackerBinId');
+            
+            // 清除同步服务的 binId
+            if (this.syncService) {
+                this.syncService.binId = null;
+            }
+            
             this.notifyAuthStateChange(null);
 
             return {

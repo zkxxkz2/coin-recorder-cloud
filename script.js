@@ -218,7 +218,7 @@ class CoinTracker {
             coins,
             difference,
             note: note || '',
-            timestamp: Date.now()
+            timestamp: Date.now() // UTC时间戳，用于排序和合并
         };
 
         this.coinData.push(record);
@@ -312,7 +312,13 @@ class CoinTracker {
             return;
         }
 
-        const lastRecord = this.coinData[this.coinData.length - 1];
+        // 按时间排序，找到最新的记录
+        const sortedRecords = [...this.coinData].sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp) : new Date(a.date);
+            const timeB = b.timestamp ? new Date(b.timestamp) : new Date(b.date);
+            return timeB.getTime() - timeA.getTime();
+        });
+        const lastRecord = sortedRecords[0];
 
         // 更新今日统计（带动画效果）
         this.animateNumber('todayCoins', lastRecord.coins);
@@ -347,7 +353,19 @@ class CoinTracker {
             return;
         }
 
-        historyList.innerHTML = this.coinData.map((record, index) => `
+        // 找到最早的记录（按时间戳排序）
+        const sortedRecords = [...this.coinData].sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp) : new Date(a.date);
+            const timeB = b.timestamp ? new Date(b.timestamp) : new Date(b.date);
+            return timeA.getTime() - timeB.getTime();
+        });
+        const earliestRecord = sortedRecords[0];
+
+        historyList.innerHTML = this.coinData.map((record, index) => {
+            // 判断是否为首次记录（基于时间戳，而不是索引）
+            const isFirstRecord = record === earliestRecord;
+            
+            return `
             <div class="history-item" data-index="${index}">
                 <div class="history-content">
                     <div class="history-date">${this.formatDate(record.date)}</div>
@@ -356,7 +374,7 @@ class CoinTracker {
                 </div>
                 <div class="history-actions">
                     <div class="history-difference ${record.difference > 0 ? 'positive' : record.difference < 0 ? 'negative' : 'neutral'}">
-                        ${index === 0 ? '首次记录' : this.formatDifference(record.difference)}
+                        ${isFirstRecord ? '首次记录' : this.formatDifference(record.difference)}
                     </div>
                     <div class="action-buttons">
                         <button class="edit-btn" onclick="coinTracker.editRecord(${index})" title="编辑">
@@ -376,7 +394,8 @@ class CoinTracker {
                     </div>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     // 初始化图表
@@ -418,21 +437,6 @@ class CoinTracker {
                     title: {
                         display: true,
                         text: '金币总数趋势图'
-                    },
-                    zoom: {
-                        zoom: {
-                            wheel: {
-                                enabled: true,
-                            },
-                            pinch: {
-                                enabled: true
-                            },
-                            mode: 'x',
-                        },
-                        pan: {
-                            enabled: true,
-                            mode: 'x',
-                        }
                     }
                 },
                 scales: {
@@ -478,21 +482,6 @@ class CoinTracker {
                     title: {
                         display: true,
                         text: '每日金币变化图'
-                    },
-                    zoom: {
-                        zoom: {
-                            wheel: {
-                                enabled: true,
-                            },
-                            pinch: {
-                                enabled: true
-                            },
-                            mode: 'x',
-                        },
-                        pan: {
-                            enabled: true,
-                            mode: 'x',
-                        }
                     }
                 },
                 scales: {
@@ -538,21 +527,6 @@ class CoinTracker {
                     title: {
                         display: true,
                         text: '周统计图表'
-                    },
-                    zoom: {
-                        zoom: {
-                            wheel: {
-                                enabled: true,
-                            },
-                            pinch: {
-                                enabled: true
-                            },
-                            mode: 'x',
-                        },
-                        pan: {
-                            enabled: true,
-                            mode: 'x',
-                        }
                     }
                 },
                 scales: {
@@ -585,21 +559,6 @@ class CoinTracker {
                     title: {
                         display: true,
                         text: '月统计图表'
-                    },
-                    zoom: {
-                        zoom: {
-                            wheel: {
-                                enabled: true,
-                            },
-                            pinch: {
-                                enabled: true
-                            },
-                            mode: 'x',
-                        },
-                        pan: {
-                            enabled: true,
-                            mode: 'x',
-                        }
                     }
                 },
                 scales: {
@@ -650,8 +609,10 @@ class CoinTracker {
     }
 
     updateTotalChart() {
-        const labels = this.coinData.map(record => this.formatDate(record.date));
-        const totalData = this.coinData.map(record => record.coins);
+        // 按日期排序数据
+        const sortedData = [...this.coinData].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const labels = sortedData.map(record => this.formatDate(record.date));
+        const totalData = sortedData.map(record => record.coins);
 
         this.totalChart.data.labels = labels;
         this.totalChart.data.datasets[0].data = totalData;
@@ -659,8 +620,10 @@ class CoinTracker {
     }
 
     updateDailyChart() {
-        const dailyLabels = this.coinData.map(record => this.formatDate(record.date));
-        const dailyData = this.coinData.map(record => record.difference);
+        // 按日期排序数据
+        const sortedData = [...this.coinData].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const dailyLabels = sortedData.map(record => this.formatDate(record.date));
+        const dailyData = sortedData.map(record => record.difference);
 
         this.dailyChart.data.labels = dailyLabels;
         this.dailyChart.data.datasets[0].data = dailyData;
@@ -841,7 +804,18 @@ class CoinTracker {
 
     // 工具方法
     calculateTotal() {
-        return this.coinData.length > 0 ? this.coinData[this.coinData.length - 1].coins : 0;
+        if (this.coinData.length === 0) {
+            return 0;
+        }
+        
+        // 按时间排序，找到最新的记录
+        const sortedRecords = [...this.coinData].sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp) : new Date(a.date);
+            const timeB = b.timestamp ? new Date(b.timestamp) : new Date(b.date);
+            return timeB.getTime() - timeA.getTime();
+        });
+        
+        return sortedRecords[0].coins || 0;
     }
 
     // 计算当前金币数（最新记录的金币数）
@@ -850,11 +824,11 @@ class CoinTracker {
             return 0;
         }
         
-        // 按时间戳排序，获取最新的记录
-        const sortedRecords = this.coinData.sort((a, b) => {
+        // 按时间戳排序，获取最新的记录（不修改原数组）
+        const sortedRecords = [...this.coinData].sort((a, b) => {
             const timeA = new Date(a.timestamp || a.date);
             const timeB = new Date(b.timestamp || b.date);
-            return timeB - timeA; // 降序排列，最新的在前
+            return timeB.getTime() - timeA.getTime(); // 降序排列，最新的在前
         });
 
         // 返回最新记录的金币数
@@ -922,7 +896,9 @@ class CoinTracker {
     loadData() {
         try {
             const data = localStorage.getItem('coinTrackerData');
-            return data ? JSON.parse(data) : [];
+            const parsedData = data ? JSON.parse(data) : [];
+            // 确保数据按日期排序
+            return parsedData.sort((a, b) => new Date(a.date) - new Date(b.date));
         } catch (error) {
             console.error('加载数据失败:', error);
             return [];
@@ -968,6 +944,11 @@ class CoinTracker {
         this.renderHistory();
         this.updateCharts();
         this.updateChallengeDisplay();
+        
+        // 重新检查成就系统（编辑记录后需要重新验证成就状态）
+        this.checkAchievements();
+        this.updateAchievements();
+        
         this.showMessage('记录更新成功！', 'success');
     }
 
@@ -990,6 +971,11 @@ class CoinTracker {
         this.renderHistory();
         this.updateCharts();
         this.updateChallengeDisplay();
+        
+        // 重新检查成就系统（重要：删除记录后需要重新验证成就状态）
+        this.checkAchievements();
+        this.updateAchievements();
+        
         this.showMessage('记录删除成功！', 'success');
 
         // 同步到云端
@@ -1053,7 +1039,16 @@ class CoinTracker {
 
         charts.forEach(chart => {
             if (chart) {
-                chart.resetZoom();
+                // 检查图表是否有重置缩放的方法
+                if (typeof chart.resetZoom === 'function') {
+                    chart.resetZoom();
+                } else if (chart.resetZoomPan) {
+                    // 某些版本的 Chart.js zoom 插件使用不同的方法名
+                    chart.resetZoomPan();
+                } else {
+                    // 如果没有重置方法，重新渲染图表
+                    chart.update('none');
+                }
             }
         });
 
@@ -1668,15 +1663,37 @@ class CoinTracker {
             this.achievements = this.getDefaultAchievements();
         }
         
+        // 确保所有成就字段都存在
+        const defaultAchievements = this.getDefaultAchievements();
+        Object.keys(defaultAchievements).forEach(key => {
+            if (!this.achievements[key]) {
+                this.achievements[key] = defaultAchievements[key];
+            }
+        });
+        
         const newUnlocked = [];
         const totalCoins = this.calculateTotal();
         const recordDays = this.coinData.length;
         const currentStreak = this.calculateCurrentStreak();
 
-        // 检查首次记录成就
+        // 检查首次记录成就（基于时间排序，只有最早的记录才算首次记录）
         if (recordDays >= 1 && !this.achievements.first_record.unlocked) {
-            this.unlockAchievement('first_record');
-            newUnlocked.push('first_record');
+            // 按时间排序，找到最早的记录
+            const sortedRecords = [...this.coinData].sort((a, b) => {
+                const timeA = a.timestamp ? new Date(a.timestamp) : new Date(a.date);
+                const timeB = b.timestamp ? new Date(b.timestamp) : new Date(b.date);
+                return timeA.getTime() - timeB.getTime();
+            });
+            
+            // 检查最早的记录是否是最新的记录（即只有一条记录的情况）
+            const earliestRecord = sortedRecords[0];
+            const latestRecord = sortedRecords[sortedRecords.length - 1];
+            
+            // 只有一条记录时，或者最早的记录就是最新的记录时，才触发首次记录成就
+            if (recordDays === 1 || earliestRecord === latestRecord) {
+                this.unlockAchievement('first_record');
+                newUnlocked.push('first_record');
+            }
         }
 
         // 检查连续记录成就
@@ -1756,13 +1773,20 @@ class CoinTracker {
     calculateCurrentStreak() {
         if (this.coinData.length === 0) return 0;
 
+        // 按时间排序，确保正确的连击计算
+        const sortedRecords = [...this.coinData].sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp) : new Date(a.date);
+            const timeB = b.timestamp ? new Date(b.timestamp) : new Date(b.date);
+            return timeB.getTime() - timeA.getTime(); // 降序排列，最新的在前
+        });
+
         let streak = 1;
         const today = this.getBeijingDate();
 
-        for (let i = this.coinData.length - 1; i > 0; i--) {
+        for (let i = 0; i < sortedRecords.length - 1; i++) {
             // 将日期字符串转换为日期对象，确保正确处理时区
-            const currentDateStr = this.coinData[i].date + 'T00:00:00+08:00'; // 北京时间
-            const prevDateStr = this.coinData[i - 1].date + 'T00:00:00+08:00'; // 北京时间
+            const currentDateStr = sortedRecords[i].date + 'T00:00:00+08:00'; // 北京时间
+            const prevDateStr = sortedRecords[i + 1].date + 'T00:00:00+08:00'; // 北京时间
 
             const currentDate = new Date(currentDateStr);
             const prevDate = new Date(prevDateStr);

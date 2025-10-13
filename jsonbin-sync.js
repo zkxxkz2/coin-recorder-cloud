@@ -337,7 +337,12 @@ class JSONBinSyncService {
                 }
                 console.log('云端数据更新成功');
             } else {
-                // 3. 如果没有 binId，创建新的 bin
+                // 3. 如果没有 binId，检查是否已登录
+                if (!this.authService || !this.authService.isLoggedIn()) {
+                    throw new Error('用户未登录，无法创建新的云端存储');
+                }
+                
+                // 4. 创建新的 bin（仅在用户已登录时）
                 console.log('创建新的 bin...');
                 const createResult = await this.createBin(localData);
                 if (!createResult.success) {
@@ -450,7 +455,7 @@ class JSONBinSyncService {
             }
         });
 
-        return Array.from(recordMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
+        return Array.from(recordMap.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
     }
 
     // 更新本地数据
