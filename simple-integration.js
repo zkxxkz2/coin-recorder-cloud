@@ -124,7 +124,6 @@ class SimpleIntegration {
         // 同步按钮
         const syncFromCloudBtn = document.getElementById('syncFromCloudBtn');
         const syncToCloudBtn = document.getElementById('syncToCloudBtn');
-        const joinLeaderboardBtn = document.getElementById('joinLeaderboardBtn');
         const showBinIdBtn = document.getElementById('showBinIdBtn');
         
         if (syncFromCloudBtn) {
@@ -132,9 +131,6 @@ class SimpleIntegration {
         }
         if (syncToCloudBtn) {
             syncToCloudBtn.addEventListener('click', () => this.syncToCloud());
-        }
-        if (joinLeaderboardBtn) {
-            joinLeaderboardBtn.addEventListener('click', () => this.showJoinLeaderboardModal());
         }
         if (showBinIdBtn) {
             showBinIdBtn.addEventListener('click', () => this.showBinId());
@@ -827,7 +823,8 @@ class SimpleIntegration {
             // 创建对话框内容
             const dialog = document.createElement('div');
             dialog.style.cssText = `
-                background: var(--card-bg);
+                background: #ffffff;
+                border: 2px solid #e74c3c;
                 border-radius: 12px;
                 padding: 24px;
                 max-width: 400px;
@@ -839,15 +836,15 @@ class SimpleIntegration {
 
             dialog.innerHTML = `
                 <div style="margin-bottom: 16px;">
-                    <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 18px; font-weight: 600;">${title}</h3>
-                    <p style="margin: 0; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">${message}</p>
+                    <h3 style="margin: 0 0 12px 0; color: #e74c3c; font-size: 18px; font-weight: 600;">${title}</h3>
+                    <p style="margin: 0; color: #333333; line-height: 1.5; white-space: pre-line;">${message}</p>
                 </div>
                 <div style="display: flex; gap: 12px; justify-content: flex-end;">
                     <button class="cancel-btn" style="
                         padding: 8px 16px;
-                        border: 1px solid var(--border-color);
+                        border: 1px solid #cccccc;
                         background: transparent;
-                        color: var(--text-secondary);
+                        color: #666666;
                         border-radius: 6px;
                         cursor: pointer;
                         font-size: 14px;
@@ -855,7 +852,7 @@ class SimpleIntegration {
                     <button class="confirm-btn" style="
                         padding: 8px 16px;
                         border: none;
-                        background: var(--accent-color);
+                        background: #e74c3c;
                         color: white;
                         border-radius: 6px;
                         cursor: pointer;
@@ -1785,6 +1782,9 @@ class SimpleIntegration {
                     }
                 }
                 
+                // 循环结束后立即清理进度提示
+                this.hidePersistentMessage();
+                
                 totalCoins = userData.reduce((sum, user) => sum + user.currentCoins, 0);
                 totalRecords = userData.reduce((sum, user) => sum + user.coinRecords.length, 0);
             } else {
@@ -1813,9 +1813,8 @@ class SimpleIntegration {
             // 确保本地存储状态正确
             localStorage.setItem('joinedPublicLeaderboard', 'true');
 
-            // 等待UI更新完成后再隐藏持久化消息
+            // UI更新完成
             await new Promise(resolve => setTimeout(resolve, 200));
-            this.hidePersistentMessage();
 
         } catch (error) {
             console.error('加载排行榜横幅失败:', error);
