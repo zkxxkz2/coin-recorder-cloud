@@ -388,30 +388,19 @@ class JSONBinSyncService {
         return data;
     }
 
-    // 合并数据（云端优先策略）
+    // 合并数据（云端完全覆盖策略）
     mergeData(cloudData, localData) {
         if (!cloudData) {
             return localData;
         }
 
-        // 合并金币记录（按时间戳合并）
-        const mergedRecords = this.mergeCoinRecords(
-            cloudData.coinRecords || [],
-            localData.coinRecords || []
-        );
-
-        // 合并用户数据（云端优先，但保留本地用户）
-        const mergedUsers = this.mergeUsers(
-            cloudData.users || [],
-            localData.users || []
-        );
-
+        // 云端数据完全覆盖本地数据
         return {
-            coinRecords: mergedRecords,
-            streakData: cloudData.streakData || localData.streakData,
-            achievements: cloudData.achievements || localData.achievements,
-            challengeData: cloudData.challengeData || localData.challengeData,
-            users: mergedUsers,
+            coinRecords: cloudData.coinRecords || [],
+            streakData: cloudData.streakData || {},
+            achievements: cloudData.achievements || {},
+            challengeData: cloudData.challengeData || {},
+            users: cloudData.users || [],
             lastSync: new Date().toISOString()
         };
     }

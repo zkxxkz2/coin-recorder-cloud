@@ -532,6 +532,22 @@ class SimpleIntegration {
 
     // 从云端下载数据
     async syncFromCloud() {
+        // 显示强提醒确认对话框
+        const confirmed = await this.showConfirmDialog(
+            '⚠️ 重要提醒',
+            '从云端下载数据将完全覆盖本地数据！\n\n' +
+            '• 本地的所有金币记录将被云端数据替换\n' +
+            '• 成就、连续记录等数据也会被覆盖\n' +
+            '• 此操作不可撤销\n\n' +
+            '确定要继续吗？',
+            '取消',
+            '确定下载'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
         const syncFromCloudBtn = document.getElementById('syncFromCloudBtn');
         if (syncFromCloudBtn) {
             syncFromCloudBtn.style.opacity = '0.5';
@@ -595,6 +611,8 @@ class SimpleIntegration {
             const result = await syncService.syncToCloud();
             
             if (result.success) {
+                // 更新最后同步时间
+                localStorage.setItem('lastCloudSync', Date.now().toString());
                 this.showMessage('数据上传成功', 'success');
             } else {
                 this.showMessage(result.message, 'error');
@@ -758,6 +776,117 @@ class SimpleIntegration {
                 }
             }, 300);
         }
+    }
+
+    // 显示确认对话框
+    showConfirmDialog(title, message, cancelText = '取消', confirmText = '确定') {
+        return new Promise((resolve) => {
+            // 创建模态框
+            const modal = document.createElement('div');
+            modal.className = 'confirm-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10002;
+            `;
+
+            // 创建对话框内容
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: var(--card-bg);
+                border-radius: 12px;
+                padding: 24px;
+                max-width: 400px;
+                width: 90%;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                transform: scale(0.9);
+                transition: transform 0.2s ease;
+            `;
+
+            dialog.innerHTML = `
+                <div style="margin-bottom: 16px;">
+                    <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 18px; font-weight: 600;">${title}</h3>
+                    <p style="margin: 0; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">${message}</p>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="cancel-btn" style="
+                        padding: 8px 16px;
+                        border: 1px solid var(--border-color);
+                        background: transparent;
+                        color: var(--text-secondary);
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">${cancelText}</button>
+                    <button class="confirm-btn" style="
+                        padding: 8px 16px;
+                        border: none;
+                        background: var(--accent-color);
+                        color: white;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 600;
+                    ">${confirmText}</button>
+                </div>
+            `;
+
+            modal.appendChild(dialog);
+            document.body.appendChild(modal);
+
+            // 显示动画
+            setTimeout(() => {
+                dialog.style.transform = 'scale(1)';
+            }, 10);
+
+            // 绑定事件
+            const cancelBtn = dialog.querySelector('.cancel-btn');
+            const confirmBtn = dialog.querySelector('.confirm-btn');
+
+            const cleanup = () => {
+                dialog.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    if (modal.parentNode) {
+                        document.body.removeChild(modal);
+                    }
+                }, 200);
+            };
+
+            cancelBtn.onclick = () => {
+                cleanup();
+                resolve(false);
+            };
+
+            confirmBtn.onclick = () => {
+                cleanup();
+                resolve(true);
+            };
+
+            // 点击背景关闭
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    cleanup();
+                    resolve(false);
+                }
+            };
+
+            // ESC键关闭
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') {
+                    cleanup();
+                    resolve(false);
+                    document.removeEventListener('keydown', handleEsc);
+                }
+            };
+            document.addEventListener('keydown', handleEsc);
+        });
     }
 
     // 获取当前用户
@@ -1193,9 +1322,15 @@ class SimpleIntegration {
             validUsers.sort((a, b) => a.username.localeCompare(b.username));
             
             console.log(`成功获取 ${validUsers.length} 个用户的数据`);
+            
+            // 隐藏持久化消息
+            this.hidePersistentMessage();
+            
             return validUsers;
         } catch (error) {
             console.error('获取所有排行榜用户失败:', error);
+            // 出错时也要隐藏持久化消息
+            this.hidePersistentMessage();
             return [];
         }
     }
@@ -1479,13 +1614,14 @@ class SimpleIntegration {
             const users = await this.loadAllLeaderboardData();
             console.log('排行榜横幅获取到用户数据:', users.length);
             
+            // 清理初始化消息（loadAllLeaderboardData 会显示自己的进度提示）
+            this.hidePersistentMessage();
+            
             if (users.length === 0) {
                 // 即使没有用户数据也显示排行榜横幅，显示空状态
                 console.log('没有用户数据，显示空状态');
                 this.showLeaderboardBanner();
                 this.showEmptyLeaderboard();
-                // 隐藏持久化消息
-                this.hidePersistentMessage();
                 return;
             }
 

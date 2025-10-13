@@ -205,6 +205,9 @@ class CoinTracker {
         this.updateChallengeDisplay();
         this.checkAchievements();
         this.showMessage('金币记录成功！', 'success');
+        
+        // 提醒用户及时上传到云端
+        this.remindUploadToCloud();
     }
 
     // 创建新记录
@@ -2052,6 +2055,28 @@ class CoinTracker {
                 hour12: false
             });
             timeElement.textContent = timeString;
+        }
+    }
+
+    // 提醒用户上传到云端
+    remindUploadToCloud() {
+        // 检查用户是否已登录
+        if (window.simpleIntegration && window.simpleIntegration.getCurrentUser()) {
+            // 用户已登录，检查是否有未同步的数据
+            const lastSync = localStorage.getItem('lastCloudSync');
+            const now = Date.now();
+            
+            // 如果超过1小时没有同步，提醒用户
+            if (!lastSync || (now - parseInt(lastSync)) > 60 * 60 * 1000) {
+                setTimeout(() => {
+                    this.showMessage('💡 提示：记得及时上传数据到云端，避免数据丢失', 'info', 8000);
+                }, 2000);
+            }
+        } else {
+            // 用户未登录，提醒登录并上传
+            setTimeout(() => {
+                this.showMessage('💡 提示：登录后可上传数据到云端，避免数据丢失', 'info', 8000);
+            }, 2000);
         }
     }
 }
