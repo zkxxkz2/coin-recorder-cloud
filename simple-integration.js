@@ -1669,9 +1669,6 @@ class SimpleIntegration {
             const users = await this.loadAllLeaderboardData();
             console.log('排行榜横幅获取到用户数据:', users.length);
             
-            // 清理初始化消息（loadAllLeaderboardData 会显示自己的进度提示）
-            this.hidePersistentMessage();
-            
             if (users.length === 0) {
                 // 即使没有用户数据也显示排行榜横幅，显示空状态
                 console.log('没有用户数据，显示空状态');
@@ -1712,9 +1709,6 @@ class SimpleIntegration {
                 // 分批处理，每批最多2个请求，间隔300ms
                 const batchSize = 2;
                 const delay = 300;
-                
-                // 显示获取横幅数据的进度提示
-                this.showPersistentMessage(`正在获取横幅数据 (0/${leaderboardData.participants.length}) - 0%`, 'info');
                 
                 for (let i = 0; i < leaderboardData.participants.length; i += batchSize) {
                     const batch = leaderboardData.participants.slice(i, i + batchSize);
@@ -1771,10 +1765,7 @@ class SimpleIntegration {
                     const batchValidUsers = batchResults.filter(result => result !== null);
                     userData.push(...batchValidUsers);
                     
-                    // 更新进度提示
-                    const processedCount = Math.min(i + batchSize, leaderboardData.participants.length);
-                    const progressPercentage = Math.round((processedCount / leaderboardData.participants.length) * 100);
-                    this.showPersistentMessage(`正在获取横幅数据 (${processedCount}/${leaderboardData.participants.length}) - ${progressPercentage}%`, 'info');
+                    // 进度提示由 getAllLeaderboardUsers 统一管理
                     
                     // 如果不是最后一批，等待一段时间再继续
                     if (i + batchSize < leaderboardData.participants.length) {
@@ -1782,15 +1773,11 @@ class SimpleIntegration {
                     }
                 }
                 
-                // 循环结束后立即清理进度提示
-                this.hidePersistentMessage();
-                
                 totalCoins = userData.reduce((sum, user) => sum + user.currentCoins, 0);
                 totalRecords = userData.reduce((sum, user) => sum + user.coinRecords.length, 0);
             } else {
-                // 没有参与者数据，等待UI更新后隐藏持久化消息
+                // 没有参与者数据
                 await new Promise(resolve => setTimeout(resolve, 200));
-                this.hidePersistentMessage();
             }
 
             // 更新统计信息
@@ -1821,8 +1808,6 @@ class SimpleIntegration {
             // 即使出错也显示排行榜横幅，显示空状态
             this.showLeaderboardBanner();
             this.showEmptyLeaderboard();
-            // 隐藏持久化消息
-            this.hidePersistentMessage();
         } finally {
             // 确保标志被重置
             this.isLoadingBanner = false;
