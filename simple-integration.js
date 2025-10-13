@@ -13,6 +13,13 @@ class SimpleIntegration {
             cacheTimeout: 5 * 60 * 1000, // 5分钟缓存
             isRefreshing: false
         };
+        // 防止重复执行的标志
+        this.isLoadingBanner = false;
+        this.isGettingAllUsers = false;
+        this.isSyncingFromCloud = false;
+        this.isSyncingToCloud = false;
+        this.isRefreshingLeaderboard = false;
+        this.isJoiningLeaderboard = false;
         // 不在这里调用 init()，等待外部调用
     }
 
@@ -532,6 +539,12 @@ class SimpleIntegration {
 
     // 从云端下载数据
     async syncFromCloud() {
+        // 防止重复执行
+        if (this.isSyncingFromCloud) {
+            console.log('正在从云端下载数据，跳过重复调用');
+            return;
+        }
+
         // 显示强提醒确认对话框
         const confirmed = await this.showConfirmDialog(
             '⚠️ 重要提醒',
@@ -547,6 +560,8 @@ class SimpleIntegration {
         if (!confirmed) {
             return;
         }
+
+        this.isSyncingFromCloud = true;
 
         const syncFromCloudBtn = document.getElementById('syncFromCloudBtn');
         if (syncFromCloudBtn) {
@@ -593,11 +608,21 @@ class SimpleIntegration {
                 syncFromCloudBtn.style.opacity = '1';
                 syncFromCloudBtn.style.pointerEvents = 'auto';
             }
+            // 确保标志被重置
+            this.isSyncingFromCloud = false;
         }
     }
 
     // 同步到云端
     async syncToCloud() {
+        // 防止重复执行
+        if (this.isSyncingToCloud) {
+            console.log('正在上传数据到云端，跳过重复调用');
+            return;
+        }
+
+        this.isSyncingToCloud = true;
+
         const syncToCloudBtn = document.getElementById('syncToCloudBtn');
         if (syncToCloudBtn) {
             syncToCloudBtn.style.opacity = '0.5';
@@ -625,6 +650,8 @@ class SimpleIntegration {
                 syncToCloudBtn.style.opacity = '1';
                 syncToCloudBtn.style.pointerEvents = 'auto';
             }
+            // 确保标志被重置
+            this.isSyncingToCloud = false;
         }
     }
 
@@ -1196,6 +1223,14 @@ class SimpleIntegration {
 
     // 获取所有排行榜用户数据（用于多维度排行榜）
     async getAllLeaderboardUsers() {
+        // 防止重复执行
+        if (this.isGettingAllUsers) {
+            console.log('正在获取所有用户数据，跳过重复调用');
+            return [];
+        }
+
+        this.isGettingAllUsers = true;
+
         try {
             const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId');
             if (!publicLeaderboardBinId) {
@@ -1332,6 +1367,9 @@ class SimpleIntegration {
             // 出错时也要隐藏持久化消息
             this.hidePersistentMessage();
             return [];
+        } finally {
+            // 确保标志被重置
+            this.isGettingAllUsers = false;
         }
     }
 
@@ -1486,6 +1524,14 @@ class SimpleIntegration {
 
     // 确认加入公开排行榜
     async confirmJoinPublicLeaderboard() {
+        // 防止重复执行
+        if (this.isJoiningLeaderboard) {
+            console.log('正在加入排行榜，跳过重复调用');
+            return;
+        }
+
+        this.isJoiningLeaderboard = true;
+
         const currentUser = this.authService?.currentUser || JSON.parse(localStorage.getItem('coinTrackerUser') || 'null');
         const currentBinId = this.syncService?.binId || 
                            localStorage.getItem('coinTrackerBinId') ||
@@ -1493,6 +1539,7 @@ class SimpleIntegration {
 
         if (!currentUser || !currentBinId) {
             this.showMessage('请先登录', 'error');
+            this.isJoiningLeaderboard = false;
             return;
         }
 
@@ -1578,6 +1625,9 @@ class SimpleIntegration {
         } catch (error) {
             console.error('加入公开排行榜失败:', error);
             this.showMessage('加入失败，请稍后重试', 'error');
+        } finally {
+            // 确保标志被重置
+            this.isJoiningLeaderboard = false;
         }
     }
 
@@ -1599,6 +1649,14 @@ class SimpleIntegration {
 
     // 加载排行榜横幅数据
     async loadLeaderboardBanner() {
+        // 防止重复执行
+        if (this.isLoadingBanner) {
+            console.log('排行榜横幅正在加载中，跳过重复调用');
+            return;
+        }
+
+        this.isLoadingBanner = true;
+
         try {
             // 始终显示排行榜横幅，不管用户是否加入
             const publicLeaderboardBinId = localStorage.getItem('publicLeaderboardBinId') || '68eb2e76d0ea881f409e7470';
@@ -1766,6 +1824,9 @@ class SimpleIntegration {
             this.showEmptyLeaderboard();
             // 隐藏持久化消息
             this.hidePersistentMessage();
+        } finally {
+            // 确保标志被重置
+            this.isLoadingBanner = false;
         }
     }
 
@@ -2917,6 +2978,14 @@ class SimpleIntegration {
 
     // 刷新排行榜数据
     async refreshLeaderboardData() {
+        // 防止重复执行
+        if (this.isRefreshingLeaderboard) {
+            console.log('正在刷新排行榜数据，跳过重复调用');
+            return;
+        }
+
+        this.isRefreshingLeaderboard = true;
+
         try {
             console.log('用户手动刷新排行榜数据');
             
@@ -2964,6 +3033,9 @@ class SimpleIntegration {
             console.error('刷新排行榜数据失败:', error);
             this.hidePersistentMessage();
             this.showMessage('排行榜刷新失败', 'error', 5000);
+        } finally {
+            // 确保标志被重置
+            this.isRefreshingLeaderboard = false;
         }
     }
 }
