@@ -741,6 +741,19 @@ class SimpleIntegration {
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                 <span>${message}</span>
+                <button class="close-persistent-btn" style="
+                    background: none;
+                    border: none;
+                    color: white;
+                    cursor: pointer;
+                    padding: 4px;
+                    margin-left: 8px;
+                    border-radius: 4px;
+                    font-size: 16px;
+                    line-height: 1;
+                    opacity: 0.8;
+                    transition: opacity 0.2s;
+                " title="关闭">×</button>
             </div>
         `;
 
@@ -786,6 +799,20 @@ class SimpleIntegration {
         setTimeout(() => {
             messageEl.style.transform = 'translateX(0)';
         }, 100);
+
+        // 添加关闭按钮事件
+        const closeBtn = messageEl.querySelector('.close-persistent-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('mouseenter', () => {
+                closeBtn.style.opacity = '1';
+            });
+            closeBtn.addEventListener('mouseleave', () => {
+                closeBtn.style.opacity = '0.8';
+            });
+            closeBtn.addEventListener('click', () => {
+                this.hidePersistentMessage();
+            });
+        }
     }
 
     // 隐藏持久化消息
@@ -1273,7 +1300,7 @@ class SimpleIntegration {
             const fetchStartTime = Date.now();
             
             // 显示获取数据的进度提示
-            this.showPersistentMessage(`正在获取数据 (0/${leaderboardData.participants.length}) - 0%`, 'info');
+            this.showPersistentMessage(`正在获取排行榜数据 (0/${leaderboardData.participants.length}) - 0%`, 'info');
             
             for (let i = 0; i < leaderboardData.participants.length; i += batchSize) {
                 const batch = leaderboardData.participants.slice(i, i + batchSize);
@@ -1342,7 +1369,7 @@ class SimpleIntegration {
                 // 更新进度提示
                 const processedCount = Math.min(i + batchSize, leaderboardData.participants.length);
                 const progressPercentage = Math.round((processedCount / leaderboardData.participants.length) * 100);
-                this.showPersistentMessage(`正在获取数据 (${processedCount}/${leaderboardData.participants.length}) - ${progressPercentage}%`, 'info');
+                this.showPersistentMessage(`正在获取排行榜数据 (${processedCount}/${leaderboardData.participants.length}) - ${progressPercentage}%`, 'info');
                 
                 // 如果不是最后一批，等待一段时间再继续
                 if (i + batchSize < leaderboardData.participants.length) {
