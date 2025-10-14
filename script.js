@@ -1489,6 +1489,30 @@ class CoinTracker {
             setTimeout(() => {
                 modal.classList.add('show');
             }, 10);
+
+            // 绑定关闭按钮事件
+            this.bindBatchModalEvents();
+        }
+    }
+
+    // 绑定批量录入模态框事件
+    bindBatchModalEvents() {
+        const modal = document.getElementById('batchInputModal');
+        if (!modal) return;
+
+        const closeBtn = modal.querySelector('.batch-input-close');
+        const backdrop = modal.querySelector('.batch-input-backdrop');
+
+        if (closeBtn) {
+            closeBtn.onclick = () => this.closeBatchInputModal();
+        }
+
+        if (backdrop) {
+            backdrop.onclick = (e) => {
+                if (e.target === backdrop) {
+                    this.closeBatchInputModal();
+                }
+            };
         }
     }
 

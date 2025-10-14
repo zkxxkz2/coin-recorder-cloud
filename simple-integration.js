@@ -58,6 +58,9 @@ class SimpleIntegration {
             }
         });
         
+        // 初始化完成后更新UI状态
+        this.updateUI(this.currentUser);
+        
         console.log('SimpleIntegration 初始化完成');
     }
 
@@ -106,9 +109,25 @@ class SimpleIntegration {
         // 登录按钮
         const loginBtn = document.getElementById('loginBtn');
         console.log('登录按钮:', loginBtn);
+        console.log('登录按钮样式:', loginBtn ? loginBtn.style.display : 'null');
+        console.log('登录按钮是否可见:', loginBtn ? loginBtn.offsetParent !== null : 'null');
+        
         if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                console.log('登录按钮被点击');
+            // 确保按钮可见
+            if (loginBtn.style.display === 'none') {
+                console.log('登录按钮被隐藏，设置为可见');
+                loginBtn.style.display = 'flex';
+            }
+            
+            // 移除之前的事件监听器（如果有的话）
+            const newLoginBtn = loginBtn.cloneNode(true);
+            loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
+            
+            // 重新绑定事件
+            newLoginBtn.addEventListener('click', (e) => {
+                console.log('登录按钮被点击', e);
+                e.preventDefault();
+                e.stopPropagation();
                 this.showAuthModal('login');
             });
         } else {
