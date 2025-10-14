@@ -230,30 +230,41 @@ class SimpleIntegration {
         }
     }
 
-    // 显示认证模态框
+    // 显示认证模态框（拆分为登录/注册两个独立弹窗）
     showAuthModal(tab = 'login') {
         console.log('显示认证模态框:', tab);
-        const authModal = document.getElementById('authModal');
-        console.log('认证模态框:', authModal);
-        if (authModal) {
-            authModal.style.display = 'flex';
-            setTimeout(() => {
-                authModal.classList.add('show');
-                this.switchAuthTab(tab);
-            }, 10);
+        const loginModal = document.getElementById('authModal');
+        const registerModal = document.getElementById('registerModal');
+        
+        if (tab === 'register') {
+            if (registerModal) {
+                registerModal.style.display = 'flex';
+                setTimeout(() => registerModal.classList.add('show'), 10);
+            } else {
+                console.error('未找到注册模态框');
+            }
         } else {
-            console.error('未找到认证模态框');
+            if (loginModal) {
+                loginModal.style.display = 'flex';
+                setTimeout(() => loginModal.classList.add('show'), 10);
+            } else {
+                console.error('未找到登录模态框');
+            }
         }
     }
 
-    // 隐藏认证模态框
+    // 隐藏认证模态框（同时尝试关闭两个）
     hideAuthModal() {
-        const authModal = document.getElementById('authModal');
-        if (authModal) {
-            authModal.classList.remove('show');
-            setTimeout(() => {
-                authModal.style.display = 'none';
-            }, 300);
+        const loginModal = document.getElementById('authModal');
+        const registerModal = document.getElementById('registerModal');
+        
+        if (loginModal) {
+            loginModal.classList.remove('show');
+            setTimeout(() => { loginModal.style.display = 'none'; }, 300);
+        }
+        if (registerModal) {
+            registerModal.classList.remove('show');
+            setTimeout(() => { registerModal.style.display = 'none'; }, 300);
         }
     }
 
@@ -273,35 +284,20 @@ class SimpleIntegration {
             activeTab.classList.add('active');
         }
 
-        // 显示对应表单
-        const forms = ['loginForm', 'registerForm'];
-        forms.forEach(formId => {
-            const formElement = document.getElementById(formId);
-            if (formElement) {
-                formElement.style.display = 'none';
+        // 显示对应的section
+        const sections = ['loginSection', 'registerSection'];
+        sections.forEach(sectionId => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.style.display = 'none';
+                section.classList.remove('active');
             }
         });
 
-        const activeForm = document.getElementById(`${tab}Form`);
-        if (activeForm) {
-            activeForm.style.display = 'flex';
-        }
-
-        // 更新标题
-        const titleElement = document.getElementById('authModalTitle');
-        const subtitleElement = document.getElementById('authModalSubtitle');
-        
-        if (titleElement && subtitleElement) {
-            switch (tab) {
-                case 'login':
-                    titleElement.textContent = '登录';
-                    subtitleElement.textContent = '登录以同步您的数据到云端';
-                    break;
-                case 'register':
-                    titleElement.textContent = '注册';
-                    subtitleElement.textContent = '创建账户以开始使用云端同步';
-                    break;
-            }
+        const activeSection = document.getElementById(`${tab}Section`);
+        if (activeSection) {
+            activeSection.style.display = 'block';
+            activeSection.classList.add('active');
         }
     }
 
@@ -691,10 +687,14 @@ class SimpleIntegration {
             // 用户已登录
             if (userStatus) userStatus.style.display = 'flex';
             if (loginBtn) {
-                // 强制显示登录按钮，允许用户重新登录
                 loginBtn.style.display = 'flex';
-                loginBtn.style.opacity = '0.7';
-                loginBtn.title = '点击重新登录';
+                loginBtn.style.opacity = '1';
+                loginBtn.title = '切换账户';
+                // 更新按钮文案为“切换账户”，保留图标
+                const spans = loginBtn.querySelectorAll('span');
+                if (spans && spans.length >= 2) {
+                    spans[1].textContent = '切换账户';
+                }
             }
             if (userEmail) userEmail.textContent = user.username;
         } else {
@@ -704,53 +704,42 @@ class SimpleIntegration {
                 loginBtn.style.display = 'flex';
                 loginBtn.style.opacity = '1';
                 loginBtn.title = '登录';
+                const spans = loginBtn.querySelectorAll('span');
+                if (spans && spans.length >= 2) {
+                    spans[1].textContent = '登录/注册';
+                }
             }
         }
     }
 
-    // 显示消息
+    // 显示消息（垂直堆叠）
     showMessage(message, type, duration = 3000) {
-        // 创建消息元素
+        let container = document.querySelector('.message-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'message-container';
+            document.body.appendChild(container);
+        }
+
         const messageEl = document.createElement('div');
         messageEl.className = `message ${type}`;
         messageEl.textContent = message;
-
-        // 添加样式
-        Object.assign(messageEl.style, {
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            padding: '12px 20px',
-            borderRadius: '8px',
-            color: 'white',
-            fontWeight: '600',
-            zIndex: '10001',
-            transform: 'translateX(400px)',
-            transition: 'transform 0.3s ease'
-        });
-
-        // 根据类型设置背景色
-        const colors = {
-            success: '#27ae60',
-            error: '#e74c3c',
-            warning: '#f39c12',
-            info: '#3498db'
-        };
-        messageEl.style.backgroundColor = colors[type] || colors.info;
-
-        document.body.appendChild(messageEl);
+        container.appendChild(messageEl);
 
         // 显示动画
         setTimeout(() => {
-            messageEl.style.transform = 'translateX(0)';
-        }, 100);
+            messageEl.classList.add('show');
+        }, 10);
 
-        // 自动隐藏
+        // 自动隐藏并清理
         setTimeout(() => {
-            messageEl.style.transform = 'translateX(400px)';
+            messageEl.classList.remove('show');
             setTimeout(() => {
                 if (messageEl.parentNode) {
-                    document.body.removeChild(messageEl);
+                    messageEl.parentNode.removeChild(messageEl);
+                }
+                if (container && container.children.length === 0) {
+                    container.remove();
                 }
             }, 300);
         }, duration);

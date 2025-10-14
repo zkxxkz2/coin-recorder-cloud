@@ -7,14 +7,14 @@
 
     <!-- PWA支持 -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="金币记录器">
 
     <!-- 移动端优化 -->
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="msapplication-TileColor" content="#007bff">
+    <meta name="msapplication-TileColor" content="#6366f1">
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="format-detection" content="telephone=no">
 
@@ -45,119 +45,300 @@
     </script>
 </head>
 <body>
-    <div class="container">
-        <!-- 头部标题 -->
-        <header class="header">
-            <div class="header-content">
-                <div class="title-section">
-                    <h1>金币记录器</h1>
-                    <p>记录每天的金币变化，追踪金币增长</p>
+    <!-- 顶部状态栏 -->
+    <header class="app-header">
+        <div class="header-left">
+            <h1 class="app-title">
+                <span>金币记录器</span>
+                <span class="version-badge">v5.1.1</span>
+            </h1>
                 </div>
-                <div class="header-controls">
-                    <!-- 用户状态显示 -->
-                    <div id="userStatus" class="user-status" style="display: none;">
-                        <!-- 第一行：用户名 -->
-                        <div class="user-info-row">
-                            <span id="userEmail" class="user-email"></span>
-                        </div>
-                        
-                        <!-- 第二行：下载、上传 -->
-                        <div class="sync-buttons-row">
-                            <button id="syncFromCloudBtn" class="sync-btn sync-from-cloud" title="从云端下载数据">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                                    <path d="M21 3v5h-5"/>
-                                </svg>
-                                <span>下载</span>
-                            </button>
-                            <button id="syncToCloudBtn" class="sync-btn sync-to-cloud" title="上传数据到云端">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                                    <path d="M3 21v-5h5"/>
-                                </svg>
-                                <span>上传</span>
+        <div class="header-right">
+            <button id="themeToggle" class="header-icon-btn theme-toggle-btn" title="切换主题">
+                <span class="theme-icon">🌙</span>
                             </button>
                         </div>
-                        
-                        <!-- 第三行：账户ID、退出、切换主题 -->
-                        <div class="action-buttons-row">
-                            <button id="showBinIdBtn" class="sync-btn show-binid-btn" title="查看我的账户ID">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                    <circle cx="12" cy="16" r="1"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                                <span>账户ID</span>
-                            </button>
-                            <button id="logoutBtn" class="logout-btn" title="退出登录">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                                    <polyline points="16,17 21,12 16,7"/>
-                                    <line x1="21" y1="12" x2="9" y2="12"/>
-                                </svg>
-                            </button>
-                <button id="themeToggle" class="theme-toggle" title="切换主题">
-                                <svg class="sun-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                                <svg class="moon-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                </button>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="app-main">
+        <div class="app-container">
+            <!-- Tab内容区 -->
+            <div class="tab-content active" data-tab-content="home">
+                <!-- 今日统计卡片 -->
+                <div class="stats-card">
+                    <div class="skeleton" id="statsSkeleton" style="display: none;">
+                        <div class="skeleton-grid">
+                            <div class="skeleton-stat"></div>
+                            <div class="skeleton-stat"></div>
+                            <div class="skeleton-stat"></div>
+                            <div class="skeleton-stat"></div>
                         </div>
                     </div>
-                    <!-- 登录按钮 -->
-                    <button id="loginBtn" class="login-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                            <polyline points="10,17 15,12 10,7"/>
-                            <line x1="15" y1="12" x2="3" y2="12"/>
-                        </svg>
-                        登录
-                    </button>
+                    <div class="section-content" id="statsContent">
+                        <h3 class="card-title">📊 今日统计</h3>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <span class="stat-label">今日金币</span>
+                                <span class="stat-value" id="todayCoins">-</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">记录次数</span>
+                                <span class="stat-value" id="recordDays">-</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">与昨日差值</span>
+                                <span class="stat-value" id="difference">-</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">总金币</span>
+                                <span class="stat-value" id="totalCoins">-</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </header>
 
-        <!-- 金币输入区域 -->
-        <section class="input-section">
+                <!-- 快速操作卡片 -->
+                <div class="action-card">
             <div class="skeleton" id="inputSkeleton" style="display: none;">
-                <div class="skeleton-header"></div>
-                <div class="skeleton-input"></div>
                 <div class="skeleton-input"></div>
                 <div class="skeleton-button"></div>
             </div>
             <div class="section-content" id="inputContent">
-                <div class="input-header">
-                    <div class="input-title-section">
-                    <h2>今日金币录入</h2>
+                        <h3 class="card-title">
+                            <span>💰 快速记录</span>
                         <div class="current-time" id="currentTime">--:--</div>
-                    </div>
-                    <button id="batchInputBtn" class="batch-input-btn">批量录入</button>
-                </div>
-                <form id="coinForm" class="coin-form">
+                        </h3>
+                        <form id="coinForm" class="quick-form">
                     <div class="form-group">
-                        <label for="coinAmount">今日金币数量：</label>
-                        <input type="number" id="coinAmount" name="coinAmount" min="0" required>
+                                <input type="number" id="coinAmount" name="coinAmount" min="0" placeholder="输入今日金币数量" required>
                     </div>
                     <div class="form-group">
-                        <label for="note">备注（可选）：</label>
-                        <input type="text" id="note" name="note" maxlength="50">
+                                <input type="text" id="note" name="note" maxlength="50" placeholder="备注（可选）">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">添加记录</button>
+                                <button type="button" id="makeupRecordBtn" class="btn-secondary" style="display: none;">补签</button>
                     </div>
-                    <button type="submit" class="submit-btn">记录金币</button>
                 </form>
             </div>
-        </section>
+                </div>
 
-        <!-- 公开排行榜横幅 -->
+                <!-- 连击统计卡片 -->
+                <div class="streak-card">
+                    <div class="skeleton" id="streakSkeleton" style="display: none;">
+                        <div class="skeleton-streak"></div>
+                    </div>
+                    <div class="section-content" id="streakContent">
+                        <h3 class="card-title">🔥 连击统计</h3>
+                        <div class="streak-display">
+                            <div class="streak-main">
+                                <span class="streak-number" id="currentStreak">0</span>
+                                <span class="streak-unit">天连击</span>
+                            </div>
+                            <div class="streak-info">
+                                <div class="streak-item">
+                                    <span>最长连击</span>
+                                    <span id="longestStreak">0天</span>
+                                </div>
+                                <div class="streak-item">
+                                    <span>今日状态</span>
+                                    <span id="todayComplete">未完成</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 挑战进度卡片 -->
+                <div class="challenge-card">
+                    <div class="skeleton" id="challengeSkeleton" style="display: none;">
+                        <div class="skeleton-progress"></div>
+                    </div>
+                    <div class="section-content" id="challengeContent">
+                        <h3 class="card-title">
+                            <span>🎯 挑战进度</span>
+                            <div class="challenge-actions">
+                                <button id="refreshChallengeBtn" class="btn-icon" title="刷新">🔄</button>
+                                <button id="setChallengeBtn" class="btn-icon" title="设置目标">⚙️</button>
+                                <button id="batchInputBtn" class="btn-icon" title="批量录入">📊</button>
+                            </div>
+                        </h3>
+                        <div id="currentChallengeInfo" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="challengeProgressFill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <div class="progress-stat">
+                                    <span>目标</span>
+                                    <span id="challengeTarget">0</span>
+                                </div>
+                                <div class="progress-stat">
+                                    <span>当前</span>
+                                    <span id="challengeProgress">0</span>
+                                </div>
+                                <div class="progress-stat">
+                                    <span>完成度</span>
+                                    <span id="challengePercentage">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="noChallengeInfo" class="no-challenge">
+                            <p>还没有设定挑战，点击右上角设置目标吧！</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表Tab -->
+            <div class="tab-content" data-tab-content="charts">
+                <div class="chart-card">
+                    <div class="skeleton" id="chartSkeleton" style="display: none;">
+                        <div class="skeleton-chart"></div>
+                    </div>
+                    <div class="section-content" id="chartContent">
+                        <h3 class="card-title">📈 数据可视化</h3>
+                        <div class="chart-controls">
+                            <div class="chart-tabs">
+                                <button class="tab-btn active" data-tab="totalChart">总金币</button>
+                                <button class="tab-btn" data-tab="dailyChart">每日</button>
+                                <button class="tab-btn" data-tab="weeklyChart">周统计</button>
+                                <button class="tab-btn" data-tab="monthlyChart">月统计</button>
+                            </div>
+                            <button id="resetZoomBtn" class="btn-icon">🔄</button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="totalChart"></canvas>
+                            <canvas id="dailyChart" style="display: none;"></canvas>
+                            <canvas id="weeklyChart" style="display: none;"></canvas>
+                            <canvas id="monthlyChart" style="display: none;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成就Tab -->
+            <div class="tab-content" data-tab-content="achievements">
+                <div class="achievements-card">
+                    <div class="skeleton" id="achievementsSkeleton" style="display: none;">
+                        <div class="skeleton-achievements"></div>
+                    </div>
+                    <div class="section-content" id="achievementsContent">
+                        <h3 class="card-title">🏆 成就系统</h3>
+                        <div class="achievements-grid">
+                            <div class="achievement-item" data-achievement="first_record">
+                                <div class="achievement-icon">🎯</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">首次记录</div>
+                                    <div class="achievement-desc">完成第一次金币记录，即可解锁。</div>
+                                </div>
+                                <div class="achievement-status" id="first_record_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="week_streak">
+                                <div class="achievement-icon">🔥</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">坚持7天</div>
+                                    <div class="achievement-desc">连续记录7天金币，保持良好习惯。</div>
+                                </div>
+                                <div class="achievement-status" id="week_streak_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="month_streak">
+                                <div class="achievement-icon">📅</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">坚持30天</div>
+                                    <div class="achievement-desc">连续记录30天金币，完成月度挑战。</div>
+                                </div>
+                                <div class="achievement-status" id="month_streak_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="hundred_days">
+                                <div class="achievement-icon">💯</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">百日坚持</div>
+                                    <div class="achievement-desc">连续记录100天金币，达成百日里程碑。</div>
+                                </div>
+                                <div class="achievement-status" id="hundred_days_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="novice_level">
+                                <div class="achievement-icon">🌱</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">新手</div>
+                                    <div class="achievement-desc">累计金币 ≥ 0，即可解锁新手等级。</div>
+                                </div>
+                                <div class="achievement-status" id="novice_level_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="silver_level">
+                                <div class="achievement-icon">🥈</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">白银</div>
+                                    <div class="achievement-desc">累计金币 ≥ 1,000，晋升白银等级。</div>
+                                </div>
+                                <div class="achievement-status" id="silver_level_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="gold_level">
+                                <div class="achievement-icon">🥇</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">黄金</div>
+                                    <div class="achievement-desc">累计金币 ≥ 5,000，晋升黄金等级。</div>
+                                </div>
+                                <div class="achievement-status" id="gold_level_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="black_gold_level">
+                                <div class="achievement-icon">⚫</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">黑金</div>
+                                    <div class="achievement-desc">累计金币 ≥ 15,000，晋升黑金等级。</div>
+                                </div>
+                                <div class="achievement-status" id="black_gold_level_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="legend_level">
+                                <div class="achievement-icon">👑</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">传奇</div>
+                                    <div class="achievement-desc">累计金币 ≥ 30,000，晋升传奇等级。</div>
+                                </div>
+                                <div class="achievement-status" id="legend_level_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="bronze_legend_level">
+                                <div class="achievement-icon">🏆</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">青铜传奇</div>
+                                    <div class="achievement-desc">累计金币 ≥ 40,000，晋升青铜传奇。</div>
+                                </div>
+                                <div class="achievement-status" id="bronze_legend_level_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="silver_legend_level">
+                                <div class="achievement-icon">💎</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">白银传奇</div>
+                                    <div class="achievement-desc">累计金币 ≥ 50,000，晋升白银传奇。</div>
+                                </div>
+                                <div class="achievement-status" id="silver_legend_level_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="gold_legend_level">
+                                <div class="achievement-icon">⭐</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">黄金传奇</div>
+                                    <div class="achievement-desc">累计金币 ≥ 70,000，晋升黄金传奇。</div>
+                                </div>
+                                <div class="achievement-status" id="gold_legend_level_status">🔒</div>
+                            </div>
+                            <div class="achievement-item" data-achievement="black_gold_legend_level">
+                                <div class="achievement-icon">🌟</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-title">黑金传奇</div>
+                                    <div class="achievement-desc">累计金币 ≥ 100,000，晋升黑金传奇。</div>
+                                </div>
+                                <div class="achievement-status" id="black_gold_legend_level_status">🔒</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 排行榜Tab -->
+            <div class="tab-content" data-tab-content="leaderboard">
+                <div class="leaderboard-card">
+                    <h3 class="card-title">🏆 公开排行榜</h3>
         <section class="leaderboard-banner" id="leaderboardBanner" style="display: none;">
             <div class="banner-content">
                 <div class="banner-header">
@@ -194,12 +375,7 @@
                         <small>点击"加入排行榜"开始参与</small>
                     </div>
                     
-                    <!-- 排行榜列表 -->
-                    <div class="leaderboard-list" id="leaderboardList" style="display: none;">
-                        <!-- 动态生成 -->
-                    </div>
-                    
-                    <!-- 增长排行榜 -->
+                                <div class="leaderboard-list" id="leaderboardList" style="display: none;"></div>
                     <div class="growth-leaderboard" id="growthLeaderboard" style="display: none;">
                         <div class="growth-tabs">
                             <button class="growth-tab active" data-growth="daily">日增长</button>
@@ -207,23 +383,13 @@
                             <button class="growth-tab" data-growth="monthly">月增长</button>
                             <button class="growth-tab" data-growth="total">总增长</button>
                         </div>
-                        <div class="growth-list" id="growthList">
-                            <!-- 动态生成 -->
-                        </div>
+                                    <div class="growth-list" id="growthList"></div>
                     </div>
-                    
-                    <!-- 活跃度排行榜 -->
                     <div class="activity-leaderboard" id="activityLeaderboard" style="display: none;">
-                        <div class="activity-list" id="activityList">
-                            <!-- 动态生成 -->
-                        </div>
+                                    <div class="activity-list" id="activityList"></div>
                     </div>
-                    
-                    <!-- 成就排行榜 -->
                     <div class="achievement-leaderboard" id="achievementLeaderboard" style="display: none;">
-                        <div class="achievement-list" id="achievementList">
-                            <!-- 动态生成 -->
-                        </div>
+                                    <div class="achievement-list" id="achievementList"></div>
                     </div>
                 </div>
                 <div class="banner-actions">
@@ -233,414 +399,218 @@
                 </div>
             </div>
         </section>
+                </div>
+            </div>
 
-        <!-- 今日统计显示区域 -->
-        <section class="stats-section">
-            <div class="skeleton" id="statsSkeleton" style="display: none;">
-                <div class="skeleton-header"></div>
-                <div class="skeleton-stats">
-                    <div class="skeleton-stat-item"></div>
-                    <div class="skeleton-stat-item"></div>
-                    <div class="skeleton-stat-item"></div>
-                    <div class="skeleton-stat-item"></div>
+            <!-- 设置Tab -->
+            <div class="tab-content" data-tab-content="settings">
+                <!-- 账户管理卡片 -->
+                <div class="account-card">
+                    <h3 class="card-title">👤 账户管理</h3>
+                    
+                    <!-- 未登录状态 -->
+                    <div id="loginSection" class="account-section">
+                        <div class="account-info">
+                            <p class="account-desc">登录后可同步数据到云端，防止数据丢失</p>
+                    </div>
+                        <button id="loginBtn" class="btn-primary btn-block">
+                            <span>🔐</span>
+                            <span>登录/注册</span>
+                        </button>
+                    </div>
+                    
+                    <!-- 已登录状态 -->
+                    <div id="userStatus" class="account-section" style="display: none;">
+                        <div class="user-info-card">
+                            <div class="user-avatar">👤</div>
+                            <div class="user-details">
+                                <div class="user-name-display">
+                                    <span id="userEmail" class="user-email-text"></span>
+                    </div>
+                                <div class="user-actions-grid">
+                                    <button id="syncFromCloudBtn" class="action-card-btn">
+                                        <span class="action-icon">⬇️</span>
+                                        <span class="action-label">下载数据</span>
+                                    </button>
+                                    <button id="syncToCloudBtn" class="action-card-btn">
+                                        <span class="action-icon">⬆️</span>
+                                        <span class="action-label">上传数据</span>
+                                    </button>
+                                    <button id="showBinIdBtn" class="action-card-btn">
+                                        <span class="action-icon">🔑</span>
+                                        <span class="action-label">账户ID</span>
+                                    </button>
+                                    <button id="logoutBtn" class="action-card-btn logout">
+                                        <span class="action-icon">🚪</span>
+                                        <span class="action-label">退出登录</span>
+                                    </button>
+                    </div>
                 </div>
             </div>
-            <div class="section-content" id="statsContent">
-                <h2>今日统计</h2>
-                <div class="stats-container">
-                    <div class="stat-item">
-                        <span class="stat-label">今日金币：</span>
-                        <span class="stat-value" id="todayCoins">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">与昨日差值：</span>
-                        <span class="stat-value" id="difference">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">总金币数：</span>
-                        <span class="stat-value" id="totalCoins">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">记录天数：</span>
-                        <span class="stat-value" id="recordDays">-</span>
-                    </div>
                 </div>
             </div>
-        </section>
 
-        <!-- 连击统计区域 -->
-        <section class="streak-section">
-            <div class="skeleton" id="streakSkeleton" style="display: none;">
-                <div class="skeleton-header"></div>
-                <div class="skeleton-streak-container">
-                    <div class="skeleton-streak-item"></div>
-                    <div class="skeleton-streak-item"></div>
-                    <div class="skeleton-streak-item"></div>
-                    <div class="skeleton-streak-button"></div>
+                <!-- 历史记录卡片 -->
+                <div class="settings-card">
+                    <div class="skeleton" id="historySkeleton" style="display: none;">
+                        <div class="skeleton-list"></div>
+                </div>
+                    <div class="section-content" id="historyContent">
+                        <h3 class="card-title">📜 历史记录</h3>
+                        <div class="history-controls">
+                            <button id="exportBtn" class="btn-secondary">导出数据</button>
+                            <button id="clearBtn" class="btn-danger">清空记录</button>
+            </div>
+                        <div class="history-list" id="historyList"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="section-content" id="streakContent">
-                <h2>连击统计</h2>
-                <div class="streak-container">
-                    <div class="streak-item">
-                        <span class="streak-label">当前连击：</span>
-                        <span class="streak-value" id="currentStreak">0天</span>
-                    </div>
-                    <div class="streak-item">
-                        <span class="streak-label">最长连击：</span>
-                        <span class="streak-value" id="longestStreak">0天</span>
-                    </div>
-                    <div class="streak-item">
-                        <span class="streak-label">今日完成：</span>
-                        <span class="streak-value" id="todayComplete">未完成</span>
-                    </div>
-                    <button id="makeupRecordBtn" class="makeup-btn" style="display: none;">补签昨日</button>
-                </div>
-            </div>
-        </section>
+    </main>
 
-        <!-- 个人挑战区域 -->
-        <section class="challenge-section">
-            <div class="skeleton" id="challengeSkeleton" style="display: none;">
-                <div class="skeleton-header"></div>
-                <div class="skeleton-challenge-container">
-                    <div class="skeleton-challenge-item"></div>
-                    <div class="skeleton-challenge-item"></div>
-                    <div class="skeleton-challenge-button"></div>
-                </div>
-            </div>
-            <div class="section-content" id="challengeContent">
-                <h2>个人挑战</h2>
-                <div class="challenge-container">
-                    <div class="challenge-current">
-                        <div class="challenge-header">
-                            <h3>当前挑战</h3>
-                            <div class="challenge-controls">
-                                <button id="refreshChallengeBtn" class="challenge-btn refresh-btn" title="刷新挑战进度">🔄 刷新</button>
-                                <button id="setChallengeBtn" class="challenge-btn">设定挑战</button>
-                            </div>
-                        </div>
-                        <div class="challenge-info" id="currentChallengeInfo" style="display: none;">
-                            <div class="challenge-detail">
-                                <span class="challenge-label">目标金币：</span>
-                                <span class="challenge-value" id="challengeTarget">0</span>
-                            </div>
-                            <div class="challenge-detail">
-                                <span class="challenge-label">当前进度：</span>
-                                <span class="challenge-value" id="challengeProgress">0</span>
-                            </div>
-                            <div class="challenge-detail">
-                                <span class="challenge-label">完成百分比：</span>
-                                <span class="challenge-value" id="challengePercentage">0%</span>
-                            </div>
-                            <div class="challenge-progress-bar">
-                                <div class="challenge-progress-fill" id="challengeProgressFill" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <div class="no-challenge" id="noChallengeInfo">
-                            <p>还没有设定挑战，快来设定一个吧！</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 成就系统 -->
-        <section class="achievements-section">
-            <div class="skeleton" id="achievementsSkeleton" style="display: none;">
-                <div class="skeleton-header"></div>
-                <div class="skeleton-achievements">
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                    <div class="skeleton-achievement-item"></div>
-                </div>
-            </div>
-            <div class="section-content" id="achievementsContent">
-                <h2>成就系统</h2>
-                <div class="achievements-container">
-                    <div class="achievement-item" data-achievement="first_record">
-                        <div class="achievement-icon">🎯</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">首次记录</div>
-                            <div class="achievement-desc">完成第一次金币记录</div>
-                        </div>
-                        <div class="achievement-status" id="first_record_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="week_streak">
-                        <div class="achievement-icon">🔥</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">坚持7天</div>
-                            <div class="achievement-desc">连续记录7天金币</div>
-                        </div>
-                        <div class="achievement-status" id="week_streak_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="month_streak">
-                        <div class="achievement-icon">📅</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">坚持30天</div>
-                            <div class="achievement-desc">连续记录30天金币</div>
-                        </div>
-                        <div class="achievement-status" id="month_streak_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="hundred_days">
-                        <div class="achievement-icon">💯</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">百日坚持</div>
-                            <div class="achievement-desc">连续记录100天金币</div>
-                        </div>
-                        <div class="achievement-status" id="hundred_days_status">🔒</div>
-                    </div>
-                    <!-- 等级成就系统 -->
-                    <div class="achievement-item" data-achievement="novice_level">
-                        <div class="achievement-icon">🌱</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">新手</div>
-                            <div class="achievement-desc">达到新手等级 (0-1,000金币)</div>
-                        </div>
-                        <div class="achievement-status" id="novice_level_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="silver_level">
-                        <div class="achievement-icon">🥈</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">白银</div>
-                            <div class="achievement-desc">达到白银等级 (1,000-5,000金币)</div>
-                        </div>
-                        <div class="achievement-status" id="silver_level_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="gold_level">
-                        <div class="achievement-icon">🥇</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">黄金</div>
-                            <div class="achievement-desc">达到黄金等级 (5,000-15,000金币)</div>
-                        </div>
-                        <div class="achievement-status" id="gold_level_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="black_gold_level">
-                        <div class="achievement-icon">⚫</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">黑金</div>
-                            <div class="achievement-desc">达到黑金等级 (15,000-30,000金币)</div>
-                        </div>
-                        <div class="achievement-status" id="black_gold_level_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="legend_level">
-                        <div class="achievement-icon">👑</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">传奇</div>
-                            <div class="achievement-desc">达到传奇等级 (30,000-40,000金币)</div>
-                        </div>
-                        <div class="achievement-status" id="legend_level_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="bronze_legend_level">
-                        <div class="achievement-icon">🏆</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">青铜传奇</div>
-                            <div class="achievement-desc">达到青铜传奇等级 (40,000-50,000金币)</div>
-                        </div>
-                        <div class="achievement-status" id="bronze_legend_level_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="silver_legend_level">
-                        <div class="achievement-icon">💎</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">白银传奇</div>
-                            <div class="achievement-desc">达到白银传奇等级 (50,000-70,000金币)</div>
-                        </div>
-                        <div class="achievement-status" id="silver_legend_level_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="gold_legend_level">
-                        <div class="achievement-icon">⭐</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">黄金传奇</div>
-                            <div class="achievement-desc">达到黄金传奇等级 (70,000-100,000金币)</div>
-                        </div>
-                        <div class="achievement-status" id="gold_legend_level_status">🔒</div>
-                    </div>
-                    <div class="achievement-item" data-achievement="black_gold_legend_level">
-                        <div class="achievement-icon">🌟</div>
-                        <div class="achievement-info">
-                            <div class="achievement-title">黑金传奇</div>
-                            <div class="achievement-desc">达到黑金传奇等级 (100,000+金币)</div>
-                        </div>
-                        <div class="achievement-status" id="black_gold_legend_level_status">🔒</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 图表可视化区域 -->
-        <section class="chart-section">
-            <div class="skeleton" id="chartSkeleton" style="display: none;">
-                <div class="skeleton-header"></div>
-                <div class="skeleton-chart-controls">
-                    <div class="skeleton-tabs"></div>
-                    <div class="skeleton-button"></div>
-                </div>
-                <div class="skeleton-chart"></div>
-            </div>
-            <div class="section-content" id="chartContent">
-                <h2>数据可视化</h2>
-                <div class="chart-controls">
-                    <div class="chart-tabs">
-                        <button class="tab-btn active" data-tab="totalChart">总金币趋势</button>
-                        <button class="tab-btn" data-tab="dailyChart">每日变化</button>
-                        <button class="tab-btn" data-tab="weeklyChart">周统计</button>
-                        <button class="tab-btn" data-tab="monthlyChart">月统计</button>
-                    </div>
-                    <button id="resetZoomBtn" class="reset-zoom-btn" title="重置缩放">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                            <path d="M21 3v5h-5"/>
-                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                            <path d="M3 21v-5h5"/>
-                        </svg>
-                        重置视图
+    <!-- 底部Tab导航 -->
+    <nav class="app-nav">
+        <button class="nav-item active" data-tab="home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">首页</span>
+        </button>
+        <button class="nav-item" data-tab="charts">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">图表</span>
+        </button>
+        <button class="nav-item" data-tab="achievements">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">成就</span>
+        </button>
+        <button class="nav-item" data-tab="leaderboard">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">排行</span>
+        </button>
+        <button class="nav-item" data-tab="settings">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">设置</span>
                     </button>
-                </div>
-                <div class="chart-container">
-                    <canvas id="totalChart"></canvas>
-                    <canvas id="dailyChart" style="display: none;"></canvas>
-                    <canvas id="weeklyChart" style="display: none;"></canvas>
-                    <canvas id="monthlyChart" style="display: none;"></canvas>
-                </div>
-            </div>
-        </section>
+    </nav>
 
-        <!-- 历史记录显示区域 -->
-        <section class="history-section">
-            <div class="skeleton" id="historySkeleton" style="display: none;">
-                <div class="skeleton-header"></div>
-                <div class="skeleton-history-controls">
-                    <div class="skeleton-button"></div>
-                    <div class="skeleton-button"></div>
-                </div>
-                <div class="skeleton-history-list">
-                    <div class="skeleton-history-item"></div>
-                    <div class="skeleton-history-item"></div>
-                    <div class="skeleton-history-item"></div>
-                </div>
-            </div>
-            <div class="section-content" id="historyContent">
-                <h2>历史记录</h2>
-                <div class="history-controls">
-                    <button id="exportBtn" class="export-btn">导出数据</button>
-                    <button id="clearBtn" class="clear-btn">清空记录</button>
-                </div>
-                <div class="history-list" id="historyList">
-                    <!-- 历史记录将在这里动态显示 -->
-                </div>
-            </div>
-        </section>
-
-        <!-- 底部信息 -->
-        <footer class="footer">
-            <p>&copy; 2025 金币记录器</p>
-            <p class="version-info">版本 v3.1.0</p>
-        </footer>
-    </div>
-
+    <!-- 模态框 -->
     <!-- 批量录入模态框 -->
-    <div id="batchInputModal" class="batch-input-modal" style="display: none;">
-        <div class="batch-input-backdrop">
-            <div class="batch-input-content">
-                <button class="batch-input-close">&times;</button>
-                <div class="batch-input-icon">📊</div>
-                <h3>批量录入金币数据</h3>
-                <p>选择要录入的日期范围和对应的金币数量</p>
-
+    <div id="batchInputModal" class="modal" style="display: none;">
+        <div class="modal-backdrop">
+            <div class="modal-content">
+                <button class="modal-close batch-input-close">&times;</button>
+                <h3 class="modal-title">📊 批量录入</h3>
                 <div class="batch-input-form">
                     <div class="form-group">
-                        <label for="startDate">开始日期：</label>
+                        <label for="startDate">开始日期</label>
                         <input type="date" id="startDate" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="endDate">结束日期：</label>
+                        <label for="endDate">结束日期</label>
                         <input type="date" id="endDate" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="batchCoins">每日金币数量：</label>
-                        <input type="number" id="batchCoins" min="0" placeholder="请输入每日金币数量" required>
+                        <label for="batchCoins">每日金币数量</label>
+                        <input type="number" id="batchCoins" min="0" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="batchNote">备注（可选）：</label>
-                        <input type="text" id="batchNote" maxlength="50" placeholder="为这些天的数据添加备注">
+                        <label for="batchNote">备注（可选）</label>
+                        <input type="text" id="batchNote" maxlength="50">
                     </div>
-
                     <div class="batch-input-actions">
-                        <button id="cancelBatchBtn" class="batch-cancel-btn">取消</button>
-                        <button id="confirmBatchBtn" class="batch-confirm-btn">开始录入</button>
+                        <button id="cancelBatchBtn" class="btn-secondary">取消</button>
+                        <button id="confirmBatchBtn" class="btn-primary">确认</button>
                     </div>
                 </div>
-
                 <div id="batchPreview" class="batch-preview" style="display: none;">
-                    <h4>预览录入数据</h4>
+                    <h4>预览</h4>
                     <div id="batchPreviewList" class="batch-preview-list"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 登录/注册模态框 -->
-    <div id="authModal" class="auth-modal" style="display: none;">
-        <div class="auth-modal-backdrop">
-            <div class="auth-modal-content">
-                <button class="auth-modal-close">&times;</button>
-                <div class="auth-modal-header">
-                    <div class="auth-modal-icon">🔐</div>
-                    <h3 id="authModalTitle">登录</h3>
-                    <p id="authModalSubtitle">登录以同步您的数据到云端</p>
+    <!-- 挑战设置模态框 -->
+    <div id="challengeModal" class="modal" style="display: none;">
+        <div class="modal-backdrop">
+            <div class="modal-content">
+                <button class="modal-close challenge-modal-close">&times;</button>
+                <h3 class="modal-title">🎯 设置挑战目标</h3>
+                <div class="challenge-modal-form">
+                    <div class="form-group">
+                        <label for="challengeTargetInput">目标金币数量</label>
+                        <input type="number" id="challengeTargetInput" min="100" step="100" placeholder="例如：10000">
+                    </div>
+                    <div class="challenge-form-actions">
+                        <button id="cancelChallengeBtn" class="btn-secondary">取消</button>
+                        <button id="confirmChallengeBtn" class="btn-primary">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
                 </div>
                 
-                <div class="auth-modal-body">
-                      <!-- 登录表单 -->
+    <!-- 登录模态框（仅登录） -->
+    <div id="authModal" class="modal" style="display: none;">
+        <div class="modal-backdrop auth-modal-backdrop">
+            <div class="modal-content auth-modal-content">
+                <button class="modal-close auth-modal-close" onclick="document.getElementById('authModal').style.display='none'">&times;</button>
+                <div class="auth-section active">
+                    <div class="auth-modal-header">
+                        <div class="auth-modal-icon">🔓</div>
+                        <h3>欢迎回来</h3>
+                        <p>使用您的账户ID登录</p>
+                    </div>
                       <form id="loginForm" class="auth-form">
                           <div class="form-group">
-                              <label for="loginUsername">账户ID：</label>
+                            <label for="loginUsername">账户ID</label>
                               <input type="text" id="loginUsername" placeholder="输入24位账户ID" required>
-                              <small class="form-hint">💡 只能使用账户ID登录，请确保输入正确的24位ID</small>
+                            <small class="form-hint">💡 登录需要使用注册时获得的账户ID</small>
                           </div>
-                          <button type="submit" class="auth-submit-btn">登录</button>
+                        <button type="submit" class="btn-primary auth-submit-btn">
+                            <span>登录账户</span>
+                        </button>
                       </form>
-                    
-                      <!-- 注册表单 -->
-                      <form id="registerForm" class="auth-form" style="display: none;">
-                          <div class="form-group">
-                              <label for="registerUsername">用户名：</label>
-                              <input type="text" id="registerUsername" placeholder="输入您的用户名" required>
-                              <small class="form-hint">💡 注册后将生成账户ID，请妥善保存</small>
+                    <div class="auth-footer-hint">
+                        <p>还没有账户？<button class="auth-link-btn" onclick="document.getElementById('authModal').style.display='none';document.getElementById('registerModal').style.display='flex'">立即注册</button></p>
+                    </div>
+                </div>
+            </div>
                           </div>
-                          <button type="submit" class="auth-submit-btn">注册</button>
-                      </form>
-                    
                 </div>
                 
-                <div class="auth-modal-footer">
-                      <div class="auth-tabs">
-                          <button id="showLoginTab" class="auth-tab active">登录</button>
-                          <button id="showRegisterTab" class="auth-tab">注册</button>
+    <!-- 注册模态框（仅注册） -->
+    <div id="registerModal" class="modal" style="display: none;">
+        <div class="modal-backdrop auth-modal-backdrop">
+            <div class="modal-content auth-modal-content">
+                <button class="modal-close auth-modal-close" onclick="document.getElementById('registerModal').style.display='none'">&times;</button>
+                <div class="auth-section active">
+                    <div class="auth-modal-header">
+                        <div class="auth-modal-icon">✨</div>
+                        <h3>创建账户</h3>
+                        <p>注册以同步您的数据到云端</p>
+                    </div>
+                    <form id="registerForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="registerUsername">用户名</label>
+                            <input type="text" id="registerUsername" placeholder="输入您想要的用户名" required>
+                            <small class="form-hint">💡 用户名仅用于显示，登录需使用系统生成的账户ID</small>
                       </div>
-                    
-                      <div class="auth-info">
-                          <p>💡 提示：注册后您的数据将自动同步到云端</p>
+                        <button type="submit" class="btn-primary auth-submit-btn">
+                            <span>创建账户</span>
+                        </button>
+                    </form>
+                    <div class="auth-footer-hint">
+                        <p>已有账户？<button class="auth-link-btn" onclick="document.getElementById('registerModal').style.display='none';document.getElementById('authModal').style.display='flex'">立即登录</button></p>
                       </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 账户ID 显示模态框 -->
-    <div id="binIdModal" class="bin-id-modal" style="display: none;">
-        <div class="bin-id-modal-backdrop">
-            <div class="bin-id-modal-content">
+    <!-- 账户ID显示模态框 -->
+    <div id="binIdModal" class="modal bin-id-modal" style="display: none;">
+        <div class="modal-backdrop bin-id-modal-backdrop">
+            <div class="modal-content bin-id-modal-content">
                 <div class="bin-id-modal-icon">🔑</div>
                 <h3>注册成功！</h3>
                 <p>您的专属账户ID已生成，请妥善保存：</p>
@@ -653,29 +623,28 @@
                         <p>💡 <strong>重要提示：</strong></p>
                         <ul>
                             <li>账户ID是您账户的唯一标识</li>
-                            <li>登录时必须使用账户ID，不支持用户名登录</li>
+                            <li>登录时必须使用账户ID</li>
                             <li>请妥善保存，丢失后无法找回</li>
                         </ul>
                     </div>
                 </div>
                 <div class="bin-id-modal-footer">
-                    <button id="binIdModalClose" class="bin-id-btn primary">我知道了</button>
+                    <button id="binIdModalClose" class="btn-primary">我知道了</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 加入公开排行榜确认模态框 -->
-    <div id="joinLeaderboardModal" class="join-leaderboard-modal" style="display: none;">
-        <div class="join-leaderboard-modal-backdrop">
-            <div class="join-leaderboard-modal-content">
-                <button class="join-leaderboard-modal-close">&times;</button>
+    <!-- 加入排行榜确认模态框 -->
+    <div id="joinLeaderboardModal" class="modal join-leaderboard-modal" style="display: none;">
+        <div class="modal-backdrop join-leaderboard-modal-backdrop">
+            <div class="modal-content join-leaderboard-modal-content">
+                <button class="modal-close join-leaderboard-modal-close">&times;</button>
                 <div class="join-leaderboard-modal-header">
                     <div class="join-leaderboard-modal-icon">🏆</div>
                     <h3>加入公开排行榜</h3>
-                    <p>您的数据将公开显示在排行榜中，供其他用户查看</p>
+                    <p>您的数据将公开显示在排行榜中</p>
                 </div>
-                
                 <div class="join-leaderboard-modal-body">
                     <div class="privacy-notice">
                         <h4>📋 隐私说明</h4>
@@ -686,7 +655,6 @@
                             <li>❌ 您的密码和个人信息不会泄露</li>
                         </ul>
                     </div>
-                    
                     <div class="current-user-info">
                         <h4>👤 您的信息</h4>
                         <div class="user-info-item">
@@ -703,19 +671,18 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="join-leaderboard-modal-footer">
-                    <button id="cancelJoinBtn" class="join-leaderboard-btn secondary">取消</button>
-                    <button id="confirmJoinBtn" class="join-leaderboard-btn primary">确认加入</button>
+                    <button id="cancelJoinBtn" class="btn-secondary">取消</button>
+                    <button id="confirmJoinBtn" class="btn-primary">确认加入</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- 数据迁移提示模态框 -->
-    <div id="migrationModal" class="migration-modal" style="display: none;">
-        <div class="migration-modal-backdrop">
-            <div class="migration-modal-content">
+    <div id="migrationModal" class="modal migration-modal" style="display: none;">
+        <div class="modal-backdrop migration-modal-backdrop">
+            <div class="modal-content migration-modal-content">
                 <div class="migration-modal-icon">☁️</div>
                 <h3>数据迁移</h3>
                 <p>检测到您有本地数据，是否要迁移到云端？</p>
@@ -734,66 +701,23 @@
                     </div>
                 </div>
                 <div class="migration-actions">
-                    <button id="migrationSkipBtn" class="migration-skip-btn">跳过</button>
-                    <button id="migrationConfirmBtn" class="migration-confirm-btn">迁移到云端</button>
+                    <button id="migrationSkipBtn" class="btn-secondary">跳过</button>
+                    <button id="migrationConfirmBtn" class="btn-primary">迁移到云端</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script type="module" src="script.js"></script>
-
-    <!-- Service Worker注册 -->
-    <script>
-        // 注册Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
-            });
-        }
-
-        // PWA安装提示
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // 阻止默认的安装提示
-            e.preventDefault();
-            deferredPrompt = e;
-
-            // 可以在这里显示自定义安装按钮
-            // showInstallButton();
-        });
-
-        // 安装应用
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                    }
-                    deferredPrompt = null;
-                });
-            }
-        }
-    </script>
-
     <!-- 用户详情模态框 -->
-    <div id="userDetailModal" class="user-detail-modal" style="display: none;">
-        <div class="user-detail-modal-backdrop">
-            <div class="user-detail-modal-content">
-                <button class="user-detail-modal-close">&times;</button>
+    <div id="userDetailModal" class="modal user-detail-modal" style="display: none;">
+        <div class="modal-backdrop user-detail-modal-backdrop">
+            <div class="modal-content user-detail-modal-content">
+                <button class="modal-close user-detail-modal-close">&times;</button>
                 <div class="user-detail-modal-header">
                     <div class="user-detail-modal-icon">👤</div>
                     <h3 id="userDetailUsername">用户名</h3>
                     <p id="userDetailRank">排名: -</p>
                 </div>
-                
                 <div class="user-detail-modal-body">
                     <div class="user-detail-stats">
                         <div class="stat-card">
@@ -825,34 +749,86 @@
                             </div>
                         </div>
                     </div>
-                    
                     <div class="user-detail-titles" id="userDetailTitles">
                         <h4>称号</h4>
-                        <div class="titles-list" id="userDetailTitlesList">
-                            <!-- 动态生成 -->
-                        </div>
+                        <div class="titles-list" id="userDetailTitlesList"></div>
                     </div>
-                    
                     <div class="user-detail-time">
                         <div class="time-info">
                             <span class="time-label">最后活跃:</span>
                             <span class="time-value" id="userDetailLastActive">-</span>
                         </div>
                     </div>
-                    
                     <div class="user-detail-records" id="userDetailRecords">
                         <h4>最近记录</h4>
-                        <div class="records-list" id="userDetailRecordsList">
-                            <!-- 动态生成 -->
-                        </div>
+                        <div class="records-list" id="userDetailRecordsList"></div>
                     </div>
                 </div>
-                
                 <div class="user-detail-modal-footer">
-                    <button id="closeUserDetailBtn" class="user-detail-btn primary">关闭</button>
+                    <button id="closeUserDetailBtn" class="btn-primary">关闭</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <script type="module" src="script.js"></script>
+
+    <!-- Service Worker注册 -->
+    <script>
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // PWA安装提示
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        // Tab切换逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const navItems = document.querySelectorAll('.nav-item');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const targetTab = item.dataset.tab;
+                    
+                    // 移除所有active类
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // 添加active类到当前tab
+                    item.classList.add('active');
+                    const targetContent = document.querySelector(`[data-tab-content="${targetTab}"]`);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

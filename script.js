@@ -855,46 +855,38 @@ class CoinTracker {
     }
 
     showMessage(message, type) {
+        // 获取或创建消息容器
+        let container = document.querySelector('.message-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'message-container';
+            document.body.appendChild(container);
+        }
+
         // 创建消息元素
         const messageEl = document.createElement('div');
         messageEl.className = `message ${type}`;
         messageEl.textContent = message;
 
-        // 添加样式
-        Object.assign(messageEl.style, {
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            padding: '12px 20px',
-            borderRadius: '8px',
-            color: 'white',
-            fontWeight: '600',
-            zIndex: '1000',
-            transform: 'translateX(400px)',
-            transition: 'transform 0.3s ease'
-        });
-
-        // 根据类型设置背景色
-        const colors = {
-            success: '#27ae60',
-            error: '#e74c3c',
-            warning: '#f39c12',
-            info: '#3498db'
-        };
-        messageEl.style.backgroundColor = colors[type] || colors.info;
-
-        document.body.appendChild(messageEl);
+        // 添加到容器
+        container.appendChild(messageEl);
 
         // 显示动画
         setTimeout(() => {
-            messageEl.style.transform = 'translateX(0)';
-        }, 100);
+            messageEl.classList.add('show');
+        }, 10);
 
         // 自动隐藏
         setTimeout(() => {
-            messageEl.style.transform = 'translateX(400px)';
+            messageEl.classList.remove('show');
             setTimeout(() => {
-                document.body.removeChild(messageEl);
+                if (messageEl.parentNode) {
+                    messageEl.parentNode.removeChild(messageEl);
+                }
+                // 如果容器为空，删除容器
+                if (container.children.length === 0) {
+                    container.remove();
+                }
             }, 300);
         }, 3000);
     }
@@ -1329,61 +1321,53 @@ class CoinTracker {
     }
 
     showChallengeModal() {
-        const modal = document.createElement('div');
-        modal.className = 'challenge-modal';
-        modal.innerHTML = `
-            <div class="challenge-modal-backdrop">
-                <div class="challenge-modal-content">
-                    <button class="challenge-modal-close">&times;</button>
-                    <div class="challenge-modal-icon">🎯</div>
-                    <div class="challenge-modal-title">设定攒钱挑战</div>
-                    <div class="challenge-modal-form">
-                        <div class="challenge-form-group">
-                            <label for="challengeTargetInput">目标金币数量：</label>
-                            <input type="number" id="challengeTargetInput" min="100" step="100" placeholder="例如：1000" value="${this.challengeData.target || ''}">
-                        </div>
-                        <div class="challenge-form-actions">
-                            <button id="cancelChallengeBtn" class="challenge-cancel-btn">取消</button>
-                            <button id="confirmChallengeBtn" class="challenge-confirm-btn">确定</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+        const modal = document.getElementById('challengeModal');
+        if (!modal) {
+            console.error('未找到挑战模态框');
+            return;
+        }
 
-        document.body.appendChild(modal);
+        // 设置当前值
+        const targetInput = document.getElementById('challengeTargetInput');
+        if (targetInput) {
+            targetInput.value = this.challengeData.target || '';
+        }
+
+        // 显示模态框
+        modal.style.display = 'flex';
 
         // 添加事件监听器
         const closeBtn = modal.querySelector('.challenge-modal-close');
-        const cancelBtn = modal.querySelector('#cancelChallengeBtn');
-        const confirmBtn = modal.querySelector('#confirmChallengeBtn');
-        const backdrop = modal.querySelector('.challenge-modal-backdrop');
+        const cancelBtn = document.getElementById('cancelChallengeBtn');
+        const confirmBtn = document.getElementById('confirmChallengeBtn');
+        const backdrop = modal.querySelector('.modal-backdrop');
 
-        closeBtn.onclick = () => this.closeChallengeModal();
-        cancelBtn.onclick = () => this.closeChallengeModal();
-        backdrop.onclick = (e) => {
-            if (e.target === backdrop) {
+        const closeModal = () => this.closeChallengeModal();
+
+        if (closeBtn) closeBtn.onclick = closeModal;
+        if (cancelBtn) cancelBtn.onclick = closeModal;
+        if (backdrop) {
+            backdrop.onclick = (e) => {
+                if (e.target === backdrop) {
+                    closeModal();
+                }
+            };
+        }
+
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                const targetInput = document.getElementById('challengeTargetInput');
+                const target = parseInt(targetInput.value);
+
+                if (isNaN(target) || target < 100) {
+                    this.showMessage('请输入有效目标金币数量（至少100）', 'error');
+                    return;
+                }
+
+                this.setChallenge(target);
                 this.closeChallengeModal();
-            }
-        };
-
-        confirmBtn.onclick = () => {
-            const targetInput = document.getElementById('challengeTargetInput');
-            const target = parseInt(targetInput.value);
-
-            if (isNaN(target) || target < 100) {
-                this.showMessage('请输入有效目标金币数量（至少100）', 'error');
-                return;
-            }
-
-            this.setChallenge(target);
-            this.closeChallengeModal();
-        };
-
-        // 触发动画
-        setTimeout(() => {
-            modal.classList.add('show');
-        }, 100);
+            };
+        }
     }
 
     setChallenge(target) {
@@ -1405,14 +1389,9 @@ class CoinTracker {
     }
 
     closeChallengeModal() {
-        const modal = document.querySelector('.challenge-modal');
+        const modal = document.getElementById('challengeModal');
         if (modal) {
-            modal.classList.remove('show');
-            setTimeout(() => {
-                if (modal.parentNode) {
-                    modal.parentNode.removeChild(modal);
-                }
-            }, 300);
+            modal.style.display = 'none';
         }
     }
 
