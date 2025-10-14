@@ -77,6 +77,9 @@ class CoinTracker {
         this.checkAchievements(); // 检查是否有新成就可以解锁
         this.startTimeUpdate(); // 开始更新时间显示
         
+        // 绑定批量录入模态框事件
+        this.bindBatchModalEvents();
+        
         // 初始化简单集成
         await this.initSimpleIntegration();
     }
@@ -1489,9 +1492,6 @@ class CoinTracker {
             setTimeout(() => {
                 modal.classList.add('show');
             }, 10);
-
-            // 绑定关闭按钮事件
-            this.bindBatchModalEvents();
         }
     }
 
@@ -1504,12 +1504,24 @@ class CoinTracker {
         const backdrop = modal.querySelector('.batch-input-backdrop');
 
         if (closeBtn) {
-            closeBtn.onclick = () => this.closeBatchInputModal();
+            // 移除之前的事件监听器
+            closeBtn.onclick = null;
+            // 重新绑定事件
+            closeBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('批量录入关闭按钮被点击');
+                this.closeBatchInputModal();
+            };
         }
 
         if (backdrop) {
+            // 移除之前的事件监听器
+            backdrop.onclick = null;
+            // 重新绑定事件
             backdrop.onclick = (e) => {
                 if (e.target === backdrop) {
+                    console.log('批量录入背景被点击');
                     this.closeBatchInputModal();
                 }
             };

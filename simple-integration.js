@@ -690,12 +690,21 @@ class SimpleIntegration {
         if (user) {
             // 用户已登录
             if (userStatus) userStatus.style.display = 'flex';
-            if (loginBtn) loginBtn.style.display = 'none';
+            if (loginBtn) {
+                // 强制显示登录按钮，允许用户重新登录
+                loginBtn.style.display = 'flex';
+                loginBtn.style.opacity = '0.7';
+                loginBtn.title = '点击重新登录';
+            }
             if (userEmail) userEmail.textContent = user.username;
         } else {
             // 用户未登录
             if (userStatus) userStatus.style.display = 'none';
-            if (loginBtn) loginBtn.style.display = 'flex';
+            if (loginBtn) {
+                loginBtn.style.display = 'flex';
+                loginBtn.style.opacity = '1';
+                loginBtn.title = '登录';
+            }
         }
     }
 
