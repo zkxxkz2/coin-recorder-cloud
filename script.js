@@ -175,6 +175,12 @@ class CoinTracker {
             this.showBatchInputModal();
         });
 
+        // 数据校验按钮
+        const validateDataBtn = document.getElementById('validateDataBtn');
+        validateDataBtn.addEventListener('click', () => {
+            this.validateData();
+        });
+
         // 批量录入模态框事件
         this.setupBatchInputModalEvents();
     }
@@ -2092,6 +2098,355 @@ class CoinTracker {
             setTimeout(() => {
                 this.showMessage('💡 提示：登录后可上传数据到云端，避免数据丢失', 'info', 8000);
             }, 2000);
+        }
+    }
+
+    // 数据校验方法
+    async validateData() {
+        const validateBtn = document.getElementById('validateDataBtn');
+        const validationResult = document.getElementById('validationResult');
+        const validationStatusIcon = document.getElementById('validationStatusIcon');
+        const validationStatusText = document.getElementById('validationStatusText');
+        const validationDetails = document.getElementById('validationDetails');
+
+        // 检查用户是否已登录
+        if (!this.simpleIntegration || !this.simpleIntegration.isLoggedIn()) {
+            this.showMessage('请先登录后再进行数据校验', 'warning');
+            return;
+        }
+
+        // 检查是否正在同步中
+        if (this.simpleIntegration.syncService && this.simpleIntegration.syncService.syncInProgress) {
+            this.showMessage('数据正在同步中，请稍后再试', 'warning');
+            return;
+        }
+
+        // 显示校验中状态
+        validateBtn.disabled = true;
+        validateBtn.innerHTML = '<span class="btn-icon">⏳</span><span>校验中...</span>';
+        validationResult.style.display = 'block';
+        validationStatusIcon.textContent = '⏳';
+        validationStatusText.textContent = '正在校验数据...';
+        validationDetails.innerHTML = '';
+
+        try {
+            // 等待一小段时间确保云端数据已更新（特别是刚刚上传后）
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // 获取本地数据
+            const localData = this.getLocalDataForValidation();
+            
+            // 获取云端数据
+            const cloudData = await this.getCloudDataForValidation();
+            
+            // 比较数据
+            const validationResult = this.compareData(localData, cloudData);
+            
+            // 显示校验结果
+            this.displayValidationResult(validationResult);
+            
+        } catch (error) {
+            console.error('数据校验失败:', error);
+            validationStatusIcon.textContent = '❌';
+            validationStatusText.textContent = '校验失败';
+            validationDetails.innerHTML = `
+                <div class="validation-summary error">
+                    <strong>校验失败：</strong>${error.message}
+                </div>
+            `;
+        } finally {
+            // 恢复按钮状态
+            validateBtn.disabled = false;
+            validateBtn.innerHTML = '<span class="btn-icon">🔍</span><span>开始校验</span>';
+        }
+    }
+
+    // 获取本地数据用于校验
+    getLocalDataForValidation() {
+        return {
+            coinRecords: JSON.parse(localStorage.getItem('coinTrackerData') || '[]'),
+            streakData: JSON.parse(localStorage.getItem('coinTrackerStreak') || 'null'),
+            achievements: JSON.parse(localStorage.getItem('coinTrackerAchievements') || 'null'),
+            challengeData: JSON.parse(localStorage.getItem('coinTrackerChallenge') || 'null'),
+            lastSync: localStorage.getItem('lastCloudSync') || null
+        };
+    }
+
+    // 获取云端数据用于校验
+    async getCloudDataForValidation() {
+        if (!this.simpleIntegration || !this.simpleIntegration.syncService) {
+            throw new Error('云端同步服务不可用');
+        }
+
+        const readResult = await this.simpleIntegration.syncService.readBin();
+        if (!readResult.success) {
+            throw new Error(readResult.message);
+        }
+
+        return readResult.data;
+    }
+
+    // 比较本地和云端数据
+    compareData(localData, cloudData) {
+        const result = {
+            isConsistent: true,
+            issues: [],
+            summary: {
+                coinRecords: { local: 0, cloud: 0, consistent: true },
+                streakData: { consistent: true },
+                achievements: { consistent: true },
+                challengeData: { consistent: true },
+                lastSync: { consistent: true }
+            }
+        };
+
+        // 比较金币记录
+        const localRecords = localData.coinRecords || [];
+        const cloudRecords = cloudData.coinRecords || [];
+        
+        result.summary.coinRecords.local = localRecords.length;
+        result.summary.coinRecords.cloud = cloudRecords.length;
+        
+        if (localRecords.length !== cloudRecords.length) {
+            result.isConsistent = false;
+            result.summary.coinRecords.consistent = false;
+            result.issues.push({
+                type: 'count_mismatch',
+                category: 'coinRecords',
+                message: `金币记录数量不一致：本地${localRecords.length}条，云端${cloudRecords.length}条`
+            });
+        }
+
+        // 比较具体记录内容
+        const localRecordsMap = new Map(localRecords.map(r => [r.date, r]));
+        const cloudRecordsMap = new Map(cloudRecords.map(r => [r.date, r]));
+        
+        // 检查本地独有的记录
+        for (const [date, record] of localRecordsMap) {
+            if (!cloudRecordsMap.has(date)) {
+                result.isConsistent = false;
+                result.issues.push({
+                    type: 'missing_in_cloud',
+                    category: 'coinRecords',
+                    message: `云端缺少记录：${date} (${record.coins}金币)`
+                });
+            }
+        }
+        
+        // 检查云端独有的记录
+        for (const [date, record] of cloudRecordsMap) {
+            if (!localRecordsMap.has(date)) {
+                result.isConsistent = false;
+                result.issues.push({
+                    type: 'missing_in_local',
+                    category: 'coinRecords',
+                    message: `本地缺少记录：${date} (${record.coins}金币)`
+                });
+            }
+        }
+        
+        // 检查记录内容差异（忽略时间戳差异，只比较核心数据）
+        for (const [date, localRecord] of localRecordsMap) {
+            const cloudRecord = cloudRecordsMap.get(date);
+            if (cloudRecord) {
+                // 创建比较用的记录副本，排除时间戳
+                const localCompare = {
+                    date: localRecord.date,
+                    coins: localRecord.coins,
+                    difference: localRecord.difference,
+                    note: localRecord.note || ''
+                };
+                const cloudCompare = {
+                    date: cloudRecord.date,
+                    coins: cloudRecord.coins,
+                    difference: cloudRecord.difference,
+                    note: cloudRecord.note || ''
+                };
+                
+                if (JSON.stringify(localCompare) !== JSON.stringify(cloudCompare)) {
+                    result.isConsistent = false;
+                    result.issues.push({
+                        type: 'content_mismatch',
+                        category: 'coinRecords',
+                        message: `记录内容不一致：${date}`
+                    });
+                }
+            }
+        }
+
+        // 比较连击数据（忽略时间戳差异）
+        const localStreak = localData.streakData;
+        const cloudStreak = cloudData.streakData;
+        
+        if (localStreak && cloudStreak) {
+            // 创建比较用的连击数据副本，排除可能的时间戳差异
+            const localStreakCompare = {
+                currentStreak: localStreak.currentStreak,
+                longestStreak: localStreak.longestStreak,
+                lastRecordDate: localStreak.lastRecordDate,
+                todayCompleted: localStreak.todayCompleted
+            };
+            const cloudStreakCompare = {
+                currentStreak: cloudStreak.currentStreak,
+                longestStreak: cloudStreak.longestStreak,
+                lastRecordDate: cloudStreak.lastRecordDate,
+                todayCompleted: cloudStreak.todayCompleted
+            };
+            
+            if (JSON.stringify(localStreakCompare) !== JSON.stringify(cloudStreakCompare)) {
+                result.isConsistent = false;
+                result.summary.streakData.consistent = false;
+                result.issues.push({
+                    type: 'content_mismatch',
+                    category: 'streakData',
+                    message: '连击数据不一致'
+                });
+            }
+        }
+
+        // 比较成就数据
+        const localAchievements = localData.achievements;
+        const cloudAchievements = cloudData.achievements;
+        
+        if (localAchievements && cloudAchievements) {
+            // 比较成就的解锁状态，忽略解锁时间
+            const localAchievementsCompare = {};
+            const cloudAchievementsCompare = {};
+            
+            Object.keys(localAchievements).forEach(key => {
+                localAchievementsCompare[key] = {
+                    unlocked: localAchievements[key].unlocked
+                };
+            });
+            
+            Object.keys(cloudAchievements).forEach(key => {
+                cloudAchievementsCompare[key] = {
+                    unlocked: cloudAchievements[key].unlocked
+                };
+            });
+            
+            if (JSON.stringify(localAchievementsCompare) !== JSON.stringify(cloudAchievementsCompare)) {
+                result.isConsistent = false;
+                result.summary.achievements.consistent = false;
+                result.issues.push({
+                    type: 'content_mismatch',
+                    category: 'achievements',
+                    message: '成就数据不一致'
+                });
+            }
+        }
+
+        // 比较挑战数据
+        const localChallenge = localData.challengeData;
+        const cloudChallenge = cloudData.challengeData;
+        
+        if (localChallenge && cloudChallenge) {
+            // 创建比较用的挑战数据副本，排除时间戳差异
+            const localChallengeCompare = {
+                target: localChallenge.target,
+                startDate: localChallenge.startDate,
+                endDate: localChallenge.endDate,
+                currentProgress: localChallenge.currentProgress,
+                completed: localChallenge.completed
+            };
+            const cloudChallengeCompare = {
+                target: cloudChallenge.target,
+                startDate: cloudChallenge.startDate,
+                endDate: cloudChallenge.endDate,
+                currentProgress: cloudChallenge.currentProgress,
+                completed: cloudChallenge.completed
+            };
+            
+            if (JSON.stringify(localChallengeCompare) !== JSON.stringify(cloudChallengeCompare)) {
+                result.isConsistent = false;
+                result.summary.challengeData.consistent = false;
+                result.issues.push({
+                    type: 'content_mismatch',
+                    category: 'challengeData',
+                    message: '挑战数据不一致'
+                });
+            }
+        }
+
+        // 比较lastSync时间戳（允许一定的时差）
+        const localLastSync = localData.lastSync;
+        const cloudLastSync = cloudData.lastSync;
+        
+        if (localLastSync && cloudLastSync) {
+            const localTime = new Date(localLastSync).getTime();
+            const cloudTime = new Date(cloudLastSync).getTime();
+            const timeDiff = Math.abs(localTime - cloudTime);
+            
+            // 允许5分钟的时间差（考虑网络延迟和服务器时间差）
+            if (timeDiff > 5 * 60 * 1000) {
+                result.isConsistent = false;
+                result.summary.lastSync.consistent = false;
+                result.issues.push({
+                    type: 'timestamp_mismatch',
+                    category: 'lastSync',
+                    message: `同步时间戳差异较大：本地${localLastSync}，云端${cloudLastSync}`
+                });
+            }
+        }
+
+        return result;
+    }
+
+    // 显示校验结果
+    displayValidationResult(result) {
+        const validationStatusIcon = document.getElementById('validationStatusIcon');
+        const validationStatusText = document.getElementById('validationStatusText');
+        const validationDetails = document.getElementById('validationDetails');
+
+        if (result.isConsistent) {
+            validationStatusIcon.textContent = '✅';
+            validationStatusText.textContent = '数据一致';
+            validationDetails.innerHTML = `
+                <div class="validation-summary success">
+                    <strong>校验通过：</strong>云端和本地数据完全一致
+                </div>
+                <div class="validation-item">
+                    <span class="validation-item-label">金币记录</span>
+                    <span class="validation-item-value success">${result.summary.coinRecords.local} 条</span>
+                </div>
+                <div class="validation-item">
+                    <span class="validation-item-label">连击数据</span>
+                    <span class="validation-item-value success">一致</span>
+                </div>
+                <div class="validation-item">
+                    <span class="validation-item-label">成就数据</span>
+                    <span class="validation-item-value success">一致</span>
+                </div>
+                <div class="validation-item">
+                    <span class="validation-item-label">挑战数据</span>
+                    <span class="validation-item-value success">一致</span>
+                </div>
+            `;
+        } else {
+            validationStatusIcon.textContent = '⚠️';
+            validationStatusText.textContent = '发现不一致';
+            
+            let issuesHtml = '';
+            result.issues.forEach(issue => {
+                const severity = issue.type === 'count_mismatch' ? 'error' : 'warning';
+                issuesHtml += `
+                    <div class="validation-item">
+                        <span class="validation-item-label">${issue.category}</span>
+                        <span class="validation-item-value ${severity}">${issue.message}</span>
+                    </div>
+                `;
+            });
+
+            validationDetails.innerHTML = `
+                <div class="validation-summary warning">
+                    <strong>发现 ${result.issues.length} 个问题：</strong>云端和本地数据存在不一致
+                </div>
+                ${issuesHtml}
+                <div class="validation-item">
+                    <span class="validation-item-label">建议操作</span>
+                    <span class="validation-item-value">请进行数据同步以解决不一致问题</span>
+                </div>
+            `;
         }
     }
 }

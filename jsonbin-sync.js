@@ -454,6 +454,8 @@ class JSONBinSyncService {
         localStorage.setItem('coinTrackerAchievements', JSON.stringify(data.achievements));
         localStorage.setItem('coinTrackerChallenge', JSON.stringify(data.challengeData));
         localStorage.setItem('coinTrackerLastSync', data.lastSync);
+        // 同时更新lastCloudSync时间戳
+        localStorage.setItem('lastCloudSync', Date.now().toString());
         
         // 更新用户数据
         if (data.users && data.users.length > 0) {

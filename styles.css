@@ -2039,3 +2039,128 @@ button,
     transition: none;
 }
 
+/* ============================================
+   数据校验卡片样式
+   ============================================ */
+.validation-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.validation-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.validation-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.validation-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-icon {
+    margin-right: 8px;
+}
+
+.validation-result {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.validation-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.status-icon {
+    font-size: 1.2rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-text {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.validation-details {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.validation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.validation-item:last-child {
+    border-bottom: none;
+}
+
+.validation-item-label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.validation-item-value {
+    color: var(--text-secondary);
+}
+
+.validation-item-value.success {
+    color: #48bb78;
+}
+
+.validation-item-value.warning {
+    color: #ed8936;
+}
+
+.validation-item-value.error {
+    color: #f56565;
+}
+
+.validation-summary {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.validation-summary.success {
+    background: rgba(72, 187, 120, 0.1);
+    color: #48bb78;
+    border: 1px solid rgba(72, 187, 120, 0.2);
+}
+
+.validation-summary.warning {
+    background: rgba(237, 137, 54, 0.1);
+    color: #ed8936;
+    border: 1px solid rgba(237, 137, 54, 0.2);
+}
+
+.validation-summary.error {
+    background: rgba(245, 101, 101, 0.1);
+    color: #f56565;
+    border: 1px solid rgba(245, 101, 101, 0.2);
+}
+

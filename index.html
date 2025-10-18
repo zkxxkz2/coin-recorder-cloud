@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v5.1.1</span>
+                <span class="version-badge">v5.1.2</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -449,6 +449,29 @@
             </div>
                 </div>
             </div>
+
+                <!-- 数据校验卡片 -->
+                <div class="validation-card">
+                    <h3 class="card-title">🔍 数据校验</h3>
+                    <div class="validation-content">
+                        <div class="validation-description">
+                            <p>检查云端和本地数据是否一致，确保数据同步的准确性</p>
+                        </div>
+                        <div class="validation-actions">
+                            <button id="validateDataBtn" class="btn-primary btn-block">
+                                <span class="btn-icon">🔍</span>
+                                <span>开始校验</span>
+                            </button>
+                        </div>
+                        <div id="validationResult" class="validation-result" style="display: none;">
+                            <div class="validation-status">
+                                <div class="status-icon" id="validationStatusIcon">⏳</div>
+                                <div class="status-text" id="validationStatusText">校验中...</div>
+                            </div>
+                            <div class="validation-details" id="validationDetails"></div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 历史记录卡片 -->
                 <div class="settings-card">
