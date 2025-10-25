@@ -157,7 +157,13 @@ coin-recorder-cloud/
 
 ## 📋 Version History
 
-### v5.3.0 (Latest)
+### v5.3.1 (Latest)
+- **Critical Bug Fix**: Fixed data loss issue when syncing from cloud - implemented intelligent data merging instead of cloud overwriting local data
+- **Enhanced Sync Strategy**: Added local-priority data merging for uploads to protect user data
+- **Timestamp Management**: Improved timestamp handling for better data conflict resolution
+- **Data Safety**: Enhanced data preservation during sync operations
+
+### v5.3.0
 - **Leaderboard Simplification**: Removed growth, activity, and achievement leaderboards, keeping only the main leaderboard for cleaner user experience
 - **Server Setup**: Added Node.js HTTP server for local development on port 8001
 - **Code Optimization**: Simplified JavaScript code by removing unused leaderboard functionality
@@ -212,7 +218,7 @@ coin-recorder-cloud/
 
 ---
 
-**版本**: v5.3.0
+**版本**: v5.3.1
 **最后更新**: 2025年10月
 
 > 💡 **提示**: 建议定期备份数据，避免意外丢失。使用云端同步功能可以更好地保护您的数据。

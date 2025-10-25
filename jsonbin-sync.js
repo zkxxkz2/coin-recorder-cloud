@@ -39,8 +39,10 @@ class JSONBinSyncService {
         if (this.authService) {
             this.authService.onAuthStateChange((user) => {
                 if (user) {
-                    // 不在这里设置 binId，等待从服务器获取
-                    this.syncAllData();
+                    // 登录时不自动同步，等待用户手动操作
+                    console.log('用户已登录，等待手动同步操作');
+                    // 尝试加载已保存的 bin ID
+                    this.loadBinId();
                 } else {
                     this.clearPendingChanges();
                     this.binId = null;
@@ -235,7 +237,7 @@ class JSONBinSyncService {
             // 2. 获取本地数据
             const localData = this.getLocalData();
 
-            // 3. 合并数据（云端优先）
+            // 3. 合并数据（智能双向合并）
             const mergedData = this.mergeData(cloudData, localData);
 
             // 4. 更新本地存储
@@ -296,7 +298,7 @@ class JSONBinSyncService {
             // 2. 获取本地数据
             const localData = this.getLocalData();
 
-            // 3. 合并数据（云端优先）
+            // 3. 合并数据（智能双向合并）
             const mergedData = this.mergeData(cloudData, localData);
 
             // 4. 更新本地存储
@@ -325,37 +327,59 @@ class JSONBinSyncService {
 
         try {
             console.log('开始同步数据到云端...');
-            
+
             // 1. 获取本地数据
             const localData = this.getLocalData();
 
-            // 2. 如果有 binId，更新现有 bin
+            // 2. 如果有 binId，先读取云端数据进行合并
             if (this.binId) {
-                const updateResult = await this.updateBin(localData);
-                if (!updateResult.success) {
-                    throw new Error(updateResult.message);
+                console.log('有现有 binId，读取云端数据进行智能合并...');
+
+                // 读取云端数据
+                const readResult = await this.readBin();
+                let cloudData = null;
+
+                if (readResult.success) {
+                    cloudData = readResult.data;
+                    console.log('成功读取云端数据:', cloudData);
+
+                    // 智能合并数据（本地数据优先，以保护用户新数据）
+                    const mergedData = this.mergeDataWithLocalPriority(cloudData, localData);
+
+                    // 更新云端数据
+                    const updateResult = await this.updateBin(mergedData);
+                    if (!updateResult.success) {
+                        throw new Error(updateResult.message);
+                    }
+                    console.log('云端数据更新成功');
+                } else {
+                    // 如果读取失败，但有 binId，直接更新本地数据
+                    console.warn('读取云端数据失败，使用本地数据更新:', readResult.message);
+                    const updateResult = await this.updateBin(localData);
+                    if (!updateResult.success) {
+                        throw new Error(updateResult.message);
+                    }
                 }
-                console.log('云端数据更新成功');
             } else {
                 // 3. 如果没有 binId，检查是否已登录
                 if (!this.authService || !this.authService.isLoggedIn()) {
                     throw new Error('用户未登录，无法创建新的云端存储');
                 }
-                
+
                 // 4. 创建新的 bin（仅在用户已登录时）
                 console.log('创建新的 bin...');
                 const createResult = await this.createBin(localData);
                 if (!createResult.success) {
                     throw new Error(createResult.message);
                 }
-                
+
                 this.saveBinId(createResult.binId);
                 console.log('bin 创建成功，ID:', createResult.binId);
             }
 
             this.syncInProgress = false;
-            return { 
-                success: true, 
+            return {
+                success: true,
                 message: '同步到云端成功',
                 binId: this.binId
             };
@@ -388,21 +412,83 @@ class JSONBinSyncService {
         return data;
     }
 
-    // 合并数据（云端完全覆盖策略）
+    // 合并数据（智能合并策略）
     mergeData(cloudData, localData) {
         if (!cloudData) {
             return localData;
         }
 
-        // 云端数据完全覆盖本地数据
-        return {
-            coinRecords: cloudData.coinRecords || [],
-            streakData: cloudData.streakData || {},
-            achievements: cloudData.achievements || {},
-            challengeData: cloudData.challengeData || {},
-            users: cloudData.users || [],
-            lastSync: new Date().toISOString()
+        if (!localData) {
+            return cloudData;
+        }
+
+        console.log('开始智能合并数据...');
+        console.log('云端数据:', cloudData);
+        console.log('本地数据:', localData);
+
+        // 智能合并金币记录（基于时间戳和日期去重）
+        const mergedRecords = this.mergeCoinRecords(cloudData.coinRecords || [], localData.coinRecords || []);
+
+        // 合并用户数据
+        const mergedUsers = this.mergeUsers(cloudData.users || [], localData.users || []);
+
+        // 合并其他数据（取最新的）
+        const mergedStreakData = this.mergeObjectData(cloudData.streakData, localData.streakData);
+        const mergedAchievements = this.mergeObjectData(cloudData.achievements, localData.achievements);
+        const mergedChallengeData = this.mergeObjectData(cloudData.challengeData, localData.challengeData);
+
+        const result = {
+            coinRecords: mergedRecords,
+            users: mergedUsers,
+            streakData: mergedStreakData,
+            achievements: mergedAchievements,
+            challengeData: mergedChallengeData,
+            lastSync: new Date().toISOString(),
+            mergedAt: new Date().toISOString()
         };
+
+        console.log('合并后的数据:', result);
+        return result;
+    }
+
+    // 合并数据（本地数据优先策略，用于上传时保护用户新数据）
+    mergeDataWithLocalPriority(cloudData, localData) {
+        if (!cloudData) {
+            return localData;
+        }
+
+        if (!localData) {
+            return cloudData;
+        }
+
+        console.log('开始本地优先合并数据（用于上传保护）...');
+        console.log('云端数据:', cloudData);
+        console.log('本地数据:', localData);
+
+        // 本地数据优先合并金币记录
+        const mergedRecords = this.mergeCoinRecordsWithLocalPriority(cloudData.coinRecords || [], localData.coinRecords || []);
+
+        // 合并用户数据
+        const mergedUsers = this.mergeUsers(cloudData.users || [], localData.users || []);
+
+        // 合并其他数据（本地优先）
+        const mergedStreakData = this.mergeObjectDataWithLocalPriority(cloudData.streakData, localData.streakData);
+        const mergedAchievements = this.mergeObjectDataWithLocalPriority(cloudData.achievements, localData.achievements);
+        const mergedChallengeData = this.mergeObjectDataWithLocalPriority(cloudData.challengeData, localData.challengeData);
+
+        const result = {
+            coinRecords: mergedRecords,
+            users: mergedUsers,
+            streakData: mergedStreakData,
+            achievements: mergedAchievements,
+            challengeData: mergedChallengeData,
+            lastSync: new Date().toISOString(),
+            mergedAt: new Date().toISOString(),
+            mergeStrategy: 'local-priority'
+        };
+
+        console.log('本地优先合并后的数据:', result);
+        return result;
     }
 
     // 合并用户数据
@@ -428,40 +514,147 @@ class JSONBinSyncService {
     mergeCoinRecords(cloudRecords, localRecords) {
         const recordMap = new Map();
 
+        // 确保所有记录都有时间戳
+        const processRecord = (record) => {
+            if (!record.timestamp) {
+                record.timestamp = new Date(record.date).getTime();
+            }
+            return record;
+        };
+
         // 添加云端记录
         cloudRecords.forEach(record => {
+            const processedRecord = processRecord(record);
             const key = record.date;
-            if (!recordMap.has(key) || new Date(record.timestamp || 0) > new Date(recordMap.get(key).timestamp || 0)) {
-                recordMap.set(key, record);
+            if (!recordMap.has(key) || processedRecord.timestamp > (recordMap.get(key).timestamp || 0)) {
+                recordMap.set(key, processedRecord);
             }
         });
 
         // 添加本地记录（如果云端没有或本地更新）
         localRecords.forEach(record => {
+            const processedRecord = processRecord(record);
             const key = record.date;
-            if (!recordMap.has(key) || (record.timestamp && record.timestamp > (recordMap.get(key).timestamp || 0))) {
-                recordMap.set(key, record);
+            if (!recordMap.has(key) || processedRecord.timestamp > (recordMap.get(key).timestamp || 0)) {
+                recordMap.set(key, processedRecord);
             }
         });
 
-        return Array.from(recordMap.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
+        const mergedRecords = Array.from(recordMap.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        console.log(`金币记录合并完成: 云端 ${cloudRecords.length} 条, 本地 ${localRecords.length} 条, 合并后 ${mergedRecords.length} 条`);
+
+        return mergedRecords;
+    }
+
+    // 合并金币记录（本地优先）
+    mergeCoinRecordsWithLocalPriority(cloudRecords, localRecords) {
+        const recordMap = new Map();
+
+        // 确保所有记录都有时间戳
+        const processRecord = (record) => {
+            if (!record.timestamp) {
+                record.timestamp = new Date(record.date).getTime();
+            }
+            return record;
+        };
+
+        // 先添加云端记录
+        cloudRecords.forEach(record => {
+            const processedRecord = processRecord(record);
+            const key = record.date;
+            if (!recordMap.has(key)) {
+                recordMap.set(key, processedRecord);
+            }
+        });
+
+        // 再添加本地记录（如果本地更新，覆盖云端）
+        localRecords.forEach(record => {
+            const processedRecord = processRecord(record);
+            const key = record.date;
+            if (!recordMap.has(key) || processedRecord.timestamp > (recordMap.get(key).timestamp || 0)) {
+                recordMap.set(key, processedRecord);
+            }
+        });
+
+        const mergedRecords = Array.from(recordMap.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        console.log(`金币记录本地优先合并完成: 云端 ${cloudRecords.length} 条, 本地 ${localRecords.length} 条, 合并后 ${mergedRecords.length} 条`);
+
+        return mergedRecords;
+    }
+
+    // 合并对象数据（本地优先）
+    mergeObjectDataWithLocalPriority(cloudObj, localObj) {
+        if (!cloudObj && !localObj) {
+            return {};
+        }
+        if (!cloudObj) {
+            return localObj;
+        }
+        if (!localObj) {
+            return cloudObj;
+        }
+
+        // 本地数据优先：比较时间戳，如果本地更新则使用本地
+        const cloudTime = cloudObj.lastUpdated || cloudObj.timestamp || 0;
+        const localTime = localObj.lastUpdated || localObj.timestamp || 0;
+
+        if (localTime > cloudTime) {
+            return { ...localObj, lastUpdated: new Date().toISOString() };
+        } else {
+            return { ...cloudObj, lastUpdated: new Date().toISOString() };
+        }
+    }
+
+    // 合并对象数据（取更新的数据）
+    mergeObjectData(cloudObj, localObj) {
+        if (!cloudObj && !localObj) {
+            return {};
+        }
+        if (!cloudObj) {
+            return localObj;
+        }
+        if (!localObj) {
+            return cloudObj;
+        }
+
+        // 比较 lastUpdated 或其他时间戳字段
+        const cloudTime = cloudObj.lastUpdated || cloudObj.timestamp || 0;
+        const localTime = localObj.lastUpdated || localObj.timestamp || 0;
+
+        if (cloudTime > localTime) {
+            return cloudObj;
+        } else {
+            return localObj;
+        }
     }
 
     // 更新本地数据
     updateLocalData(data) {
-        localStorage.setItem('coinTrackerData', JSON.stringify(data.coinRecords));
+        // 确保所有记录都有时间戳
+        const recordsWithTimestamp = (data.coinRecords || []).map(record => {
+            if (!record.timestamp) {
+                record.timestamp = new Date(record.date).getTime();
+            }
+            return record;
+        });
+
+        localStorage.setItem('coinTrackerData', JSON.stringify(recordsWithTimestamp));
         localStorage.setItem('coinTrackerStreak', JSON.stringify(data.streakData));
         localStorage.setItem('coinTrackerAchievements', JSON.stringify(data.achievements));
         localStorage.setItem('coinTrackerChallenge', JSON.stringify(data.challengeData));
         localStorage.setItem('coinTrackerLastSync', data.lastSync);
         // 同时更新lastCloudSync时间戳
         localStorage.setItem('lastCloudSync', Date.now().toString());
-        
+
         // 更新用户数据
         if (data.users && data.users.length > 0) {
             localStorage.setItem('coinTrackerUser', JSON.stringify(data.users[0]));
             localStorage.setItem('coinTrackerUserId', data.users[0].id);
         }
+
+        console.log(`本地数据更新完成: ${recordsWithTimestamp.length} 条记录已保存`);
     }
 
     // 添加待同步的更改
