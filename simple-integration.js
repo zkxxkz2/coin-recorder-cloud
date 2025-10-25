@@ -2483,7 +2483,7 @@ class SimpleIntegration {
         }
 
         // 隐藏所有排行榜内容
-        const leaderboards = ['leaderboardList', 'growthLeaderboard', 'activityLeaderboard', 'achievementLeaderboard'];
+        const leaderboards = ['leaderboardList'];
         leaderboards.forEach(id => {
             const element = document.getElementById(id);
             if (element) element.style.display = 'none';
@@ -2869,9 +2869,6 @@ class SimpleIntegration {
         // 更新显示
         this.updateGrowthLeaderboardDisplay(growthData);
 
-        // 显示增长排行榜
-        const growthLeaderboard = document.getElementById('growthLeaderboard');
-        if (growthLeaderboard) growthLeaderboard.style.display = 'block';
     }
 
     // 更新活跃度排行榜（使用缓存数据）
@@ -2898,10 +2895,6 @@ class SimpleIntegration {
         
         // 更新显示
         this.updateActivityLeaderboardDisplay(activityData);
-
-        // 显示活跃度排行榜
-        const activityLeaderboard = document.getElementById('activityLeaderboard');
-        if (activityLeaderboard) activityLeaderboard.style.display = 'block';
     }
 
     // 更新成就排行榜（使用缓存数据）
@@ -2923,10 +2916,6 @@ class SimpleIntegration {
         
         // 更新显示
         this.updateAchievementLeaderboardDisplay(achievementData);
-
-        // 显示成就排行榜
-        const achievementLeaderboard = document.getElementById('achievementLeaderboard');
-        if (achievementLeaderboard) achievementLeaderboard.style.display = 'block';
     }
 
     // 显示空排行榜状态
@@ -2943,8 +2932,6 @@ class SimpleIntegration {
         if (growthList) {
             growthList.innerHTML = '<div class="no-data">暂无增长数据</div>';
         }
-        const growthLeaderboard = document.getElementById('growthLeaderboard');
-        if (growthLeaderboard) growthLeaderboard.style.display = 'block';
     }
 
     showEmptyActivityLeaderboard() {
@@ -2952,8 +2939,6 @@ class SimpleIntegration {
         if (activityList) {
             activityList.innerHTML = '<div class="no-data">暂无活跃度数据</div>';
         }
-        const activityLeaderboard = document.getElementById('activityLeaderboard');
-        if (activityLeaderboard) activityLeaderboard.style.display = 'block';
     }
 
     showEmptyAchievementLeaderboard() {
@@ -2961,8 +2946,6 @@ class SimpleIntegration {
         if (achievementList) {
             achievementList.innerHTML = '<div class="no-data">暂无成就数据</div>';
         }
-        const achievementLeaderboard = document.getElementById('achievementLeaderboard');
-        if (achievementLeaderboard) achievementLeaderboard.style.display = 'block';
     }
 
     // 更新增长排行榜显示

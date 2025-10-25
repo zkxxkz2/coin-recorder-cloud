@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v5.2.0</span>
+                <span class="version-badge">v5.3.0</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -366,62 +366,12 @@
 
                     <div class="leaderboard-tabs" id="leaderboardBanner" style="display: none;">
                         <button class="tab-button active" data-tab="main">💰 总金币榜</button>
-                        <button class="tab-button" data-tab="growth">📈 增长榜</button>
-                        <button class="tab-button" data-tab="activity">⚡ 活跃榜</button>
-                        <button class="tab-button" data-tab="achievement">🏆 成就榜</button>
                     </div>
 
                     <div class="leaderboard-content">
-                        <!-- 搜索和筛选 -->
-                        <div class="search-bar">
-                            <div class="search-icon">🔍</div>
-                            <input type="text" class="search-input" placeholder="搜索用户名...">
-                        </div>
-
-                        <div class="filter-buttons">
-                            <button class="filter-btn active" data-filter="all">全部</button>
-                            <button class="filter-btn" data-filter="today">今日活跃</button>
-                            <button class="filter-btn" data-filter="week">本周活跃</button>
-                            <button class="filter-btn" data-filter="month">本月活跃</button>
-                        </div>
-
                         <!-- 主排行榜 -->
                         <div class="leaderboard-list active" id="leaderboardList">
                             <!-- 原有的排行榜内容将被JavaScript动态填充 -->
-                        </div>
-
-                        <!-- 增长榜 -->
-                        <div class="leaderboard-list" id="growthLeaderboard">
-                            <div class="growth-leaderboard">
-                                <div class="growth-tabs">
-                                    <button class="growth-tab active" data-growth="daily">日增长</button>
-                                    <button class="growth-tab" data-growth="weekly">周增长</button>
-                                    <button class="growth-tab" data-growth="monthly">月增长</button>
-                                    <button class="growth-tab" data-growth="total">总增长</button>
-                                </div>
-                                <div class="growth-list" id="growthList"></div>
-                            </div>
-                        </div>
-
-                        <!-- 活跃榜 -->
-                        <div class="leaderboard-list" id="activityLeaderboard">
-                            <div class="activity-list" id="activityList"></div>
-                        </div>
-
-                        <!-- 成就榜 -->
-                        <div class="leaderboard-list" id="achievementLeaderboard">
-                            <div class="achievement-list" id="achievementList"></div>
-                        </div>
-
-                        <!-- 分页 -->
-                        <div class="pagination">
-                            <button class="page-btn" disabled>上一页</button>
-                            <button class="page-btn active">1</button>
-                            <button class="page-btn">2</button>
-                            <button class="page-btn">3</button>
-                            <button class="page-btn">4</button>
-                            <button class="page-btn">5</button>
-                            <button class="page-btn">下一页</button>
                         </div>
                     </div>
 
