@@ -9,7 +9,8 @@ class JSONBinSyncService {
         this.binId = null;
         this.authService = null;
         this.isInitialized = false;
-        this.init();
+        // 延迟初始化，确保所有依赖都已加载
+        setTimeout(() => this.init(), 0);
     }
 
     // 初始化同步服务

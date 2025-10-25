@@ -78,9 +78,9 @@ class SimpleIntegration {
         // 确保排行榜横幅始终显示
         this.showLeaderboardBanner();
         
-        // 只有在用户已登录时才加载排行榜数据
+        // 用户登录时只显示横幅，不自动加载数据
         if (this.currentUser) {
-            this.loadLeaderboardBanner();
+            this.showLeaderboardBanner();
         } else {
             // 未登录时显示空白状态
             this.showEmptyLeaderboard();
@@ -89,16 +89,25 @@ class SimpleIntegration {
 
     // 等待同步服务初始化完成
     async waitForSyncService() {
+        console.log('等待同步服务初始化...');
+
         let attempts = 0;
-        while (!syncService.isInitialized && attempts < 50) {
+        while (!syncService || !syncService.isInitialized && attempts < 100) {
+            console.log(`检查同步服务状态... 尝试 ${attempts + 1}/100, isInitialized: ${syncService?.isInitialized || 'syncService未定义'}`);
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
-        
+
+        if (!syncService) {
+            console.error('syncService 未定义');
+            throw new Error('同步服务不可用');
+        }
+
         if (!syncService.isInitialized) {
+            console.error('同步服务初始化超时');
             throw new Error('同步服务初始化超时');
         }
-        
+
         console.log('同步服务初始化完成');
     }
 
@@ -413,9 +422,9 @@ class SimpleIntegration {
                 const isJoinedInCloud = await this.verifyUserInLeaderboard(user, publicLeaderboardBinId);
                 
                 if (isJoinedInCloud) {
-                    // 云端确认已加入，显示排行榜内容
-                    console.log('用户已加入排行榜，显示排行榜内容');
-                    await this.loadLeaderboardBanner();
+                    // 云端确认已加入，只显示横幅，不自动加载数据
+                    console.log('用户已加入排行榜，显示排行榜横幅');
+                    this.showLeaderboardBanner();
                 } else {
                     // 云端未找到，清除本地记录并显示空白状态
                     console.log('云端未找到用户，清除本地记录');
@@ -1614,7 +1623,7 @@ class SimpleIntegration {
                 localStorage.setItem('joinedPublicLeaderboard', 'true');
                 localStorage.setItem('publicLeaderboardBinId', publicLeaderboardBinId);
                 this.showLeaderboardBanner();
-                await this.loadLeaderboardBanner();
+                // 加入后不自动加载数据，用户需要手动刷新
                 return;
             }
 
@@ -1661,7 +1670,7 @@ class SimpleIntegration {
             
             // 显示排行榜横幅
             this.showLeaderboardBanner();
-            await this.loadLeaderboardBanner();
+            // 加入后不自动加载数据，用户需要手动刷新
 
         } catch (error) {
             console.error('加入公开排行榜失败:', error);
@@ -3072,10 +3081,10 @@ class SimpleIntegration {
             
             // 更新进度提示 - 更新显示
             this.showPersistentMessage('正在更新排行榜界面...', 'info');
-            
-            // 重新加载排行榜横幅
-            await this.loadLeaderboardBanner();
-            
+
+            // 只更新横幅显示，不自动加载数据
+            this.showLeaderboardBanner();
+
             // 等待一小段时间确保UI更新完成
             await new Promise(resolve => setTimeout(resolve, 100));
             

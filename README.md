@@ -27,9 +27,9 @@
 
 ### 🏅 排行榜系统
 - **公开排行榜**：与全球用户竞争，展示金币总量排名
-- **实时更新**：排行榜数据实时刷新
+- **手动刷新**：用户可以手动刷新排行榜数据，获得更好的控制体验
 - **等级展示**：用户等级和称号展示
-- **简化界面**：专注于核心的金币总量排行榜
+- **紧凑设计**：优化的界面设计，适配移动设备使用
 
 ## 🚀 快速开始
 
@@ -157,7 +157,14 @@ coin-recorder-cloud/
 
 ## 📋 Version History
 
-### v5.3.1 (Latest)
+### v5.4.0 (Latest)
+- **UI Redesign**: Completely redesigned leaderboard interface for better mobile experience
+- **Manual Refresh**: Changed leaderboard refresh from automatic to manual mode for better user control
+- **Mobile Optimization**: Optimized UI sizing and spacing for mobile browsers, reduced content density
+- **Compact Design**: Reduced padding, margins, and font sizes for more efficient screen space usage
+- **Responsive Layout**: Enhanced responsive design with better touch targets and improved readability
+
+### v5.3.1
 - **Critical Bug Fix**: Fixed data loss issue when syncing from cloud - implemented intelligent data merging instead of cloud overwriting local data
 - **Enhanced Sync Strategy**: Added local-priority data merging for uploads to protect user data
 - **Timestamp Management**: Improved timestamp handling for better data conflict resolution
@@ -218,7 +225,7 @@ coin-recorder-cloud/
 
 ---
 
-**版本**: v5.3.1
+**版本**: v5.4.0
 **最后更新**: 2025年10月
 
 > 💡 **提示**: 建议定期备份数据，避免意外丢失。使用云端同步功能可以更好地保护您的数据。

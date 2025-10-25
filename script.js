@@ -2060,11 +2060,31 @@ class CoinTracker {
     }
 
     // 云端同步相关方法
-    enableCloudSync() {
-        // 可以在这里添加云端同步的UI指示
+    async enableCloudSync() {
+        console.log('启用云端同步功能...');
+
+        // 确保 simpleIntegration 完全初始化
+        if (this.simpleIntegration) {
+            // 等待 syncService 初始化完成
+            let attempts = 0;
+            while (!this.simpleIntegration.syncService?.isInitialized && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            if (this.simpleIntegration.syncService?.isInitialized) {
+                console.log('云端同步服务已就绪');
+                // 可以在这里添加UI指示
+                this.showMessage('云端同步功能已启用', 'success', 3000);
+            } else {
+                console.warn('云端同步服务初始化超时');
+                this.showMessage('云端同步服务初始化中，请稍后重试', 'warning', 5000);
+            }
+        }
     }
 
     disableCloudSync() {
+        console.log('禁用云端同步功能');
         // 可以在这里移除云端同步的UI指示
     }
 
@@ -2148,8 +2168,23 @@ class CoinTracker {
             return;
         }
 
+        // 等待 simpleIntegration 完全初始化
+        if (!this.simpleIntegration.syncService?.isInitialized) {
+            console.log('等待云端同步服务初始化...');
+            let attempts = 0;
+            while (!this.simpleIntegration.syncService?.isInitialized && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            if (!this.simpleIntegration.syncService?.isInitialized) {
+                this.showMessage('云端同步服务正在初始化，请稍后重试', 'warning');
+                return;
+            }
+        }
+
         // 检查是否正在同步中
-        if (this.simpleIntegration.syncService && this.simpleIntegration.syncService.syncInProgress) {
+        if (this.simpleIntegration.syncService.syncInProgress) {
             this.showMessage('数据正在同步中，请稍后再试', 'warning');
             return;
         }
@@ -2207,9 +2242,45 @@ class CoinTracker {
 
     // 获取云端数据用于校验
     async getCloudDataForValidation() {
-        if (!this.simpleIntegration || !this.simpleIntegration.syncService) {
-            throw new Error('云端同步服务不可用');
+        // 检查 simpleIntegration 是否已初始化
+        if (!this.simpleIntegration) {
+            throw new Error('云端同步服务未初始化，请稍后重试');
         }
+
+        // 检查是否已登录
+        if (!this.simpleIntegration.isLoggedIn()) {
+            throw new Error('请先登录后再进行数据校验');
+        }
+
+        // 检查 syncService 是否可用
+        if (!this.simpleIntegration.syncService) {
+            console.log('syncService 不可用，等待初始化...');
+            // 等待 syncService 初始化
+            let attempts = 0;
+            while (!this.simpleIntegration.syncService && attempts < 30) {
+                console.log(`等待 syncService 初始化... 尝试 ${attempts + 1}/30`);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            if (!this.simpleIntegration.syncService) {
+                console.error('syncService 初始化失败');
+                throw new Error('云端同步服务不可用，请重新登录');
+            }
+            console.log('syncService 初始化完成');
+        }
+
+        // 检查 syncService 是否已初始化
+        if (!this.simpleIntegration.syncService.isInitialized) {
+            console.log('syncService 未初始化，等待...');
+            throw new Error('云端同步服务正在初始化，请稍后重试');
+        }
+
+        console.log('syncService 状态检查完成:', {
+            hasSyncService: !!this.simpleIntegration.syncService,
+            isInitialized: this.simpleIntegration.syncService.isInitialized,
+            binId: this.simpleIntegration.syncService.binId
+        });
 
         const readResult = await this.simpleIntegration.syncService.readBin();
         if (!readResult.success) {

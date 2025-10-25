@@ -1227,10 +1227,11 @@ body {
    ============================================ */
 .leaderboard-card {
     background: var(--bg-primary);
-    border-radius: 16px;
+    border-radius: 12px;
     box-shadow: var(--shadow-lg);
-    padding: 20px;
+    margin: 4px;
     color: var(--text-primary);
+    overflow: hidden;
 }
 
 .leaderboard-banner {
@@ -1346,7 +1347,18 @@ body {
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
   /* 排行榜列表项更紧凑 */
-  .leaderboard-item, .growth-item, .activity-item, .leaderboard-list .achievement-item { padding: 10px 12px; }
+  .leaderboard-item { padding: 8px 10px; }
+  .leaderboard-header { padding: 16px 12px; }
+  .leaderboard-content { padding: 12px; }
+  .banner-actions { padding: 0 12px 12px; gap: 6px; }
+  .action-btn { padding: 8px 10px; font-size: 13px; min-height: 36px; }
+  .stats-row { gap: 8px; }
+  .stat-number { font-size: 1.2rem; }
+  .stat-label { font-size: 0.75rem; }
+  .username { font-size: 0.9rem; }
+  .user-stats { font-size: 0.75rem; gap: 8px; }
+  .user-avatar { width: 32px; height: 32px; font-size: 0.9rem; margin-right: 8px; }
+  .rank { width: 32px; height: 32px; font-size: 1rem; margin-right: 8px; }
 
   /* 右上角消息：避免遮挡，稍微下移 */
   .message-container { top: 72px; right: 12px; max-width: 86vw; }
@@ -1747,30 +1759,35 @@ body {
 .banner-actions {
     display: flex;
     gap: 8px;
+    padding: 0 16px 16px;
 }
 
-.banner-btn {
+.action-btn {
     flex: 1;
-    padding: 10px;
+    padding: 10px 12px;
     border: none;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.banner-btn.primary {
-    background: white;
-    color: var(--primary-color);
+.action-btn.primary {
+    background: var(--primary-color);
+    color: white;
 }
 
-.banner-btn.secondary {
+.action-btn.secondary {
     background: rgba(255, 255, 255, 0.2);
     color: white;
 }
 
-.banner-btn.danger {
+.action-btn.danger {
     background: var(--error-color);
     color: white;
 }
@@ -2171,10 +2188,9 @@ button,
 .leaderboard-header {
     background: var(--primary-gradient);
     color: white;
-    padding: 40px 30px;
-    text-align: center;
+    padding: 20px 16px;
     position: relative;
-    border-radius: 16px 16px 0 0;
+    border-radius: 12px 12px 0 0;
 }
 
 .leaderboard-header::before {
@@ -2184,7 +2200,7 @@ button,
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
     opacity: 0.3;
 }
 
@@ -2193,48 +2209,77 @@ button,
     z-index: 1;
 }
 
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .leaderboard-title {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 10px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    letter-spacing: -0.02em;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     line-height: 1.2;
 }
 
-.leaderboard-subtitle {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin-bottom: 30px;
-    font-weight: 400;
-    line-height: 1.4;
+.refresh-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.stats-overview {
+.refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.refresh-icon {
+    font-size: 16px;
+}
+
+.leaderboard-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 16px;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+.stats-row {
     display: flex;
-    justify-content: center;
-    gap: 40px;
-    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 16px;
 }
 
 .stat-item {
     text-align: center;
+    flex: 1;
 }
 
 .stat-number {
     display: block;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 5px;
-    letter-spacing: -0.01em;
+    margin-bottom: 4px;
     line-height: 1.1;
 }
 
 .stat-label {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     opacity: 0.8;
     font-weight: 500;
-    line-height: 1.3;
+    line-height: 1.2;
 }
 
 .leaderboard-tabs {
@@ -2289,7 +2334,7 @@ button,
 }
 
 .leaderboard-content {
-    padding: 30px;
+    padding: 16px;
     background: var(--bg-primary);
 }
 
@@ -2304,17 +2349,17 @@ button,
 .leaderboard-item {
     display: flex;
     align-items: center;
-    padding: 20px;
-    margin-bottom: 15px;
+    padding: 10px 8px;
+    margin-bottom: 6px;
     background: var(--bg-primary);
-    border-radius: 15px;
+    border-radius: 8px;
     box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
-    border-left: 4px solid transparent;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
 }
 
 .leaderboard-item:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
 
@@ -2334,28 +2379,38 @@ button,
 }
 
 .rank {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    width: 60px;
+    width: 40px;
+    height: 40px;
     text-align: center;
-    margin-right: 20px;
+    margin-right: 12px;
     letter-spacing: -0.01em;
     line-height: 1.1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .rank.rank-1 {
-    color: #ffd700;
-    text-shadow: 0 1px 2px rgba(255, 215, 0, 0.3);
+    background: linear-gradient(135deg, #ffd700, #ffc107);
+    color: #4a3b00;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
 }
 
 .rank.rank-2 {
-    color: #c0c0c0;
-    text-shadow: 0 1px 2px rgba(192, 192, 192, 0.3);
+    background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
+    color: #333;
+    box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
 }
 
 .rank.rank-3 {
-    color: #cd7f32;
-    text-shadow: 0 1px 2px rgba(205, 127, 50, 0.3);
+    background: linear-gradient(135deg, #d7ccc8, #a1887f);
+    color: #2c1e19;
+    box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
 }
 
 .user-info {
@@ -2365,39 +2420,43 @@ button,
 }
 
 .user-avatar {
-    width: 50px;
-    height: 50px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: var(--primary-gradient);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 600;
-    margin-right: 15px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    margin-right: 12px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .user-details {
     flex: 1;
+    min-width: 0;
 }
 
 .username {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 5px;
+    margin-bottom: 3px;
     letter-spacing: -0.01em;
-    line-height: 1.3;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-stats {
     display: flex;
-    gap: 20px;
-    font-size: 0.9rem;
+    gap: 12px;
+    font-size: 0.8rem;
     color: var(--text-secondary);
-    line-height: 1.4;
+    line-height: 1.3;
 }
 
 .stat-badge {
@@ -2671,27 +2730,70 @@ button,
 /* 移动端优化 */
 @media (max-width: 768px) {
     .leaderboard-header {
-        padding: 30px 20px;
+        padding: 16px 12px;
     }
 
     .leaderboard-title {
-        font-size: 2rem;
+        font-size: 1.2rem;
     }
 
-    .stats-overview {
-        gap: 20px;
+    .leaderboard-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .stats-row {
+        gap: 12px;
     }
 
     .stat-number {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
     }
 
     .leaderboard-content {
-        padding: 20px;
+        padding: 12px;
     }
 
     .leaderboard-item {
-        padding: 15px;
+        padding: 8px 6px;
+        margin-bottom: 4px;
+    }
+
+    .username {
+        font-size: 0.85rem;
+    }
+
+    .user-stats {
+        font-size: 0.7rem;
+        gap: 6px;
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+        margin-right: 6px;
+    }
+
+    .rank {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+        margin-right: 6px;
+    }
+
+    .banner-actions {
+        padding: 0 8px 8px;
+        gap: 4px;
+    }
+
+    .action-btn {
+        padding: 6px 8px;
+        font-size: 12px;
+        min-height: 32px;
     }
 
     .user-stats {
@@ -2712,39 +2814,42 @@ button,
 
 @media (max-width: 480px) {
     body {
-        padding: 5px;
+        padding: 4px;
     }
 
-    .leaderboard-header {
-        padding: 20px 15px;
-        border-radius: 10px 10px 0 0;
-    }
-
-    .leaderboard-title {
-        font-size: 1.5rem;
-        margin-bottom: 8px;
-    }
-
-    .leaderboard-subtitle {
-        font-size: 0.9rem;
-        margin-bottom: 20px;
-    }
-
-    .stats-overview {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        padding: 0 10px;
-    }
-
-    .stat-item {
-        padding: 10px;
-        background: rgba(255, 255, 255, 0.1);
+    .leaderboard-card {
+        margin: 2px;
         border-radius: 8px;
     }
 
+    .leaderboard-header {
+        padding: 12px 10px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .leaderboard-title {
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+    }
+
+    .leaderboard-subtitle {
+        font-size: 0.75rem;
+        margin-bottom: 12px;
+    }
+
+    .stats-row {
+        gap: 8px;
+        padding: 0 8px;
+    }
+
+    .stat-item {
+        padding: 6px 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+    }
+
     .stat-number {
-        font-size: 1.2rem;
+        font-size: 1rem;
         margin-bottom: 3px;
     }
 
@@ -2755,26 +2860,58 @@ button,
     .leaderboard-tabs {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        padding: 0 4px;
     }
 
     .tab-button {
-        min-width: 80px;
-        padding: 12px 8px;
-        font-size: 0.85rem;
+        min-width: 70px;
+        padding: 8px 6px;
+        font-size: 0.75rem;
     }
 
     .leaderboard-content {
-        padding: 15px;
+        padding: 8px;
     }
 
-    .search-input {
-        padding: 12px 15px 12px 45px;
-        font-size: 0.9rem;
+    .leaderboard-item {
+        padding: 6px 4px;
+        margin-bottom: 3px;
+        border-radius: 6px;
     }
 
-    .search-icon {
-        left: 15px;
-        font-size: 1rem;
+    .username {
+        font-size: 0.8rem;
+        margin-bottom: 2px;
+    }
+
+    .user-stats {
+        font-size: 0.65rem;
+        gap: 4px;
+    }
+
+    .user-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+        margin-right: 4px;
+    }
+
+    .rank {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+        margin-right: 4px;
+    }
+
+    .banner-actions {
+        padding: 0 4px 4px;
+        gap: 2px;
+    }
+
+    .action-btn {
+        padding: 4px 6px;
+        font-size: 11px;
+        min-height: 28px;
     }
 
     .filter-buttons {

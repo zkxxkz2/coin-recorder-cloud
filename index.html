@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v5.3.1</span>
+                <span class="version-badge">v5.4.0</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -340,10 +340,15 @@
                 <div class="leaderboard-card">
                     <div class="leaderboard-header">
                         <div class="header-content">
-                            <h1 class="leaderboard-title">🏆 金币排行榜</h1>
-                            <p class="leaderboard-subtitle">与全球用户一起竞争，展示你的金币增长</p>
+                            <div class="header-top">
+                                <h1 class="leaderboard-title">🏆 排行榜</h1>
+                                <button id="refreshBannerBtn" class="refresh-btn">
+                                    <span class="refresh-icon">🔄</span>
+                                </button>
+                            </div>
+                            <p class="leaderboard-subtitle">与全球用户竞争金币</p>
 
-                            <div class="stats-overview">
+                            <div class="stats-row">
                                 <div class="stat-item">
                                     <span class="stat-number" id="bannerParticipantCount">0</span>
                                     <span class="stat-label">参与者</span>
@@ -352,34 +357,21 @@
                                     <span class="stat-number" id="bannerTotalCoins">0</span>
                                     <span class="stat-label">总金币</span>
                                 </div>
-                                <div class="stat-item">
-                                    <span class="stat-number" id="bannerAverageCoins">0</span>
-                                    <span class="stat-label">平均金币</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-number">89</span>
-                                    <span class="stat-label">活跃用户</span>
-                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="leaderboard-tabs" id="leaderboardBanner" style="display: none;">
-                        <button class="tab-button active" data-tab="main">💰 总金币榜</button>
                     </div>
 
                     <div class="leaderboard-content">
                         <!-- 主排行榜 -->
                         <div class="leaderboard-list active" id="leaderboardList">
-                            <!-- 原有的排行榜内容将被JavaScript动态填充 -->
+                            <!-- 排行榜内容将被JavaScript动态填充 -->
                         </div>
                     </div>
 
                     <!-- 底部操作按钮 -->
                     <div class="banner-actions">
-                        <button id="joinPublicLeaderboardBtn" class="banner-btn primary">加入排行榜</button>
-                        <button id="refreshBannerBtn" class="banner-btn secondary">刷新</button>
-                        <button id="leaveLeaderboardBtn" class="banner-btn danger" style="display: none;">退出排行榜</button>
+                        <button id="joinPublicLeaderboardBtn" class="action-btn primary">加入排行榜</button>
+                        <button id="leaveLeaderboardBtn" class="action-btn danger" style="display: none;">退出</button>
                     </div>
                 </div>
             </div>
