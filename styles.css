@@ -136,6 +136,8 @@ body {
 .app-main {
     min-height: calc(100vh - 140px);
     padding: 16px;
+    padding-top: 76px; /* 顶部header高度60px + 16px间距 */
+    padding-bottom: 96px; /* 底部nav高度80px + 16px间距 */
 }
 
 .app-container {
@@ -1453,7 +1455,11 @@ body {
    ============================================ */
 @media (max-width: 600px) {
   /* 全局间距与字体微调 */
-  .app-main { padding: 12px; }
+  .app-main { 
+    padding: 12px; 
+    padding-top: 68px; /* 移动端顶部header高度56px + 12px间距 */
+    padding-bottom: 84px; /* 移动端底部nav高度72px + 12px间距 */
+  }
   .app-container { padding: 0 12px; }
   .card-title { font-size: 16px; }
 
@@ -1500,6 +1506,33 @@ body {
 
   /* 右上角消息：避免遮挡，稍微下移 */
   .message-container { top: 72px; right: 12px; max-width: 86vw; }
+}
+
+/* 超小屏幕优化（高度小于600px的手机） */
+@media (max-height: 600px) {
+  .app-main {
+    padding-top: 60px; /* 减少顶部间距 */
+    padding-bottom: 76px; /* 减少底部间距 */
+  }
+  
+  .app-header { height: 50px; }
+  .app-nav { height: 65px; }
+  
+  /* 卡片间距优化 */
+  .stats-card, .action-card, .streak-card, .challenge-card, 
+  .chart-card, .achievements-card, .settings-card {
+    margin-bottom: 8px;
+  }
+  
+  /* 排行榜优化 */
+  .leaderboard-header-bar {
+    padding: 8px 12px;
+  }
+  
+  .leaderboard-item {
+    padding: 8px 12px;
+    margin-bottom: 4px;
+  }
 }
 
 @media (max-width: 400px) {
