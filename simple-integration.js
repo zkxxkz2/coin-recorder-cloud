@@ -1860,10 +1860,10 @@ class SimpleIntegration {
 
     // 更新横幅排行榜列表
     updateBannerLeaderboard(userData) {
-        const bannerLeaderboard = document.getElementById('bannerLeaderboard');
-        const emptyBanner = bannerLeaderboard.querySelector('.empty-banner');
+        const bannerLeaderboard = document.getElementById('leaderboardBanner');
+        const emptyBanner = document.querySelector('.empty-banner');
         const leaderboardList = document.getElementById('leaderboardList');
-        
+
         if (!bannerLeaderboard) return;
 
         if (!userData || userData.length === 0) {
@@ -1886,6 +1886,22 @@ class SimpleIntegration {
     }
 
 
+    // 获取排名对应的勋章图标
+    getMedalIcon(rank) {
+        const medals = {
+            1: '🥇',
+            2: '🥈',
+            3: '🥉'
+        };
+        return medals[rank] || '';
+    }
+
+    // 获取用户头像字符
+    getUserAvatar(user) {
+        const name = this.formatUserDisplay(user);
+        return name.charAt(0).toUpperCase();
+    }
+
     // 更新排行榜列表
     updateLeaderboardList(users) {
         const leaderboardList = document.getElementById('leaderboardList');
@@ -1896,31 +1912,54 @@ class SimpleIntegration {
             return;
         }
 
-            const html = users.map((user, index) => {
-                const rank = index + 1; // 从第一名开始
-                return `
-                    <div class="leaderboard-list-item" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
-                        <div class="rank">${rank}</div>
-                        <div class="user-info">
+        const html = users.map((user, index) => {
+            const rank = index + 1; // 从第一名开始
+            const rankClass = rank <= 3 ? `rank-${rank}` : '';
+            const medalIcon = this.getMedalIcon(rank);
+
+            return `
+                <div class="leaderboard-item ${rankClass}" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
+                    <div class="rank rank-${rank}">${rank}</div>
+                    ${medalIcon ? `<div class="medal">${medalIcon}</div>` : ''}
+                    <div class="user-info">
+                        <div class="user-avatar">${this.getUserAvatar(user)}</div>
+                        <div class="user-details">
                             <div class="username">${this.formatUserDisplay(user)}</div>
                             <div class="user-stats">
-                                <span>${user.coinRecords.length}条</span>
-                                <span>${user.streakData?.currentStreak || 0}天</span>
-                                <span>${user.achievementCount || 0}成就</span>
+                                <span class="stat-badge">🏆 ${user.achievementCount || 0}成就</span>
+                                <span class="stat-badge">🔥 ${user.streakData?.currentStreak || 0}天</span>
+                                <span class="stat-badge">⚡ 今日活跃</span>
                             </div>
                         </div>
-                        <div class="coins">${user.currentCoins.toLocaleString()}</div>
                     </div>
-                `;
-            }).join('');
+                    <div class="coins">
+                        <span class="coins-value">${user.currentCoins.toLocaleString()}</span>
+                        <span class="coins-label">总金币</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
 
         leaderboardList.innerHTML = html;
+    }
+
+    // 刷新排行榜数据
+    async refreshLeaderboard() {
+        try {
+            console.log('开始刷新排行榜数据...');
+            await this.loadLeaderboardBanner();
+            this.showMessage('排行榜数据刷新成功', 'success');
+        } catch (error) {
+            console.error('刷新排行榜失败:', error);
+            this.showMessage('排行榜刷新失败，请稍后重试', 'error');
+        }
     }
 
     // 更新横幅按钮状态
     updateBannerButtons() {
         const joinBtn = document.getElementById('joinPublicLeaderboardBtn');
         const leaveBtn = document.getElementById('leaveLeaderboardBtn');
+        const refreshBtn = document.getElementById('refreshBannerBtn');
 
         const isJoined = localStorage.getItem('joinedPublicLeaderboard') === 'true';
 
@@ -1930,6 +1969,12 @@ class SimpleIntegration {
 
         if (leaveBtn) {
             leaveBtn.style.display = isJoined ? 'block' : 'none';
+        }
+
+        if (refreshBtn) {
+            refreshBtn.style.display = isJoined ? 'block' : 'none';
+            // 绑定刷新事件
+            refreshBtn.onclick = () => this.refreshLeaderboard();
         }
     }
 
@@ -3071,3 +3116,4 @@ class SimpleIntegration {
 // 创建全局实例
 export const simpleIntegration = new SimpleIntegration();
 export default simpleIntegration;
+

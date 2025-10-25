@@ -34,7 +34,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
     
     <!-- JSONBin.io 配置 -->
     <script type="module">
@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v5.1.2</span>
+                <span class="version-badge">v5.2.0</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -338,67 +338,99 @@
             <!-- 排行榜Tab -->
             <div class="tab-content" data-tab-content="leaderboard">
                 <div class="leaderboard-card">
-                    <h3 class="card-title">🏆 公开排行榜</h3>
-        <section class="leaderboard-banner" id="leaderboardBanner" style="display: none;">
-            <div class="banner-content">
-                <div class="banner-header">
-                    <div class="banner-icon">🏆</div>
-                    <div class="banner-title">
-                        <h3>公开金币排行榜</h3>
-                        <p>与全球用户一起竞争，展示你的金币增长</p>
-                    </div>
-                    <div class="banner-stats">
-                        <div class="stat-item">
-                            <span class="stat-number" id="bannerParticipantCount">0</span>
-                            <span class="stat-label">参与者</span>
+                    <div class="leaderboard-header">
+                        <div class="header-content">
+                            <h1 class="leaderboard-title">🏆 金币排行榜</h1>
+                            <p class="leaderboard-subtitle">与全球用户一起竞争，展示你的金币增长</p>
+
+                            <div class="stats-overview">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="bannerParticipantCount">0</span>
+                                    <span class="stat-label">参与者</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="bannerTotalCoins">0</span>
+                                    <span class="stat-label">总金币</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="bannerAverageCoins">0</span>
+                                    <span class="stat-label">平均金币</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">89</span>
+                                    <span class="stat-label">活跃用户</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="bannerTotalCoins">0</span>
-                            <span class="stat-label">总金币</span>
+                    </div>
+
+                    <div class="leaderboard-tabs" id="leaderboardBanner" style="display: none;">
+                        <button class="tab-button active" data-tab="main">💰 总金币榜</button>
+                        <button class="tab-button" data-tab="growth">📈 增长榜</button>
+                        <button class="tab-button" data-tab="activity">⚡ 活跃榜</button>
+                        <button class="tab-button" data-tab="achievement">🏆 成就榜</button>
+                    </div>
+
+                    <div class="leaderboard-content">
+                        <!-- 搜索和筛选 -->
+                        <div class="search-bar">
+                            <div class="search-icon">🔍</div>
+                            <input type="text" class="search-input" placeholder="搜索用户名...">
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="bannerAverageCoins">0</span>
-                            <span class="stat-label">平均金币</span>
+
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="all">全部</button>
+                            <button class="filter-btn" data-filter="today">今日活跃</button>
+                            <button class="filter-btn" data-filter="week">本周活跃</button>
+                            <button class="filter-btn" data-filter="month">本月活跃</button>
+                        </div>
+
+                        <!-- 主排行榜 -->
+                        <div class="leaderboard-list active" id="leaderboardList">
+                            <!-- 原有的排行榜内容将被JavaScript动态填充 -->
+                        </div>
+
+                        <!-- 增长榜 -->
+                        <div class="leaderboard-list" id="growthLeaderboard">
+                            <div class="growth-leaderboard">
+                                <div class="growth-tabs">
+                                    <button class="growth-tab active" data-growth="daily">日增长</button>
+                                    <button class="growth-tab" data-growth="weekly">周增长</button>
+                                    <button class="growth-tab" data-growth="monthly">月增长</button>
+                                    <button class="growth-tab" data-growth="total">总增长</button>
+                                </div>
+                                <div class="growth-list" id="growthList"></div>
+                            </div>
+                        </div>
+
+                        <!-- 活跃榜 -->
+                        <div class="leaderboard-list" id="activityLeaderboard">
+                            <div class="activity-list" id="activityList"></div>
+                        </div>
+
+                        <!-- 成就榜 -->
+                        <div class="leaderboard-list" id="achievementLeaderboard">
+                            <div class="achievement-list" id="achievementList"></div>
+                        </div>
+
+                        <!-- 分页 -->
+                        <div class="pagination">
+                            <button class="page-btn" disabled>上一页</button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">4</button>
+                            <button class="page-btn">5</button>
+                            <button class="page-btn">下一页</button>
                         </div>
                     </div>
-                </div>
-                <div class="banner-leaderboard" id="bannerLeaderboard">
-                    <div class="leaderboard-tabs">
-                        <button class="leaderboard-tab active" data-tab="main">主排行榜</button>
-                        <button class="leaderboard-tab" data-tab="growth">增长榜</button>
-                        <button class="leaderboard-tab" data-tab="activity">活跃榜</button>
-                        <button class="leaderboard-tab" data-tab="achievement">成就榜</button>
+
+                    <!-- 底部操作按钮 -->
+                    <div class="banner-actions">
+                        <button id="joinPublicLeaderboardBtn" class="banner-btn primary">加入排行榜</button>
+                        <button id="refreshBannerBtn" class="banner-btn secondary">刷新</button>
+                        <button id="leaveLeaderboardBtn" class="banner-btn danger" style="display: none;">退出排行榜</button>
                     </div>
-                    
-                    <div class="empty-banner">
-                        <p>暂无排行榜数据</p>
-                        <small>点击"加入排行榜"开始参与</small>
-                    </div>
-                    
-                                <div class="leaderboard-list" id="leaderboardList" style="display: none;"></div>
-                    <div class="growth-leaderboard" id="growthLeaderboard" style="display: none;">
-                        <div class="growth-tabs">
-                            <button class="growth-tab active" data-growth="daily">日增长</button>
-                            <button class="growth-tab" data-growth="weekly">周增长</button>
-                            <button class="growth-tab" data-growth="monthly">月增长</button>
-                            <button class="growth-tab" data-growth="total">总增长</button>
-                        </div>
-                                    <div class="growth-list" id="growthList"></div>
-                    </div>
-                    <div class="activity-leaderboard" id="activityLeaderboard" style="display: none;">
-                                    <div class="activity-list" id="activityList"></div>
-                    </div>
-                    <div class="achievement-leaderboard" id="achievementLeaderboard" style="display: none;">
-                                    <div class="achievement-list" id="achievementList"></div>
-                    </div>
-                </div>
-                <div class="banner-actions">
-                    <button id="joinPublicLeaderboardBtn" class="banner-btn primary">加入排行榜</button>
-                    <button id="refreshBannerBtn" class="banner-btn secondary">刷新</button>
-                    <button id="leaveLeaderboardBtn" class="banner-btn danger" style="display: none;">退出排行榜</button>
-                </div>
-            </div>
-        </section>
                 </div>
             </div>
 

@@ -73,7 +73,14 @@ class CoinTracker {
         this.updateAchievements();
         this.updateStreakDisplay();
         this.updateChallengeDisplay();
-        this.initCharts();
+
+        // 等待Chart.js加载完成后初始化图表
+        this.waitForChartJS().then(() => {
+            this.initCharts();
+        }).catch(() => {
+            console.warn('Chart.js加载失败，将跳过图表初始化');
+        });
+
         this.checkAchievements(); // 检查是否有新成就可以解锁
         this.startTimeUpdate(); // 开始更新时间显示
         
@@ -408,6 +415,32 @@ class CoinTracker {
             </div>
         `;
         }).join('');
+    }
+
+    // 等待Chart.js加载完成
+    waitForChartJS() {
+        return new Promise((resolve, reject) => {
+            // 如果Chart已经定义，直接resolve
+            if (typeof Chart !== 'undefined') {
+                resolve();
+                return;
+            }
+
+            // 轮询检查Chart是否已加载
+            const checkInterval = setInterval(() => {
+                if (typeof Chart !== 'undefined') {
+                    clearInterval(checkInterval);
+                    clearTimeout(timeout);
+                    resolve();
+                }
+            }, 100);
+
+            // 超时保护，5秒后reject
+            const timeout = setTimeout(() => {
+                clearInterval(checkInterval);
+                reject(new Error('Chart.js加载超时'));
+            }, 5000);
+        });
     }
 
     // 初始化图表
@@ -2493,10 +2526,349 @@ function optimizeForTouchDevices() {
     });
 }
 
+// 新排行榜交互功能
+class LeaderboardManager {
+    constructor() {
+        this.currentTab = 'main';
+        this.currentFilter = 'all';
+        this.currentPage = 1;
+        this.itemsPerPage = 10;
+        this.searchTimeout = null;
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.setupMobileOptimizations();
+    }
+
+    bindEvents() {
+        // 标签页切换
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.switchTab(button.dataset.tab);
+            });
+        });
+
+        // 搜索功能
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    this.searchUsers(e.target.value);
+                }, 300);
+            });
+        }
+
+        // 筛选功能
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.setFilter(button.dataset.filter);
+            });
+        });
+
+        // 分页功能
+        document.querySelectorAll('.page-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (button.disabled) return;
+
+                const action = button.textContent;
+                if (action === '上一页') {
+                    this.changePage(this.currentPage - 1);
+                } else if (action === '下一页') {
+                    this.changePage(this.currentPage + 1);
+                } else {
+                    this.changePage(parseInt(button.textContent));
+                }
+            });
+        });
+
+        // 刷新排行榜按钮
+        const refreshBannerBtn = document.getElementById('refreshBannerBtn');
+        if (refreshBannerBtn) {
+            refreshBannerBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (window.simpleIntegration) {
+                    window.simpleIntegration.refreshLeaderboard();
+                }
+            });
+        }
+    }
+
+    switchTab(tabName) {
+        // 移除所有active类
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.leaderboard-list').forEach(list => list.classList.remove('active'));
+
+        // 添加active类到当前标签
+        const targetButton = document.querySelector(`[data-tab="${tabName}"]`);
+        if (targetButton) {
+            targetButton.classList.add('active');
+        }
+
+        // 显示对应的排行榜
+        const targetList = document.getElementById(`${tabName}Leaderboard`);
+        if (targetList) {
+            targetList.classList.add('active');
+        }
+
+        this.currentTab = tabName;
+        this.currentPage = 1; // 重置页码
+
+        // 加载对应标签的数据
+        this.loadTabData(tabName);
+    }
+
+    searchUsers(searchTerm) {
+        const items = document.querySelectorAll('.leaderboard-item');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const username = item.querySelector('.username').textContent.toLowerCase();
+            const shouldShow = username.includes(searchTerm.toLowerCase());
+
+            if (shouldShow) {
+                item.style.display = 'flex';
+                item.style.opacity = '1';
+                visibleCount++;
+            } else {
+                item.style.opacity = '0.3';
+                setTimeout(() => {
+                    if (item.style.opacity === '0.3') {
+                        item.style.display = 'none';
+                    }
+                }, 200);
+            }
+        });
+
+        // 显示搜索结果
+        if (searchTerm && visibleCount > 0) {
+            this.showSearchResults(visibleCount);
+        } else if (searchTerm && visibleCount === 0) {
+            this.showNoResults();
+        } else {
+            this.hideSearchResults();
+        }
+    }
+
+    setFilter(filter) {
+        // 移除所有active类
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+
+        // 添加active类到当前筛选
+        const targetButton = document.querySelector(`[data-filter="${filter}"]`);
+        if (targetButton) {
+            targetButton.classList.add('active');
+        }
+
+        this.currentFilter = filter;
+
+        // 应用筛选
+        this.applyFilter(filter);
+    }
+
+    applyFilter(filter) {
+        const items = document.querySelectorAll('.leaderboard-item');
+
+        items.forEach(item => {
+            let shouldShow = true;
+
+            switch(filter) {
+                case 'today':
+                    shouldShow = item.querySelector('.stat-badge') &&
+                                item.querySelector('.stat-badge').textContent.includes('今日活跃');
+                    break;
+                case 'week':
+                    shouldShow = item.querySelector('.stat-badge') &&
+                                item.querySelector('.stat-badge').textContent.includes('本周活跃');
+                    break;
+                case 'month':
+                    shouldShow = item.querySelector('.stat-badge') &&
+                                item.querySelector('.stat-badge').textContent.includes('本月活跃');
+                    break;
+                default:
+                    shouldShow = true;
+            }
+
+            if (shouldShow) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    changePage(page) {
+        // 这里应该从服务器获取对应页的数据
+        // 目前只是更新UI状态
+        this.currentPage = page;
+
+        // 更新分页按钮状态
+        this.updatePagination();
+    }
+
+    updatePagination() {
+        // 更新分页按钮的激活状态
+        document.querySelectorAll('.page-btn').forEach(btn => {
+            if (btn.textContent === this.currentPage.toString()) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    showSearchResults(count) {
+        let resultsDiv = document.querySelector('.search-results');
+        if (!resultsDiv) {
+            resultsDiv = document.createElement('div');
+            resultsDiv.className = 'search-results';
+            resultsDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(102, 126, 234, 0.9);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                z-index: 1000;
+                backdrop-filter: blur(10px);
+            `;
+            document.body.appendChild(resultsDiv);
+        }
+        resultsDiv.textContent = `找到 ${count} 个结果`;
+        resultsDiv.style.display = 'block';
+
+        setTimeout(() => {
+            resultsDiv.style.display = 'none';
+        }, 2000);
+    }
+
+    showNoResults() {
+        let noResultsDiv = document.querySelector('.no-results');
+        if (!noResultsDiv) {
+            noResultsDiv = document.createElement('div');
+            noResultsDiv.className = 'no-results';
+            noResultsDiv.style.cssText = `
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-secondary);
+            `;
+            document.querySelector('.leaderboard-list.active').appendChild(noResultsDiv);
+        }
+        noResultsDiv.innerHTML = `
+            <div style="font-size: 2rem; margin-bottom: 10px;">🔍</div>
+            <h3>未找到相关用户</h3>
+            <p>请尝试其他关键词</p>
+        `;
+        noResultsDiv.style.display = 'block';
+    }
+
+    hideSearchResults() {
+        const resultsDiv = document.querySelector('.search-results');
+        const noResultsDiv = document.querySelector('.no-results');
+
+        if (resultsDiv) resultsDiv.style.display = 'none';
+        if (noResultsDiv) noResultsDiv.style.display = 'none';
+
+        // 恢复所有项目
+        document.querySelectorAll('.leaderboard-item').forEach(item => {
+            item.style.display = 'flex';
+            item.style.opacity = '1';
+        });
+    }
+
+    loadTabData(tabName) {
+        // 这里应该根据标签名加载对应的数据
+        console.log(`加载 ${tabName} 排行榜数据`);
+
+        // 模拟加载不同类型的数据
+        switch(tabName) {
+            case 'growth':
+                this.loadGrowthData();
+                break;
+            case 'activity':
+                this.loadActivityData();
+                break;
+            case 'achievement':
+                this.loadAchievementData();
+                break;
+            default:
+                this.loadMainData();
+        }
+    }
+
+    loadMainData() {
+        // 这里应该加载主排行榜数据
+        console.log('加载主排行榜数据');
+    }
+
+    loadGrowthData() {
+        // 这里应该加载增长榜数据
+        console.log('加载增长榜数据');
+    }
+
+    loadActivityData() {
+        // 这里应该加载活跃榜数据
+        console.log('加载活跃榜数据');
+    }
+
+    loadAchievementData() {
+        // 这里应该加载成就榜数据
+        console.log('加载成就榜数据');
+    }
+
+    setupMobileOptimizations() {
+        // 检测移动设备并添加触摸优化
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        if (isMobile || isTouch) {
+            document.body.classList.add('mobile-device');
+
+            // 为排行榜项目添加触摸反馈
+            document.querySelectorAll('.leaderboard-item').forEach(item => {
+                item.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                    this.style.opacity = '0.8';
+                });
+
+                item.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                    this.style.opacity = '';
+                });
+            });
+
+            // 为按钮添加触摸反馈
+            document.querySelectorAll('.tab-button, .filter-btn, .page-btn').forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                });
+
+                button.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
+        }
+    }
+}
+
+// 初始化排行榜管理器
+let leaderboardManager;
+
 // 页面加载完成后初始化应用
 document.addEventListener('DOMContentLoaded', () => {
     // 优化触摸设备体验
     optimizeForTouchDevices();
+
+    // 初始化排行榜管理器
+    leaderboardManager = new LeaderboardManager();
 
     // 创建 CoinTracker 实例并初始化
     window.coinTracker = new CoinTracker();
