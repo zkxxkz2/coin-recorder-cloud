@@ -26,10 +26,10 @@
 - **离线使用**：支持离线使用，联网时自动同步
 
 ### 🏅 排行榜系统
-- **公开排行榜**：与全球用户竞争
-- **多维度排名**：总金币、连续天数、成就数等
+- **公开排行榜**：与全球用户竞争，展示金币总量排名
 - **实时更新**：排行榜数据实时刷新
 - **等级展示**：用户等级和称号展示
+- **简化界面**：专注于核心的金币总量排行榜
 
 ## 🚀 快速开始
 
@@ -47,18 +47,18 @@
 
 2. **启动本地服务器**
    ```bash
-   # 使用Python
-   python -m http.server 8000
-   
-   # 或使用Node.js
-   npx serve .
-   
-   # 或使用PHP
-   php -S localhost:8000
+   # 使用Node.js (推荐)
+   node server.js
+
+   # 或使用Python
+   python -m http.server 8001
+
+   # 或使用其他服务器工具
+   npx serve . -p 8001
    ```
 
 3. **访问应用**
-   打开浏览器访问 `http://localhost:8000`
+   打开浏览器访问 `http://localhost:8001`
 
 ### 云端配置（可选）
 
@@ -155,6 +155,37 @@ coin-recorder-cloud/
 └── README.md              # 项目说明
 ```
 
+## 📋 Version History
+
+### v5.3.0 (Latest)
+- **Leaderboard Simplification**: Removed growth, activity, and achievement leaderboards, keeping only the main leaderboard for cleaner user experience
+- **Server Setup**: Added Node.js HTTP server for local development on port 8001
+- **Code Optimization**: Simplified JavaScript code by removing unused leaderboard functionality
+- **Performance**: Reduced bundle size and improved loading speed
+
+### v5.2.0
+- **Feature Enhancement**: Added comprehensive leaderboard system with multiple ranking categories
+- **UI Improvements**: Enhanced user interface with better navigation and visual feedback
+- **Bug Fixes**: Fixed various issues related to data synchronization and user interface
+
+### v5.1.2
+- **Data Validation**: Added robust data validation for better data integrity
+- **Sync Improvements**: Fixed timing issues in cloud synchronization
+- **Stability**: Enhanced overall application stability
+
+### v5.1.1
+- **Release Update**: Version release with minor improvements
+- **Performance**: Optimized code structure and reduced memory usage
+
+### v3.1.0
+- **UI Fixes**: Fixed login button visibility and batch modal close button functionality
+- **User Experience**: Improved overall user interface interactions
+
+### v3.0.9
+- **Modal Improvements**: Enhanced batch modal close button functionality
+- **Cache Fixes**: Resolved login button cache issues
+- **Stability**: Improved application reliability
+
 ## 🔒 隐私保护
 
 - **本地优先**：数据优先存储在本地
@@ -181,7 +212,7 @@ coin-recorder-cloud/
 
 ---
 
-**版本**: v3.0.7  
-**最后更新**: 2025年1月
+**版本**: v5.3.0
+**最后更新**: 2025年10月
 
 > 💡 **提示**: 建议定期备份数据，避免意外丢失。使用云端同步功能可以更好地保护您的数据。
