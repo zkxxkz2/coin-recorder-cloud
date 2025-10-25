@@ -422,9 +422,10 @@ class SimpleIntegration {
                 const isJoinedInCloud = await this.verifyUserInLeaderboard(user, publicLeaderboardBinId);
                 
                 if (isJoinedInCloud) {
-                    // 云端确认已加入，只显示横幅，不自动加载数据
-                    console.log('用户已加入排行榜，显示排行榜横幅');
+                    // 云端确认已加入，显示横幅并加载排行榜数据
+                    console.log('用户已加入排行榜，显示排行榜内容');
                     this.showLeaderboardBanner();
+                    await this.loadLeaderboardBanner();
                 } else {
                     // 云端未找到，清除本地记录并显示空白状态
                     console.log('云端未找到用户，清除本地记录');
@@ -1618,12 +1619,16 @@ class SimpleIntegration {
             if (existingParticipant) {
                 this.showMessage('您已经在公开排行榜中', 'warning');
                 this.hideJoinLeaderboardModal();
-                
+
                 // 保存到本地存储并显示排行榜横幅
                 localStorage.setItem('joinedPublicLeaderboard', 'true');
                 localStorage.setItem('publicLeaderboardBinId', publicLeaderboardBinId);
                 this.showLeaderboardBanner();
-                // 加入后不自动加载数据，用户需要手动刷新
+
+                // 既然用户已在排行榜中，直接加载排行榜数据并显示
+                console.log('用户已在排行榜中，直接加载排行榜数据');
+                await this.loadLeaderboardBanner();
+
                 return;
             }
 
