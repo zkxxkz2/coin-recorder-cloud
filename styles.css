@@ -1256,8 +1256,10 @@ body {
 .leaderboard-tab { border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); padding: 12px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
 .leaderboard-tab.active { background: var(--bg-primary); color: var(--primary-color); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
-.leaderboard-list, .growth-list, .activity-list { margin-top: 12px; display: grid; gap: 12px; }
-.leaderboard-item, .growth-item, .activity-item { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); color: var(--text-primary); }
+/* 排行榜列表样式 */
+.leaderboard-list { margin-top: 12px; display: none; }
+.leaderboard-list.active { display: block; }
+.leaderboard-item { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); color: var(--text-primary); margin-bottom: 8px; }
 .leaderboard-item .rank { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; background: var(--bg-secondary); color: var(--text-primary); }
 .leaderboard-item .username { font-weight: 700; font-size: 15px; }
 .leaderboard-item .achievement-stats { display: flex; gap: 12px; color: var(--text-primary); opacity: 0.9; font-size: 14px; }
@@ -2338,13 +2340,6 @@ button,
     background: var(--bg-primary);
 }
 
-.leaderboard-list {
-    display: none;
-}
-
-.leaderboard-list.active {
-    display: block;
-}
 
 .leaderboard-item {
     display: flex;
@@ -2626,6 +2621,41 @@ button,
 
 [data-theme="dark"] .leaderboard-item {
     background: rgba(26, 32, 44, 0.8);
+    border-color: rgba(74, 85, 104, 0.3);
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .leaderboard-item .username {
+    color: #f7fafc;
+}
+
+[data-theme="dark"] .leaderboard-item .user-stats {
+    color: #cbd5e0;
+}
+
+[data-theme="dark"] .leaderboard-item .coins-label {
+    color: #a0aec0;
+}
+
+[data-theme="dark"] .leaderboard-item .rank {
+    background: rgba(74, 85, 104, 0.5);
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .leaderboard-item.rank-1 .rank {
+    background: linear-gradient(135deg, #f6e05e 0%, #ecc94b 100%);
+    color: #2d3748;
+}
+
+[data-theme="dark"] .leaderboard-item.rank-2 .rank {
+    background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+    color: #2d3748;
+}
+
+[data-theme="dark"] .leaderboard-item.rank-3 .rank {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    color: #2d3748;
+}
     border: 1px solid rgba(74, 85, 104, 0.2);
 }
 
@@ -2798,17 +2828,90 @@ button,
 
     .user-stats {
         flex-direction: column;
-        gap: 5px;
+        gap: 3px;
+        font-size: 0.7rem;
     }
 
     .coins {
         margin-left: 0;
         margin-top: 10px;
         text-align: left;
+        min-width: 80px;
     }
 
     .filter-buttons {
         justify-content: center;
+    }
+
+    .leaderboard-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .leaderboard-item .user-info {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .leaderboard-item .user-details {
+        flex: 1;
+    }
+
+    .leaderboard-item .coins {
+        margin-top: 0;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .stat-badge {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+    }
+
+    .leaderboard-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px 8px;
+    }
+
+    .leaderboard-item .user-info {
+        width: 100%;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .leaderboard-item .user-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .leaderboard-item .username {
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+
+    .leaderboard-item .user-stats {
+        gap: 4px;
+        font-size: 0.7rem;
+    }
+
+    .leaderboard-item .coins {
+        margin-top: 6px;
+        margin-left: 0;
+        text-align: left;
+        align-self: flex-start;
+    }
+
+    .leaderboard-item .coins-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .leaderboard-item .coins-label {
+        font-size: 0.7rem;
     }
 }
 
@@ -2912,6 +3015,62 @@ button,
         padding: 4px 6px;
         font-size: 11px;
         min-height: 28px;
+    }
+
+    .leaderboard-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 6px;
+    }
+
+    .leaderboard-item .user-info {
+        width: 100%;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .leaderboard-item .user-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .leaderboard-item .username {
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+        word-break: break-all;
+    }
+
+    .leaderboard-item .user-stats {
+        gap: 6px;
+        font-size: 0.7rem;
+        flex-wrap: wrap;
+    }
+
+    .leaderboard-item .coins {
+        margin-top: 8px;
+        margin-left: 0;
+        text-align: left;
+        align-self: flex-start;
+        width: 100%;
+    }
+
+    .leaderboard-item .coins-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .leaderboard-item .coins-label {
+        font-size: 0.7rem;
+        opacity: 0.8;
+    }
+
+    .stat-badge {
+        font-size: 0.6rem;
+        padding: 2px 4px;
+        border-radius: 4px;
     }
 
     .filter-buttons {

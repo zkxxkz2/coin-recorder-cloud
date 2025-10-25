@@ -1882,7 +1882,10 @@ class SimpleIntegration {
 
         if (!userData || userData.length === 0) {
             if (emptyBanner) emptyBanner.style.display = 'block';
-            if (leaderboardList) leaderboardList.style.display = 'none';
+            if (leaderboardList) {
+                leaderboardList.style.display = 'none';
+                leaderboardList.classList.remove('active');
+            }
             return;
         }
 
@@ -1895,8 +1898,15 @@ class SimpleIntegration {
         // 更新排行榜列表（显示所有用户）
         this.updateLeaderboardList(sortedUsers);
 
-        // 显示列表容器
-        if (leaderboardList) leaderboardList.style.display = 'block';
+        // 显示列表容器并添加active类
+        if (leaderboardList) {
+            leaderboardList.style.display = 'block';
+            leaderboardList.classList.add('active');
+        }
+
+        // 隐藏持久化消息并显示成功消息
+        this.hidePersistentMessage();
+        this.showMessage(`排行榜已更新，显示 ${sortedUsers.length} 位参与者`, 'success', 3000);
     }
 
 

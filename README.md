@@ -28,8 +28,9 @@
 ### 🏅 排行榜系统
 - **公开排行榜**：与全球用户竞争，展示金币总量排名
 - **手动刷新**：用户可以手动刷新排行榜数据，获得更好的控制体验
-- **等级展示**：用户等级和称号展示
-- **紧凑设计**：优化的界面设计，适配移动设备使用
+- **实时显示**：数据获取完成后立即显示排行榜内容，无需额外操作
+- **主题适配**：完美支持白天和夜晚主题模式
+- **移动端优化**：专为手机浏览器优化的紧凑界面设计
 
 ## 🚀 快速开始
 
@@ -158,48 +159,47 @@ coin-recorder-cloud/
 
 ## 📋 Version History
 
-### v5.4.0 (Latest)
-- **UI Redesign**: Completely redesigned leaderboard interface for better mobile experience
-- **Manual Refresh**: Changed leaderboard refresh from automatic to manual mode for better user control
-- **Mobile Optimization**: Optimized UI sizing and spacing for mobile browsers, reduced content density
-- **Compact Design**: Reduced padding, margins, and font sizes for more efficient screen space usage
-- **Responsive Layout**: Enhanced responsive design with better touch targets and improved readability
-- **Join Logic Fix**: Fixed leaderboard join flow - now shows leaderboard content when user already exists in leaderboard
+### v5.5.0 (最新版本)
+- **排行榜显示修复**: 修复了加入排行榜后数据获取完成但不显示用户数据的bug
+- **主题模式优化**: 优化了排行榜字体在白天和夜晚主题模式下的可见性和对比度
+- **移动端排版优化**: 针对手机窄页面进行了深度优化，提升用户体验
+- **UI响应式改进**: 增强了不同屏幕尺寸下的布局适配和触摸友好性
+- **用户交互优化**: 修复了排行榜重复加入的逻辑流程，提供更好的用户反馈
 
 ### v5.3.1
-- **Data Validation Fix**: Fixed data validation functionality availability issues
-- **Sync Service Initialization**: Improved module initialization timing and error handling
-- **Enhanced Error Handling**: Added better user feedback and debugging capabilities
-- **Bug Fixes**: Resolved various synchronization and validation related issues
+- **数据校验修复**: 修复了数据校验功能不可用的问题
+- **同步服务初始化**: 改进了模块初始化时序和错误处理
+- **错误处理增强**: 添加了更好的用户反馈和调试功能
+- **稳定性改进**: 解决了各种同步和校验相关的问题
 
 ### v5.3.0
-- **Leaderboard Simplification**: Removed growth, activity, and achievement leaderboards, keeping only the main leaderboard for cleaner user experience
-- **Server Setup**: Added Node.js HTTP server for local development on port 8001
-- **Code Optimization**: Simplified JavaScript code by removing unused leaderboard functionality
-- **Performance**: Reduced bundle size and improved loading speed
+- **排行榜简化**: 移除了增长榜、活跃榜和成就榜，只保留主排行榜以获得更清爽的用户体验
+- **服务器设置**: 添加了Node.js HTTP服务器用于本地开发，端口8001
+- **代码优化**: 简化了JavaScript代码，移除了未使用的排行榜功能
+- **性能提升**: 减少了包大小并提升了加载速度
 
 ### v5.2.0
-- **Feature Enhancement**: Added comprehensive leaderboard system with multiple ranking categories
-- **UI Improvements**: Enhanced user interface with better navigation and visual feedback
-- **Bug Fixes**: Fixed various issues related to data synchronization and user interface
+- **功能增强**: 添加了包含多个排名类别的综合排行榜系统
+- **UI改进**: 增强了用户界面，提供更好的导航和视觉反馈
+- **错误修复**: 修复了数据同步和用户界面相关的各种问题
 
 ### v5.1.2
-- **Data Validation**: Added robust data validation for better data integrity
-- **Sync Improvements**: Fixed timing issues in cloud synchronization
-- **Stability**: Enhanced overall application stability
+- **数据验证**: 添加了强大的数据验证以提升数据完整性
+- **同步改进**: 修复了云端同步中的时序问题
+- **稳定性增强**: 提升了整体应用稳定性
 
 ### v5.1.1
-- **Release Update**: Version release with minor improvements
-- **Performance**: Optimized code structure and reduced memory usage
+- **版本发布**: 带有小幅改进的版本发布
+- **性能优化**: 优化了代码结构并减少了内存使用
 
 ### v3.1.0
-- **UI Fixes**: Fixed login button visibility and batch modal close button functionality
-- **User Experience**: Improved overall user interface interactions
+- **UI修复**: 修复了登录按钮可见性和批量模态框关闭按钮功能
+- **用户体验**: 改进了整体用户界面交互
 
 ### v3.0.9
-- **Modal Improvements**: Enhanced batch modal close button functionality
-- **Cache Fixes**: Resolved login button cache issues
-- **Stability**: Improved application reliability
+- **模态框改进**: 增强了批量模态框关闭按钮功能
+- **缓存修复**: 解决了登录按钮缓存问题
+- **稳定性**: 提升了应用可靠性
 
 ## 🔧 故障排除和修复记录
 
@@ -239,7 +239,7 @@ coin-recorder-cloud/
 - 改进了 `enableCloudSync()` 函数的初始化等待机制
 - 添加了详细的控制台调试日志
 
-#### 排行榜UI适配移动端 (v5.4.0)
+#### 排行榜UI适配移动端 (v5.5.0)
 **问题描述**：排行榜界面在手机浏览器上内容太多、太拥挤，用户体验不佳。
 
 **修复方案**：
@@ -254,7 +254,7 @@ coin-recorder-cloud/
 - 元素尺寸优化：用户头像从50px减少到24px（手机端）
 - 移动端断点：针对不同屏幕尺寸提供专门的样式规则
 
-#### 排行榜用户体验优化 (v5.4.0)
+#### 排行榜用户体验优化 (v5.5.0)
 **问题描述**：排行榜交互逻辑不够完善，用户操作后反馈不完整。
 
 **修复方案**：
@@ -327,7 +327,7 @@ coin-recorder-cloud/
 
 ---
 
-**版本**: v5.4.0
+**版本**: v5.5.0
 **最后更新**: 2025年10月
 
 > 💡 **提示**: 建议定期备份数据，避免意外丢失。使用云端同步功能可以更好地保护您的数据。
