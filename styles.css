@@ -1752,32 +1752,47 @@ body {
 
 .action-btn {
     flex: 1;
-    padding: 10px 12px;
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
+    padding: 8px 12px;
+    color: white;
     cursor: pointer;
-    transition: all 0.2s;
-    min-height: 40px;
+    font-size: 0.8rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    min-height: 36px;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.action-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .action-btn.primary {
-    background: var(--primary-color);
-    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .action-btn.secondary {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .action-btn.danger {
-    background: var(--error-color);
-    color: white;
+    background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .banner-btn:hover {
@@ -2914,69 +2929,64 @@ button,
 
 @media (max-width: 480px) {
     body {
-        padding: 4px;
+        padding: 2px;
     }
 
-    .leaderboard-card {
-        margin: 2px;
+    .leaderboard-container {
+        padding: 2px;
+    }
+
+    .leaderboard-header-bar {
+        padding: 6px 8px;
+        margin-bottom: 4px;
         border-radius: 8px;
     }
 
-    .leaderboard-header {
-        padding: 12px 10px;
-        border-radius: 8px 8px 0 0;
+    .header-title {
+        font-size: 0.85rem;
     }
 
-    .leaderboard-title {
-        font-size: 1.1rem;
-        margin-bottom: 6px;
+    .header-stats {
+        gap: 6px;
     }
 
-    .leaderboard-subtitle {
-        font-size: 0.75rem;
-        margin-bottom: 12px;
+    .mini-stat {
+        padding: 2px 4px;
     }
 
-    .stats-row {
-        gap: 8px;
-        padding: 0 8px;
+    .mini-number {
+        font-size: 0.7rem;
     }
 
-    .stat-item {
-        padding: 6px 8px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 6px;
+    .mini-label {
+        font-size: 0.55rem;
     }
 
-    .stat-number {
-        font-size: 1rem;
-        margin-bottom: 3px;
+    .leaderboard-content-area {
+        border-radius: 10px;
     }
 
-    .stat-label {
-        font-size: 0.75rem;
-    }
-
-    .leaderboard-tabs {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding: 0 4px;
-    }
-
-    .tab-button {
-        min-width: 70px;
-        padding: 8px 6px;
-        font-size: 0.75rem;
-    }
-
-    .leaderboard-content {
-        padding: 8px;
+    .leaderboard-list-container {
+        padding: 6px 4px;
     }
 
     .leaderboard-item {
-        padding: 6px 4px;
+        padding: 6px 8px;
+        gap: 6px;
+        border-radius: 8px;
         margin-bottom: 3px;
-        border-radius: 6px;
+    }
+
+    .rank {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
+    .user-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
     }
 
     .username {
@@ -2985,33 +2995,40 @@ button,
     }
 
     .user-stats {
-        font-size: 0.65rem;
-        gap: 4px;
+        gap: 3px;
+        font-size: 0.6rem;
     }
 
-    .user-avatar {
-        width: 24px;
-        height: 24px;
-        font-size: 0.7rem;
-        margin-right: 4px;
+    .coins-value {
+        font-size: 0.9rem;
+        margin-bottom: 1px;
     }
 
-    .rank {
-        width: 24px;
-        height: 24px;
-        font-size: 0.8rem;
-        margin-right: 4px;
+    .coins-label {
+        font-size: 0.6rem;
     }
 
-    .banner-actions {
-        padding: 0 4px 4px;
-        gap: 2px;
+    .stat-badge {
+        font-size: 0.5rem;
+        padding: 1px 2px;
+    }
+
+    .leaderboard-actions {
+        padding: 6px 2px;
+        gap: 3px;
+        margin-top: 6px;
     }
 
     .action-btn {
         padding: 4px 6px;
-        font-size: 11px;
+        font-size: 0.65rem;
         min-height: 28px;
+        gap: 3px;
+    }
+
+    .action-btn svg {
+        width: 10px;
+        height: 10px;
     }
 
     /* 480px以下屏幕的排行榜样式 */
