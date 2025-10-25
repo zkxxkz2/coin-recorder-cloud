@@ -1960,27 +1960,55 @@ class SimpleIntegration {
             const rankClass = rank <= 3 ? `rank-${rank}` : '';
             const medalIcon = this.getMedalIcon(rank);
 
-            return `
-                <div class="leaderboard-item ${rankClass}" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
-                    <div class="rank rank-${rank}">${rank}</div>
-                    ${medalIcon ? `<div class="medal">${medalIcon}</div>` : ''}
-                    <div class="user-info">
-                        <div class="user-avatar">${this.getUserAvatar(user)}</div>
-                        <div class="user-details">
-                            <div class="username">${this.formatUserDisplay(user)}</div>
-                            <div class="user-stats">
-                                <span class="stat-badge">🏆 ${user.achievementCount || 0}成就</span>
-                                <span class="stat-badge">🔥 ${user.streakData?.currentStreak || 0}天</span>
-                                <span class="stat-badge">⚡ 今日活跃</span>
+            // 检测是否为移动设备
+            const isMobile = window.innerWidth <= 768;
+
+            if (isMobile) {
+                // 移动端紧凑布局
+                return `
+                    <div class="leaderboard-item ${rankClass}" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
+                        <div class="mobile-item-header">
+                            <div class="mobile-rank-info">
+                                <div class="rank rank-${rank}">${rank}</div>
+                                ${medalIcon ? `<span class="medal-icon">${medalIcon}</span>` : ''}
+                            </div>
+                            <div class="mobile-user-info">
+                                <div class="username">${this.formatUserDisplay(user)}</div>
+                                <div class="mobile-stats">
+                                    <span class="stat-badge">🏆 ${user.achievementCount || 0}</span>
+                                    <span class="stat-badge">🔥 ${user.streakData?.currentStreak || 0}</span>
+                                </div>
+                            </div>
+                            <div class="mobile-coins">
+                                <span class="coins-value">${user.currentCoins.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="coins">
-                        <span class="coins-value">${user.currentCoins.toLocaleString()}</span>
-                        <span class="coins-label">总金币</span>
+                `;
+            } else {
+                // 桌面端完整布局
+                return `
+                    <div class="leaderboard-item ${rankClass}" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
+                        <div class="rank rank-${rank}">${rank}</div>
+                        ${medalIcon ? `<div class="medal">${medalIcon}</div>` : ''}
+                        <div class="user-info">
+                            <div class="user-avatar">${this.getUserAvatar(user)}</div>
+                            <div class="user-details">
+                                <div class="username">${this.formatUserDisplay(user)}</div>
+                                <div class="user-stats">
+                                    <span class="stat-badge">🏆 ${user.achievementCount || 0}成就</span>
+                                    <span class="stat-badge">🔥 ${user.streakData?.currentStreak || 0}天</span>
+                                    <span class="stat-badge">⚡ 今日活跃</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="coins">
+                            <span class="coins-value">${user.currentCoins.toLocaleString()}</span>
+                            <span class="coins-label">总金币</span>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }).join('');
 
         leaderboardList.innerHTML = html;
@@ -3158,4 +3186,7 @@ class SimpleIntegration {
 // 创建全局实例
 export const simpleIntegration = new SimpleIntegration();
 export default simpleIntegration;
+
+// 设置到window对象，供内联事件处理程序使用
+window.simpleIntegration = simpleIntegration;
 

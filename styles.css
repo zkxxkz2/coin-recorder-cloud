@@ -1259,10 +1259,14 @@ body {
 /* 排行榜列表样式 */
 .leaderboard-list { margin-top: 12px; display: none; }
 .leaderboard-list.active { display: block; }
-.leaderboard-item { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); color: var(--text-primary); margin-bottom: 8px; }
-.leaderboard-item .rank { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; background: var(--bg-secondary); color: var(--text-primary); }
-.leaderboard-item .username { font-weight: 700; font-size: 15px; }
-.leaderboard-item .achievement-stats { display: flex; gap: 12px; color: var(--text-primary); opacity: 0.9; font-size: 14px; }
+.leaderboard-item { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); color: var(--text-primary); margin-bottom: 8px; transition: all 0.2s ease; cursor: pointer; }
+.leaderboard-item:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.leaderboard-item .rank { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; background: var(--bg-secondary); color: var(--text-primary); flex-shrink: 0; }
+.leaderboard-item .username { font-weight: 700; font-size: 15px; flex: 1; min-width: 0; }
+.leaderboard-item .user-stats { display: flex; gap: 8px; color: var(--text-secondary); font-size: 13px; flex-wrap: wrap; margin-top: 4px; }
+.leaderboard-item .coins { text-align: right; flex-shrink: 0; }
+.leaderboard-item .coins-value { display: block; font-size: 16px; font-weight: 700; color: var(--primary-color); }
+.leaderboard-item .coins-label { font-size: 12px; color: var(--text-secondary); opacity: 0.8; }
 
 /* 兼容由脚本生成的成就排行榜条目（class: achievement-item） */
 .leaderboard-list .achievement-item, .growth-list > div, .activity-list > div {
@@ -1348,8 +1352,7 @@ body {
   .achievements-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
-  /* 排行榜列表项更紧凑 */
-  .leaderboard-item { padding: 8px 10px; }
+  /* 排行榜移动端优化 */
   .leaderboard-header { padding: 16px 12px; }
   .leaderboard-content { padding: 12px; }
   .banner-actions { padding: 0 12px 12px; gap: 6px; }
@@ -1358,9 +1361,12 @@ body {
   .stat-number { font-size: 1.2rem; }
   .stat-label { font-size: 0.75rem; }
   .username { font-size: 0.9rem; }
-  .user-stats { font-size: 0.75rem; gap: 8px; }
+  .user-stats { font-size: 0.75rem; gap: 6px; }
   .user-avatar { width: 32px; height: 32px; font-size: 0.9rem; margin-right: 8px; }
   .rank { width: 32px; height: 32px; font-size: 1rem; margin-right: 8px; }
+  .leaderboard-item .coins-value { font-size: 14px; }
+  .leaderboard-item .coins-label { font-size: 11px; }
+  .stat-badge { font-size: 0.7rem; padding: 2px 6px; }
 
   /* 右上角消息：避免遮挡，稍微下移 */
   .message-container { top: 72px; right: 12px; max-width: 86vw; }
@@ -2997,6 +3003,51 @@ button,
         min-height: 28px;
     }
 
+    /* 480px以下屏幕的排行榜样式 */
+    .leaderboard-card {
+        margin: 2px;
+        border-radius: 8px;
+    }
+
+    .leaderboard-header {
+        padding: 12px 10px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .leaderboard-title {
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+    }
+
+    .leaderboard-subtitle {
+        font-size: 0.75rem;
+        margin-bottom: 12px;
+    }
+
+    .stats-row {
+        gap: 8px;
+        padding: 0 8px;
+    }
+
+    .stat-item {
+        padding: 6px 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+    }
+
+    .stat-number {
+        font-size: 1rem;
+        margin-bottom: 3px;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+    }
+
+    .leaderboard-content {
+        padding: 8px;
+    }
+
     .leaderboard-item {
         flex-direction: column;
         align-items: flex-start;
@@ -3051,6 +3102,67 @@ button,
         font-size: 0.6rem;
         padding: 2px 4px;
         border-radius: 4px;
+    }
+
+    .user-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+        margin-right: 4px;
+    }
+
+    .rank {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+        margin-right: 4px;
+    }
+
+    .banner-actions {
+        padding: 0 4px 4px;
+        gap: 2px;
+    }
+
+    .action-btn {
+        padding: 4px 6px;
+        font-size: 11px;
+        min-height: 28px;
+    }
+
+    /* 移动端排行榜项目样式 */
+    .mobile-item-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .mobile-rank-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .mobile-user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mobile-stats {
+        display: flex;
+        gap: 4px;
+        margin-top: 2px;
+    }
+
+    .mobile-coins {
+        flex-shrink: 0;
+        text-align: right;
+    }
+
+    .medal-icon {
+        font-size: 16px;
+        margin-left: 2px;
     }
 
     .filter-buttons {
