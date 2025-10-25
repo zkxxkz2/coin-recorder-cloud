@@ -2307,6 +2307,18 @@ button,
     height: 12px;
 }
 
+/* 亮色模式下的刷新按钮优化 */
+:not([data-theme="dark"]) .mini-refresh-btn {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+    color: #667eea;
+}
+
+:not([data-theme="dark"]) .mini-refresh-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+    color: #5a67d8;
+}
+
 /* 现代化排行榜内容区域样式 */
 
 .leaderboard-content {
@@ -2970,11 +2982,61 @@ button,
         padding: 6px 4px;
     }
 
+    /* 统一所有屏幕尺寸的排行榜样式 */
     .leaderboard-item {
-        padding: 6px 8px;
-        gap: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
         border-radius: 8px;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
+    }
+
+    .rank-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .user-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .username {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-stats {
+        display: flex;
+        gap: 4px;
+        margin: 0;
+    }
+
+    .coins {
+        flex-shrink: 0;
+        text-align: right;
+    }
+
+    .coins-value {
+        font-size: 1rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 1px;
     }
 
     .rank {
@@ -2989,22 +3051,8 @@ button,
         font-size: 0.7rem;
     }
 
-    .username {
-        font-size: 0.8rem;
-        margin-bottom: 2px;
-    }
-
     .user-stats {
         gap: 3px;
-        font-size: 0.6rem;
-    }
-
-    .coins-value {
-        font-size: 0.9rem;
-        margin-bottom: 1px;
-    }
-
-    .coins-label {
         font-size: 0.6rem;
     }
 
