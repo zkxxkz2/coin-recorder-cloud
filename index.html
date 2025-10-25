@@ -337,41 +337,67 @@
 
             <!-- 排行榜Tab -->
             <div class="tab-content" data-tab-content="leaderboard">
-                <div class="leaderboard-card">
-                    <div class="leaderboard-header">
-                        <div class="header-content">
-                            <div class="header-top">
-                                <h1 class="leaderboard-title">🏆 排行榜</h1>
-                                <button id="refreshBannerBtn" class="refresh-btn">
-                                    <span class="refresh-icon">🔄</span>
-                                </button>
+                <div class="leaderboard-container">
+                    <!-- 排行榜头部统计卡片 -->
+                    <div class="leaderboard-stats-card">
+                        <div class="stats-card-header">
+                            <div class="stats-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
                             </div>
-                            <p class="leaderboard-subtitle">全球金币竞技场</p>
+                            <h2 class="stats-title">金币排行榜</h2>
+                            <p class="stats-subtitle">全球用户金币竞技场</p>
+                        </div>
 
-                            <div class="stats-row">
-                                <div class="stat-item">
-                                    <span class="stat-number" id="bannerParticipantCount">0</span>
-                                    <span class="stat-label">参与者</span>
+                        <div class="stats-grid">
+                            <div class="stat-metric">
+                                <div class="metric-icon">👥</div>
+                                <div class="metric-content">
+                                    <span class="metric-number" id="bannerParticipantCount">0</span>
+                                    <span class="metric-label">参与者</span>
                                 </div>
-                                <div class="stat-item">
-                                    <span class="stat-number" id="bannerTotalCoins">0</span>
-                                    <span class="stat-label">总金币</span>
+                            </div>
+                            <div class="stat-metric">
+                                <div class="metric-icon">💰</div>
+                                <div class="metric-content">
+                                    <span class="metric-number" id="bannerTotalCoins">0</span>
+                                    <span class="metric-label">总金币</span>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="leaderboard-controls">
+                            <button id="refreshBannerBtn" class="control-btn refresh">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 4V9H4.58152M20 20V15H19.4185M4.58152 9C5.80611 7.7667 7.4179 7 9.17623 7C12.7136 7 15.5 9.7864 15.5 13.3238C15.5 16.8611 12.7136 19.6476 9.17623 19.6476C7.4179 19.6476 5.80611 19.2333 4.58152 18M19.4185 15C18.1939 16.2333 16.5821 16.6476 14.8238 16.6476C11.2864 16.6476 8.5 13.8611 8.5 10.3238C8.5 6.7864 11.2864 4 14.8238 4C16.5821 4 18.1939 4.2333 19.4185 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>刷新数据</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="leaderboard-content">
-                        <!-- 主排行榜 -->
-                        <div class="leaderboard-list active" id="leaderboardList">
+                    <!-- 排行榜内容区域 -->
+                    <div class="leaderboard-content-area">
+                        <div class="leaderboard-list-container" id="leaderboardList">
                             <!-- 排行榜内容将被JavaScript动态填充 -->
                         </div>
                     </div>
 
-                    <!-- 底部操作按钮 -->
-                    <div class="banner-actions">
-                        <button id="joinPublicLeaderboardBtn" class="action-btn primary">加入排行榜</button>
-                        <button id="leaveLeaderboardBtn" class="action-btn danger" style="display: none;">退出</button>
+                    <!-- 底部操作区域 -->
+                    <div class="leaderboard-actions">
+                        <button id="joinPublicLeaderboardBtn" class="action-btn primary">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15C10.9391 15 9.92172 15.4214 9.17157 16.1716C8.42143 16.9217 8 17.9391 8 19V21M20 9C20 13.4183 16.4183 17 12 17C7.58172 17 4 13.4183 4 9C4 4.58172 7.58172 1 12 1C16.4183 1 20 4.58172 20 9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>加入排行榜</span>
+                        </button>
+                        <button id="leaveLeaderboardBtn" class="action-btn danger" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V9M16 17L21 12M21 12L16 7M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>退出排行榜</span>
+                        </button>
                     </div>
                 </div>
             </div>
