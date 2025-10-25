@@ -1736,27 +1736,7 @@ body {
     background: rgba(255, 255, 255, 0.3);
 }
 
-.leaderboard-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.leaderboard-list-item {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 12px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.leaderboard-list-item:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
+/* 移除冲突的排行榜样式定义，使用统一的样式 */
 
 .banner-actions {
     display: flex;

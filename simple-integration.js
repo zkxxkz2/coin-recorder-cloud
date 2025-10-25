@@ -426,6 +426,9 @@ class SimpleIntegration {
                     console.log('用户已加入排行榜，显示排行榜内容');
                     this.showLeaderboardBanner();
                     await this.loadLeaderboardBanner();
+
+                    // 确保UI正确显示
+                    this.switchLeaderboardTab('main');
                 } else {
                     // 云端未找到，清除本地记录并显示空白状态
                     console.log('云端未找到用户，清除本地记录');
@@ -1629,6 +1632,10 @@ class SimpleIntegration {
                 console.log('用户已在排行榜中，直接加载排行榜数据');
                 await this.loadLeaderboardBanner();
 
+                // 确保UI正确显示
+                console.log('调用switchLeaderboardTab确保UI显示');
+                this.switchLeaderboardTab('main');
+
                 return;
             }
 
@@ -1895,6 +1902,8 @@ class SimpleIntegration {
         // 按当前金币数排序
         const sortedUsers = userData.sort((a, b) => b.currentCoins - a.currentCoins);
 
+        console.log(`横幅排行榜更新，排序后用户数: ${sortedUsers.length}`);
+
         // 更新排行榜列表（显示所有用户）
         this.updateLeaderboardList(sortedUsers);
 
@@ -1902,7 +1911,11 @@ class SimpleIntegration {
         if (leaderboardList) {
             leaderboardList.style.display = 'block';
             leaderboardList.classList.add('active');
+            console.log('横幅排行榜容器已设置为显示状态');
         }
+
+        // 确保排行榜正确显示
+        this.updateMainLeaderboard();
 
         // 隐藏持久化消息并显示成功消息
         this.hidePersistentMessage();
@@ -1929,9 +1942,15 @@ class SimpleIntegration {
     // 更新排行榜列表
     updateLeaderboardList(users) {
         const leaderboardList = document.getElementById('leaderboardList');
-        if (!leaderboardList) return;
+        if (!leaderboardList) {
+            console.error('排行榜列表元素未找到');
+            return;
+        }
+
+        console.log(`更新排行榜列表，用户数: ${users?.length || 0}`);
 
         if (!users || users.length === 0) {
+            console.log('用户列表为空，清空排行榜');
             leaderboardList.innerHTML = '';
             return;
         }
@@ -1965,6 +1984,7 @@ class SimpleIntegration {
         }).join('');
 
         leaderboardList.innerHTML = html;
+        console.log(`排行榜HTML更新完成，生成了 ${users.length} 个用户项`);
     }
 
     // 刷新排行榜数据
@@ -2843,20 +2863,35 @@ class SimpleIntegration {
     // 更新主排行榜（使用缓存数据）
     updateMainLeaderboard() {
         const users = this.leaderboardDataCache.users || [];
+        console.log(`更新主排行榜，缓存用户数: ${users.length}`);
+
         if (users.length === 0) {
+            console.log('缓存中没有用户数据，显示空状态');
             this.showEmptyLeaderboard();
             return;
         }
 
         // 按当前金币数排序
         const sortedUsers = users.sort((a, b) => b.currentCoins - a.currentCoins);
-        
+        console.log(`排序后显示 ${sortedUsers.length} 位用户`);
+
         // 更新排行榜列表（显示所有用户）
         this.updateLeaderboardList(sortedUsers);
 
-        // 显示主排行榜
+        // 显示主排行榜并添加active类
         const leaderboardList = document.getElementById('leaderboardList');
-        if (leaderboardList) leaderboardList.style.display = 'block';
+        if (leaderboardList) {
+            leaderboardList.style.display = 'block';
+            leaderboardList.classList.add('active');
+            console.log('主排行榜已设置为显示状态');
+        }
+
+        // 隐藏空状态
+        const emptyBanner = document.querySelector('.empty-banner');
+        if (emptyBanner) {
+            emptyBanner.style.display = 'none';
+            console.log('隐藏空状态');
+        }
     }
 
     // 更新增长排行榜（使用缓存数据）
