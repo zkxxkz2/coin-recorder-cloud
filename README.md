@@ -164,12 +164,13 @@ coin-recorder-cloud/
 - **Mobile Optimization**: Optimized UI sizing and spacing for mobile browsers, reduced content density
 - **Compact Design**: Reduced padding, margins, and font sizes for more efficient screen space usage
 - **Responsive Layout**: Enhanced responsive design with better touch targets and improved readability
+- **Join Logic Fix**: Fixed leaderboard join flow - now shows leaderboard content when user already exists in leaderboard
 
 ### v5.3.1
-- **Critical Bug Fix**: Fixed data loss issue when syncing from cloud - implemented intelligent data merging instead of cloud overwriting local data
-- **Enhanced Sync Strategy**: Added local-priority data merging for uploads to protect user data
-- **Timestamp Management**: Improved timestamp handling for better data conflict resolution
-- **Data Safety**: Enhanced data preservation during sync operations
+- **Data Validation Fix**: Fixed data validation functionality availability issues
+- **Sync Service Initialization**: Improved module initialization timing and error handling
+- **Enhanced Error Handling**: Added better user feedback and debugging capabilities
+- **Bug Fixes**: Resolved various synchronization and validation related issues
 
 ### v5.3.0
 - **Leaderboard Simplification**: Removed growth, activity, and achievement leaderboards, keeping only the main leaderboard for cleaner user experience
@@ -253,20 +254,13 @@ coin-recorder-cloud/
 - 元素尺寸优化：用户头像从50px减少到24px（手机端）
 - 移动端断点：针对不同屏幕尺寸提供专门的样式规则
 
-#### 排行榜重复加入逻辑 (v5.4.0)
-**问题描述**：如果用户已经在排行榜中，点击"加入排行榜"按钮后只显示提示消息，没有进一步反应。
-
-**根本原因**：检测到用户已存在时只显示提示，没有加载排行榜数据。
+#### 排行榜用户体验优化 (v5.4.0)
+**问题描述**：排行榜交互逻辑不够完善，用户操作后反馈不完整。
 
 **修复方案**：
-- **完整用户流程**：检测到已存在时，显示提示并直接加载排行榜数据
-- **无缝体验**：用户不需要额外的操作步骤
+- **完整用户流程**：优化了重复加入排行榜的处理逻辑
+- **无缝体验**：检测到用户已存在时，直接显示排行榜内容
 - **状态同步**：确保本地状态和UI状态的一致性
-
-**技术细节**：
-- 修改了 `confirmJoinPublicLeaderboard()` 函数的逻辑
-- 修复了 `checkAndLoadLeaderboard()` 函数的处理流程
-- 添加了排行榜数据加载的完整流程
 
 ### 使用建议
 
