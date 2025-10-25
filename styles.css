@@ -643,15 +643,27 @@ body {
 }
 
 .user-avatar {
-    width: 60px;
-    height: 60px;
-    background: var(--primary-gradient);
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
     flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.user-avatar:hover,
+.leaderboard-item:hover .user-avatar {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 .user-details {
@@ -1256,17 +1268,135 @@ body {
 .leaderboard-tab { border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); padding: 12px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
 .leaderboard-tab.active { background: var(--bg-primary); color: var(--primary-color); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
-/* 排行榜列表样式 */
-.leaderboard-list { margin-top: 12px; display: none; }
-.leaderboard-list.active { display: block; }
-.leaderboard-item { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); color: var(--text-primary); margin-bottom: 8px; transition: all 0.2s ease; cursor: pointer; }
-.leaderboard-item:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
-.leaderboard-item .rank { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; background: var(--bg-secondary); color: var(--text-primary); flex-shrink: 0; }
-.leaderboard-item .username { font-weight: 700; font-size: 15px; flex: 1; min-width: 0; }
-.leaderboard-item .user-stats { display: flex; gap: 8px; color: var(--text-secondary); font-size: 13px; flex-wrap: wrap; margin-top: 4px; }
-.leaderboard-item .coins { text-align: right; flex-shrink: 0; }
-.leaderboard-item .coins-value { display: block; font-size: 16px; font-weight: 700; color: var(--primary-color); }
-.leaderboard-item .coins-label { font-size: 12px; color: var(--text-secondary); opacity: 0.8; }
+/* 排行榜列表样式 - 统一设计 */
+.leaderboard-list {
+    margin-top: 12px;
+    display: none;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.leaderboard-list.active {
+    display: block;
+}
+
+.leaderboard-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.leaderboard-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.02) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.leaderboard-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.leaderboard-item:hover::before {
+    opacity: 1;
+}
+
+/* 排行榜项目元素样式 */
+.leaderboard-item .rank {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.leaderboard-item:hover .rank {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.leaderboard-item .username {
+    font-weight: 600;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 0;
+    color: var(--text-primary);
+    transition: color 0.2s ease;
+}
+
+.leaderboard-item:hover .username {
+    color: var(--primary-color);
+}
+
+.leaderboard-item .user-stats {
+    display: flex;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: 2px;
+    transition: opacity 0.2s ease;
+}
+
+.leaderboard-item:hover .user-stats {
+    opacity: 0.8;
+}
+
+.leaderboard-item .coins {
+    text-align: right;
+    flex-shrink: 0;
+    min-width: 80px;
+}
+
+.leaderboard-item .coins-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 2px;
+    text-shadow: 0 1px 2px rgba(102, 126, 234, 0.2);
+    transition: all 0.2s ease;
+}
+
+.leaderboard-item:hover .coins-value {
+    transform: scale(1.02);
+    text-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.leaderboard-item .coins-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.leaderboard-item:hover .coins-label {
+    opacity: 0.9;
+}
 
 /* 兼容由脚本生成的成就排行榜条目（class: achievement-item） */
 .leaderboard-list .achievement-item, .growth-list > div, .activity-list > div {
@@ -3424,5 +3554,57 @@ button,
         font-size: 3rem;
         margin-bottom: 15px;
     }
+}
+
+/* 排行榜动画效果 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+/* 加载状态动画 */
+.leaderboard-loading {
+    animation: pulse 2s infinite;
+}
+
+.shimmer-effect {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+    background-size: 200px 100%;
+    animation: shimmer 2s infinite;
 }
 

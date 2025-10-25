@@ -1964,8 +1964,8 @@ class SimpleIntegration {
             return `
                 <div class="leaderboard-item ${rankClass}" onclick="window.simpleIntegration.showUserDetail(${JSON.stringify(user).replace(/"/g, '&quot;')}, ${rank})">
                     <div class="rank-info">
-                        <div class="rank rank-${rank}">${rank}</div>
-                        ${medalIcon ? `<span class="medal-icon">${medalIcon}</span>` : ''}
+                        <div class="rank">${rank}</div>
+                        ${medalIcon ? `<span class="medal">${medalIcon}</span>` : ''}
                     </div>
                     <div class="user-info">
                         <div class="user-avatar">${this.getUserAvatar(user)}</div>
