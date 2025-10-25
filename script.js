@@ -140,6 +140,36 @@ class CoinTracker {
             this.exportData();
         });
 
+        // 导入数据
+        const importBtn = document.getElementById('importBtn');
+        const importFileInput = document.getElementById('importFileInput');
+        
+        importBtn.addEventListener('click', () => {
+            importFileInput.click();
+        });
+
+        importFileInput.addEventListener('change', (event) => {
+            this.importData(event.target.files[0]);
+        });
+
+        // 时间范围筛选
+        const timeRangeFilter = document.getElementById('timeRangeFilter');
+        timeRangeFilter.addEventListener('change', (event) => {
+            this.filterDataByTimeRange(event.target.value);
+        });
+
+        // 图表类型切换
+        const chartTypeFilter = document.getElementById('chartTypeFilter');
+        chartTypeFilter.addEventListener('change', (event) => {
+            this.changeChartType(event.target.value);
+        });
+
+        // 导出图表
+        const exportChartBtn = document.getElementById('exportChartBtn');
+        exportChartBtn.addEventListener('click', () => {
+            this.exportCurrentChart();
+        });
+
         // 清空记录
         const clearBtn = document.getElementById('clearBtn');
         clearBtn.addEventListener('click', () => {
@@ -217,6 +247,7 @@ class CoinTracker {
         this.updateDisplay();
         this.renderHistory();
         this.updateCharts();
+        this.updateKPICards();
         this.updateStreakDisplay();
         this.updateChallengeDisplay();
         this.checkAchievements();
@@ -458,6 +489,7 @@ class CoinTracker {
         this.initMonthlyChart();
 
         this.updateCharts();
+        this.updateKPICards();
     }
 
     initTotalChart() {
@@ -618,22 +650,262 @@ class CoinTracker {
 
     // 更新图表数据
     updateCharts() {
-        if (this.coinData.length === 0) {
+        const emptyState = document.getElementById('emptyChartState');
+        const chartWrappers = document.querySelectorAll('.chart-wrapper');
+        const filteredData = this.getFilteredData();
+        
+        if (filteredData.length === 0) {
+            // 显示空数据状态
+            if (emptyState) emptyState.style.display = 'block';
+            chartWrappers.forEach(wrapper => wrapper.style.display = 'none');
             this.clearAllCharts();
             return;
         }
 
+        // 隐藏空数据状态，显示图表
+        if (emptyState) emptyState.style.display = 'none';
+        chartWrappers.forEach(wrapper => wrapper.style.display = 'block');
+
         // 更新总金币趋势图
-        this.updateTotalChart();
+        this.updateTotalChart(filteredData);
 
         // 更新每日变化图
-        this.updateDailyChart();
+        this.updateDailyChart(filteredData);
 
         // 更新周统计图
-        this.updateWeeklyChart();
+        this.updateWeeklyChart(filteredData);
 
         // 更新月统计图
-        this.updateMonthlyChart();
+        this.updateMonthlyChart(filteredData);
+    }
+
+    // 更新KPI摘要卡片
+    updateKPICards() {
+        const filteredData = this.getFilteredData();
+        
+        if (filteredData.length === 0) {
+            this.setKPIDefaults();
+            return;
+        }
+
+        // 计算总金币数
+        const totalCoins = filteredData.length > 0 ? 
+            filteredData[filteredData.length - 1].coins : 0;
+
+        // 计算平均每日增长
+        const avgGrowth = this.calculateAverageGrowth(filteredData);
+
+        // 计算最大单日增长
+        const maxGrowth = this.calculateMaxGrowth(filteredData);
+
+        // 获取连续记录天数
+        const streakDays = this.streakData?.currentStreak || 0;
+
+        // 更新DOM元素
+        this.updateKPIElement('kpiTotalCoins', totalCoins.toLocaleString());
+        this.updateKPIElement('kpiAvgGrowth', avgGrowth.toFixed(1));
+        this.updateKPIElement('kpiMaxGrowth', maxGrowth.toLocaleString());
+        this.updateKPIElement('kpiStreakDays', streakDays.toString());
+    }
+
+    // 设置KPI默认值
+    setKPIDefaults() {
+        this.updateKPIElement('kpiTotalCoins', '0');
+        this.updateKPIElement('kpiAvgGrowth', '0.0');
+        this.updateKPIElement('kpiMaxGrowth', '0');
+        this.updateKPIElement('kpiStreakDays', '0');
+    }
+
+    // 更新单个KPI元素
+    updateKPIElement(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            // 添加数字变化动画
+            const currentValue = element.textContent;
+            if (currentValue !== value) {
+                element.style.transform = 'scale(1.1)';
+                element.style.color = 'var(--primary-color)';
+                
+                setTimeout(() => {
+                    element.textContent = value;
+                    element.style.transform = 'scale(1)';
+                    element.style.color = 'var(--text-primary)';
+                }, 150);
+            } else {
+                element.textContent = value;
+            }
+        }
+    }
+
+    // 计算平均每日增长
+    calculateAverageGrowth(data = null) {
+        const chartData = data || this.coinData;
+        if (chartData.length < 2) return 0;
+        
+        const totalGrowth = chartData.reduce((sum, record) => sum + record.difference, 0);
+        return totalGrowth / chartData.length;
+    }
+
+    // 计算最大单日增长
+    calculateMaxGrowth(data = null) {
+        const chartData = data || this.coinData;
+        if (chartData.length === 0) return 0;
+        
+        return Math.max(...chartData.map(record => record.difference));
+    }
+
+    // 时间范围筛选
+    filterDataByTimeRange(range) {
+        this.currentTimeRange = range;
+        this.updateCharts();
+        this.updateKPICards();
+    }
+
+    // 获取筛选后的数据
+    getFilteredData() {
+        if (!this.currentTimeRange || this.currentTimeRange === 'all') {
+            return this.coinData;
+        }
+
+        const now = new Date();
+        let startDate;
+
+        switch (this.currentTimeRange) {
+            case '7':
+                startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                break;
+            case '30':
+                startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                break;
+            case '90':
+                startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                break;
+            case 'custom':
+                // 自定义范围功能（后续实现）
+                return this.coinData;
+            default:
+                return this.coinData;
+        }
+
+        return this.coinData.filter(record => {
+            const recordDate = new Date(record.date);
+            return recordDate >= startDate;
+        });
+    }
+
+    // 切换图表类型
+    changeChartType(type) {
+        this.currentChartType = type;
+        this.updateCharts();
+    }
+
+    // 获取图表配置
+    getChartConfig(type, data, label, color, backgroundColor) {
+        const baseConfig = {
+            data: data,
+            borderColor: color,
+            backgroundColor: backgroundColor,
+            borderWidth: 2,
+            tension: 0.4
+        };
+
+        switch (type) {
+            case 'bar':
+                return {
+                    ...baseConfig,
+                    type: 'bar',
+                    backgroundColor: backgroundColor,
+                    borderColor: color,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    borderSkipped: false
+                };
+            case 'area':
+                return {
+                    ...baseConfig,
+                    type: 'line',
+                    fill: true,
+                    backgroundColor: backgroundColor,
+                    tension: 0.4
+                };
+            case 'line':
+            default:
+                return {
+                    ...baseConfig,
+                    type: 'line',
+                    fill: false,
+                    tension: 0.4
+                };
+        }
+    }
+
+    // 导出当前图表
+    exportCurrentChart() {
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (!activeTab) {
+            this.showMessage('没有活动的图表', 'warning');
+            return;
+        }
+
+        const chartId = activeTab.dataset.tab;
+        const chart = this.getChartById(chartId);
+        
+        if (!chart) {
+            this.showMessage('图表未找到', 'error');
+            return;
+        }
+
+        try {
+            // 获取图表画布
+            const canvas = chart.canvas;
+            
+            // 创建下载链接
+            const link = document.createElement('a');
+            link.download = `金币图表_${this.getChartTitle(chartId)}_${this.getBeijingDate()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            
+            // 触发下载
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            this.showMessage('图表导出成功！', 'success');
+        } catch (error) {
+            console.error('导出图表失败:', error);
+            this.showMessage('图表导出失败', 'error');
+        }
+    }
+
+    // 根据ID获取图表实例
+    getChartById(chartId) {
+        switch (chartId) {
+            case 'totalChart':
+                return this.totalChart;
+            case 'dailyChart':
+                return this.dailyChart;
+            case 'weeklyChart':
+                return this.weeklyChart;
+            case 'monthlyChart':
+                return this.monthlyChart;
+            default:
+                return null;
+        }
+    }
+
+    // 获取图表标题
+    getChartTitle(chartId) {
+        switch (chartId) {
+            case 'totalChart':
+                return '总金币趋势';
+            case 'dailyChart':
+                return '每日变化';
+            case 'weeklyChart':
+                return '周统计';
+            case 'monthlyChart':
+                return '月统计';
+            default:
+                return '图表';
+        }
     }
 
     clearAllCharts() {
@@ -653,52 +925,115 @@ class CoinTracker {
         });
     }
 
-    updateTotalChart() {
+    updateTotalChart(data = null) {
+        const chartData = data || this.coinData;
+        const chartType = this.currentChartType || 'line';
+        
         // 按日期排序数据
-        const sortedData = [...this.coinData].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const sortedData = [...chartData].sort((a, b) => new Date(a.date) - new Date(b.date));
         const labels = sortedData.map(record => this.formatDate(record.date));
         const totalData = sortedData.map(record => record.coins);
 
+        // 更新图表类型和数据
+        const config = this.getChartConfig(
+            chartType, 
+            totalData, 
+            '总金币数', 
+            '#f39c12', 
+            'rgba(243, 156, 18, 0.1)'
+        );
+
         this.totalChart.data.labels = labels;
-        this.totalChart.data.datasets[0].data = totalData;
+        this.totalChart.data.datasets[0] = {
+            label: '总金币数',
+            ...config
+        };
         this.totalChart.update();
     }
 
-    updateDailyChart() {
+    updateDailyChart(data = null) {
+        const chartData = data || this.coinData;
+        const chartType = this.currentChartType || 'line';
+        
         // 按日期排序数据
-        const sortedData = [...this.coinData].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const sortedData = [...chartData].sort((a, b) => new Date(a.date) - new Date(b.date));
         const dailyLabels = sortedData.map(record => this.formatDate(record.date));
         const dailyData = sortedData.map(record => record.difference);
 
+        // 更新图表类型和数据
+        const config = this.getChartConfig(
+            chartType, 
+            dailyData, 
+            '每日变化', 
+            '#e74c3c', 
+            'rgba(231, 76, 60, 0.1)'
+        );
+
         this.dailyChart.data.labels = dailyLabels;
-        this.dailyChart.data.datasets[0].data = dailyData;
+        this.dailyChart.data.datasets[0] = {
+            label: '每日变化',
+            ...config
+        };
         this.dailyChart.update();
     }
 
 
-    updateWeeklyChart() {
-        const weeklyData = this.calculateWeeklyStats();
+    updateWeeklyChart(data = null) {
+        const chartData = data || this.coinData;
+        const chartType = this.currentChartType || 'bar';
+        
+        const weeklyData = this.calculateWeeklyStats(chartData);
         const labels = weeklyData.map(week => `第${week.week}周`);
+        const weeklyChartData = weeklyData.map(week => week.total);
+
+        // 更新图表类型和数据
+        const config = this.getChartConfig(
+            chartType, 
+            weeklyChartData, 
+            '周总金币', 
+            '#3498db', 
+            'rgba(52, 152, 219, 0.1)'
+        );
 
         this.weeklyChart.data.labels = labels;
-        this.weeklyChart.data.datasets[0].data = weeklyData.map(week => week.total);
+        this.weeklyChart.data.datasets[0] = {
+            label: '周总金币',
+            ...config
+        };
         this.weeklyChart.update();
     }
 
-    updateMonthlyChart() {
-        const monthlyData = this.calculateMonthlyStats();
+    updateMonthlyChart(data = null) {
+        const chartData = data || this.coinData;
+        const chartType = this.currentChartType || 'bar';
+        
+        const monthlyData = this.calculateMonthlyStats(chartData);
         const labels = monthlyData.map(month => `${month.year}-${month.month.toString().padStart(2, '0')}`);
+        const monthlyChartData = monthlyData.map(month => month.total);
+
+        // 更新图表类型和数据
+        const config = this.getChartConfig(
+            chartType, 
+            monthlyChartData, 
+            '月总金币', 
+            '#9b59b6', 
+            'rgba(155, 89, 182, 0.1)'
+        );
 
         this.monthlyChart.data.labels = labels;
-        this.monthlyChart.data.datasets[0].data = monthlyData.map(month => month.total);
+        this.monthlyChart.data.datasets[0] = {
+            label: '月总金币',
+            ...config
+        };
         this.monthlyChart.update();
     }
 
 
     // 计算周统计（自然周，显示周末的数额）
-    calculateWeeklyStats() {
+    calculateWeeklyStats(data = null) {
+        const chartData = data || this.coinData;
         const weeks = {};
-        this.coinData.forEach(record => {
+        chartData.forEach(record => {
             const date = new Date(record.date);
             const weekStart = new Date(date);
             weekStart.setDate(date.getDate() - date.getDay());
@@ -747,9 +1082,10 @@ class CoinTracker {
     }
 
     // 计算月统计（自然月，显示月末的数额）
-    calculateMonthlyStats() {
+    calculateMonthlyStats(data = null) {
+        const chartData = data || this.coinData;
         const months = {};
-        this.coinData.forEach(record => {
+        chartData.forEach(record => {
             // 确保正确处理时区，北京时间日期字符串 + 北京时区标识
             const date = new Date(record.date + 'T00:00:00+08:00');
             const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
@@ -786,14 +1122,18 @@ class CoinTracker {
     // 切换图表标签页
     switchTab(tabName) {
         const tabBtns = document.querySelectorAll('.tab-btn');
-        const charts = document.querySelectorAll('.chart-container canvas');
+        const chartWrappers = document.querySelectorAll('.chart-wrapper');
 
+        // 移除所有活动状态
         tabBtns.forEach(btn => btn.classList.remove('active'));
-        charts.forEach(chart => chart.style.display = 'none');
+        chartWrappers.forEach(wrapper => wrapper.classList.remove('active'));
 
+        // 添加新的活动状态
         event.target.classList.add('active');
-
-        document.getElementById(tabName).style.display = 'block';
+        const targetWrapper = document.querySelector(`[data-chart="${tabName}"]`);
+        if (targetWrapper) {
+            targetWrapper.classList.add('active');
+        }
     }
 
     // 导出数据
@@ -817,6 +1157,160 @@ class CoinTracker {
             document.body.removeChild(link);
             this.showMessage('数据导出成功！', 'success');
         }
+    }
+
+    // 导入数据
+    importData(file) {
+        if (!file) {
+            this.showMessage('请选择要导入的文件', 'warning');
+            return;
+        }
+
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            this.showMessage('请选择CSV格式的文件', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const csvContent = e.target.result;
+                const importedData = this.parseCSV(csvContent);
+                
+                if (importedData.length === 0) {
+                    this.showMessage('CSV文件为空或格式不正确', 'warning');
+                    return;
+                }
+
+                // 询问用户是否要合并数据
+                const mergeData = confirm(`检测到 ${importedData.length} 条记录。是否要合并到现有数据中？\n\n点击"确定"合并数据，点击"取消"替换所有数据。`);
+                
+                if (mergeData) {
+                    // 合并数据，避免重复
+                    const existingDates = new Set(this.coinData.map(record => record.date));
+                    const newRecords = importedData.filter(record => !existingDates.has(record.date));
+                    
+                    if (newRecords.length === 0) {
+                        this.showMessage('没有新的记录可以导入（所有日期都已存在）', 'info');
+                        return;
+                    }
+                    
+                    this.coinData = [...this.coinData, ...newRecords];
+                    this.showMessage(`成功导入 ${newRecords.length} 条新记录`, 'success');
+                } else {
+                    // 替换所有数据
+                    this.coinData = importedData;
+                    this.showMessage(`成功导入 ${importedData.length} 条记录，已替换所有数据`, 'success');
+                }
+
+                // 按日期排序
+                this.coinData.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                // 重新计算差值
+                this.calculateDifferences();
+                
+                // 保存数据并更新显示
+                this.saveData();
+                this.updateDisplay();
+                
+            } catch (error) {
+                console.error('导入数据失败:', error);
+                this.showMessage('导入数据失败，请检查文件格式', 'error');
+            }
+        };
+
+        reader.onerror = () => {
+            this.showMessage('文件读取失败', 'error');
+        };
+
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    // 解析CSV内容
+    parseCSV(csvContent) {
+        const lines = csvContent.split('\n').filter(line => line.trim());
+        if (lines.length < 2) {
+            throw new Error('CSV文件格式不正确');
+        }
+
+        // 解析表头
+        const headers = this.parseCSVLine(lines[0]);
+        const expectedHeaders = ['日期', '金币数', '差值', '备注'];
+        
+        // 检查表头是否匹配
+        if (!this.arraysEqual(headers, expectedHeaders)) {
+            throw new Error('CSV文件表头不匹配，请使用导出的文件格式');
+        }
+
+        // 解析数据行
+        const records = [];
+        for (let i = 1; i < lines.length; i++) {
+            try {
+                const values = this.parseCSVLine(lines[i]);
+                if (values.length !== 4) {
+                    console.warn(`跳过格式不正确的行 ${i + 1}:`, lines[i]);
+                    continue;
+                }
+
+                const record = {
+                    date: values[0],
+                    coins: parseInt(values[1]),
+                    difference: parseInt(values[2]),
+                    note: values[3]
+                };
+
+                // 验证数据
+                if (isNaN(record.coins) || isNaN(record.difference)) {
+                    console.warn(`跳过数据不正确的行 ${i + 1}:`, lines[i]);
+                    continue;
+                }
+
+                records.push(record);
+            } catch (error) {
+                console.warn(`跳过无法解析的行 ${i + 1}:`, lines[i]);
+            }
+        }
+
+        return records;
+    }
+
+    // 解析CSV行
+    parseCSVLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            
+            if (char === '"') {
+                if (inQuotes && line[i + 1] === '"') {
+                    // 转义的引号
+                    current += '"';
+                    i++; // 跳过下一个引号
+                } else {
+                    // 切换引号状态
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                // 字段分隔符
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        
+        // 添加最后一个字段
+        result.push(current.trim());
+        
+        return result;
+    }
+
+    // 比较两个数组是否相等
+    arraysEqual(a, b) {
+        if (a.length !== b.length) return false;
+        return a.every((val, index) => val === b[index]);
     }
 
     // 生成CSV内容
@@ -1269,6 +1763,7 @@ class CoinTracker {
         this.updateDisplay();
         this.renderHistory();
         this.updateCharts();
+        this.updateKPICards();
         this.updateStreakDisplay();
         this.updateChallengeDisplay();
         this.checkAchievements();

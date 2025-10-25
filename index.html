@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v5.11.2</span>
+                <span class="version-badge">v6.1.2</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -198,6 +198,27 @@
                     </div>
                     <div class="section-content" id="chartContent">
                         <h3 class="card-title">📈 数据可视化</h3>
+                        
+                        <!-- KPI摘要卡片 -->
+                        <div class="kpi-grid" id="kpiGrid">
+                            <div class="kpi-card">
+                                <div class="kpi-label">总金币数</div>
+                                <div class="kpi-value" id="kpiTotalCoins">0</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">平均每日增长</div>
+                                <div class="kpi-value" id="kpiAvgGrowth">0</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">最大单日增长</div>
+                                <div class="kpi-value" id="kpiMaxGrowth">0</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">连续记录天数</div>
+                                <div class="kpi-value" id="kpiStreakDays">0</div>
+                            </div>
+                        </div>
+                        
                         <div class="chart-controls">
                             <div class="chart-tabs">
                                 <button class="tab-btn active" data-tab="totalChart">总金币</button>
@@ -205,13 +226,50 @@
                                 <button class="tab-btn" data-tab="weeklyChart">周统计</button>
                                 <button class="tab-btn" data-tab="monthlyChart">月统计</button>
                             </div>
-                            <button id="resetZoomBtn" class="btn-icon">🔄</button>
+                            <div class="chart-controls-right">
+                                <div class="chart-type-selector">
+                                    <select id="chartTypeFilter" class="chart-type-select">
+                                        <option value="line">折线图</option>
+                                        <option value="bar">柱状图</option>
+                                        <option value="area">面积图</option>
+                                    </select>
+                                </div>
+                                <div class="time-filter">
+                                    <select id="timeRangeFilter" class="time-range-select">
+                                        <option value="all">全部时间</option>
+                                        <option value="7">最近7天</option>
+                                        <option value="30">最近30天</option>
+                                        <option value="90">最近3个月</option>
+                                        <option value="custom">自定义范围</option>
+                                    </select>
+                                </div>
+                                <button id="resetZoomBtn" class="btn-icon">🔄</button>
+                                <button id="exportChartBtn" class="btn-icon" title="导出图表">📤</button>
+                            </div>
                         </div>
                         <div class="chart-container">
-                            <canvas id="totalChart"></canvas>
-                            <canvas id="dailyChart" style="display: none;"></canvas>
-                            <canvas id="weeklyChart" style="display: none;"></canvas>
-                            <canvas id="monthlyChart" style="display: none;"></canvas>
+                            <!-- 空数据状态 -->
+                            <div class="empty-chart-state" id="emptyChartState" style="display: none;">
+                                <div class="empty-icon">📊</div>
+                                <h3 class="empty-title">暂无数据</h3>
+                                <p class="empty-description">开始记录您的金币变化，数据可视化图表将在这里显示</p>
+                                <button class="empty-action-btn" onclick="document.querySelector('[data-tab=\'home\']').click()">
+                                    开始记录
+                                </button>
+                            </div>
+                            
+                            <div class="chart-wrapper active" data-chart="totalChart">
+                                <canvas id="totalChart"></canvas>
+                            </div>
+                            <div class="chart-wrapper" data-chart="dailyChart">
+                                <canvas id="dailyChart"></canvas>
+                            </div>
+                            <div class="chart-wrapper" data-chart="weeklyChart">
+                                <canvas id="weeklyChart"></canvas>
+                            </div>
+                            <div class="chart-wrapper" data-chart="monthlyChart">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -402,7 +460,7 @@
                     <div id="loginSection" class="account-section">
                         <div class="account-info">
                             <p class="account-desc">登录后可同步数据到云端，防止数据丢失</p>
-                    </div>
+                        </div>
                         <button id="loginBtn" class="btn-primary btn-block">
                             <span>🔐</span>
                             <span>登录/注册</span>
@@ -416,7 +474,7 @@
                             <div class="user-details">
                                 <div class="user-name-display">
                                     <span id="userEmail" class="user-email-text"></span>
-                    </div>
+                                </div>
                                 <div class="user-actions-grid">
                                     <button id="syncFromCloudBtn" class="action-card-btn">
                                         <span class="action-icon">⬇️</span>
@@ -426,6 +484,10 @@
                                         <span class="action-icon">⬆️</span>
                                         <span class="action-label">上传数据</span>
                                     </button>
+                                    <button id="validateDataBtn" class="action-card-btn">
+                                        <span class="action-icon">🔍</span>
+                                        <span class="action-label">数据校验</span>
+                                    </button>
                                     <button id="showBinIdBtn" class="action-card-btn">
                                         <span class="action-icon">🔑</span>
                                         <span class="action-label">账户ID</span>
@@ -434,32 +496,18 @@
                                         <span class="action-icon">🚪</span>
                                         <span class="action-label">退出登录</span>
                                     </button>
-                    </div>
-                </div>
-            </div>
-                </div>
-            </div>
-
-                <!-- 数据校验卡片 -->
-                <div class="validation-card">
-                    <h3 class="card-title">🔍 数据校验</h3>
-                    <div class="validation-content">
-                        <div class="validation-description">
-                            <p>检查云端和本地数据是否一致，确保数据同步的准确性</p>
-                        </div>
-                        <div class="validation-actions">
-                            <button id="validateDataBtn" class="btn-primary btn-block">
-                                <span class="btn-icon">🔍</span>
-                                <span>开始校验</span>
-                            </button>
-                        </div>
-                        <div id="validationResult" class="validation-result" style="display: none;">
-                            <div class="validation-status">
-                                <div class="status-icon" id="validationStatusIcon">⏳</div>
-                                <div class="status-text" id="validationStatusText">校验中...</div>
+                                </div>
                             </div>
-                            <div class="validation-details" id="validationDetails"></div>
                         </div>
+                    </div>
+
+                    <!-- 校验结果显示 -->
+                    <div id="validationResult" class="validation-result" style="display: none;">
+                        <div class="validation-status">
+                            <div class="status-icon" id="validationStatusIcon">⏳</div>
+                            <div class="status-text" id="validationStatusText">校验中...</div>
+                        </div>
+                        <div class="validation-details" id="validationDetails"></div>
                     </div>
                 </div>
 
@@ -467,15 +515,17 @@
                 <div class="settings-card">
                     <div class="skeleton" id="historySkeleton" style="display: none;">
                         <div class="skeleton-list"></div>
-                </div>
+                    </div>
                     <div class="section-content" id="historyContent">
                         <h3 class="card-title">📜 历史记录</h3>
                         <div class="history-controls">
                             <button id="exportBtn" class="btn-secondary">导出数据</button>
+                            <button id="importBtn" class="btn-secondary">导入数据</button>
                             <button id="clearBtn" class="btn-danger">清空记录</button>
-            </div>
-                        <div class="history-list" id="historyList"></div>
                         </div>
+                        <!-- 隐藏的文件输入 -->
+                        <input type="file" id="importFileInput" accept=".csv" style="display: none;">
+                        <div class="history-list" id="historyList"></div>
                     </div>
                 </div>
             </div>
