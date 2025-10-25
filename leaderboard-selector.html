@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金币记录器 - 排行榜选择器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .selector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .design-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .design-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .design-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .design-card p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .design-preview {
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .design-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .feature-tag {
+            background: rgba(102, 126, 234, 0.2);
+            color: #81e6d9;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .current-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #48bb78;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .main-btn {
+            display: block;
+            width: 200px;
+            margin: 0 auto;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .main-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .selector-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .design-card {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .design-preview {
+                height: 150px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 排行榜设计选择器</h1>
+            <p>选择您喜欢的排行榜界面设计风格</p>
+        </div>
+
+        <div class="selector-grid">
+            <div class="design-card" onclick="openLeaderboard('index.html')">
+                <div class="current-indicator">当前使用</div>
+                <h3>🎯 现代化设计</h3>
+                <p>当前主应用使用的设计，卡片式布局，响应式适配，现代化视觉效果。</p>
+                <div class="design-preview">
+                    <div style="text-align: center;">
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px;">🏆 排行榜</div>
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 8px; margin-bottom: 5px;">👤 用户名</div>
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 8px;">💰 12,345</div>
+                    </div>
+                </div>
+                <div class="design-features">
+                    <span class="feature-tag">现代化</span>
+                    <span class="feature-tag">响应式</span>
+                    <span class="feature-tag">卡片布局</span>
+                    <span class="feature-tag">动画效果</span>
+                </div>
+            </div>
+
+            <div class="design-card" onclick="openLeaderboard('leaderboard-classic.html')">
+                <h3>📋 经典表格设计</h3>
+                <p>传统的表格式排行榜，清晰的数据展示，适合数据分析和对比查看。</p>
+                <div class="design-preview">
+                    <div style="text-align: center; font-size: 0.8rem;">
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 4px; padding: 8px; margin-bottom: 8px; font-weight: bold;">排名 | 用户 | 金币</div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 4px; margin-bottom: 3px;">1 | xiaoxian | 31,736</div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 4px; margin-bottom: 3px;">2 | 顶级带叫兽 | 21,037</div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 4px;">3 | auth | 15,540</div>
+                    </div>
+                </div>
+                <div class="design-features">
+                    <span class="feature-tag">表格布局</span>
+                    <span class="feature-tag">数据对比</span>
+                    <span class="feature-tag">简洁明了</span>
+                    <span class="feature-tag">专业感</span>
+                </div>
+            </div>
+
+            <div class="design-card" onclick="openLeaderboard('leaderboard-modern.html')">
+                <h3>💎 现代卡片设计</h3>
+                <p>现代化的卡片式设计，每个用户独立卡片，视觉层次丰富，信息展示完整。</p>
+                <div class="design-preview">
+                    <div style="text-align: center;">
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <div style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">1</div>
+                                <div style="background: rgba(255,255,255,0.1); border-radius: 50%; width: 24px; height: 24px;"></div>
+                                <div style="flex: 1; text-align: left; font-size: 0.8rem;">xiaoxian</div>
+                                <div style="font-size: 0.9rem; font-weight: bold;">31,736</div>
+                            </div>
+                            <div style="display: flex; gap: 4px; font-size: 0.6rem;">
+                                <span style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 8px;">🏆 15</span>
+                                <span style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 8px;">🔥 23</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="design-features">
+                    <span class="feature-tag">卡片设计</span>
+                    <span class="feature-tag">信息丰富</span>
+                    <span class="feature-tag">视觉层次</span>
+                    <span class="feature-tag">现代感</span>
+                </div>
+            </div>
+
+            <div class="design-card" onclick="openLeaderboard('leaderboard-gaming.html')">
+                <h3>⚔️ 游戏化竞技场</h3>
+                <p>游戏化的排行榜设计，带有竞技元素，适合游戏爱好者，充满战斗氛围。</p>
+                <div class="design-preview">
+                    <div style="text-align: center;">
+                        <div style="background: rgba(255,107,107,0.1); border-radius: 12px; padding: 12px; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <div style="background: #ffd700; color: #8b4513; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</div>
+                                <div style="background: rgba(255,255,255,0.1); border-radius: 50%; width: 24px; height: 24px;"></div>
+                                <div style="flex: 1; text-align: left; font-size: 0.8rem;">xiaoxian</div>
+                                <div style="font-size: 0.9rem; font-weight: bold; color: #38a169;">31,736</div>
+                            </div>
+                            <div style="display: flex; gap: 4px; font-size: 0.6rem;">
+                                <span style="background: rgba(229,62,62,0.1); color: #f56565; padding: 2px 4px; border-radius: 8px;">🏆 15</span>
+                                <span style="background: rgba(49,130,206,0.1); color: #4299e1; padding: 2px 4px; border-radius: 8px;">🔥 23</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="design-features">
+                    <span class="feature-tag">游戏化</span>
+                    <span class="feature-tag">战斗氛围</span>
+                    <span class="feature-tag">视觉冲击</span>
+                    <span class="feature-tag">沉浸体验</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="index.html" class="main-btn">返回主应用</a>
+        </div>
+
+        <div class="footer">
+            <p>💡 提示：点击任意设计卡片即可预览该设计风格的排行榜界面</p>
+        </div>
+    </div>
+
+    <script>
+        function openLeaderboard(url) {
+            window.open(url, '_blank');
+        }
+
+        // 添加一些交互动画
+        document.querySelectorAll('.design-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // 添加卡片悬停效果
+        document.querySelectorAll('.design-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+        });
+    </script>
+</body>
+</html>
