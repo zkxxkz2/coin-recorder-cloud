@@ -2170,26 +2170,29 @@ button,
 }
 
 /* ============================================
-   现代化排行榜UI样式
+   紧凑的现代化排行榜UI样式
    ============================================ */
 
 .leaderboard-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 16px;
+    padding: 8px;
 }
 
-.leaderboard-stats-card {
+.leaderboard-header-bar {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 16px;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 12px rgba(102, 126, 234, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     position: relative;
     overflow: hidden;
 }
 
-.leaderboard-stats-card::before {
+.leaderboard-header-bar::before {
     content: '';
     position: absolute;
     top: 0;
@@ -2197,115 +2200,96 @@ button,
     right: 0;
     bottom: 0;
     background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="70" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
-    opacity: 0.4;
+    opacity: 0.3;
 }
 
-.stats-card-header {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    margin-bottom: 20px;
+.header-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
 }
 
-.stats-icon {
-    width: 48px;
-    height: 48px;
-    margin: 0 auto 12px;
+.header-icon {
+    width: 24px;
+    height: 24px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
+    flex-shrink: 0;
 }
 
-.stats-icon svg {
-    width: 24px;
-    height: 24px;
+.header-icon svg {
+    width: 12px;
+    height: 12px;
 }
 
-.stats-title {
-    font-size: 1.8rem;
+.header-title {
+    font-size: 1rem;
     font-weight: 700;
     color: white;
-    margin: 0 0 8px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.stats-subtitle {
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.9);
     margin: 0;
-    font-weight: 400;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
+.header-stats {
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
-.stat-metric {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    padding: 16px;
+.mini-stat {
     text-align: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 4px 8px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.metric-icon {
-    font-size: 1.5rem;
-    margin-bottom: 8px;
-    opacity: 0.9;
-}
-
-.metric-number {
+.mini-number {
     display: block;
-    font-size: 1.8rem;
-    font-weight: 800;
+    font-size: 0.9rem;
+    font-weight: 700;
     color: white;
-    margin-bottom: 4px;
+    margin-bottom: 1px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.metric-label {
-    font-size: 0.85rem;
+.mini-label {
+    font-size: 0.65rem;
     color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
 }
 
-.leaderboard-controls {
-    display: flex;
-    justify-content: center;
-}
-
-.control-btn {
+.mini-refresh-btn {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
-    padding: 12px 20px;
+    border-radius: 6px;
+    padding: 6px;
     color: white;
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-.control-btn:hover {
+.mini-refresh-btn:hover {
     background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transform: rotate(90deg);
 }
 
-.control-btn svg {
-    width: 16px;
-    height: 16px;
+.mini-refresh-btn svg {
+    width: 12px;
+    height: 12px;
 }
 
 /* 现代化排行榜内容区域样式 */

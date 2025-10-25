@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v5.6.0</span>
+                <span class="version-badge">v5.7.0</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -338,43 +338,33 @@
             <!-- 排行榜Tab -->
             <div class="tab-content" data-tab-content="leaderboard">
                 <div class="leaderboard-container">
-                    <!-- 排行榜头部统计卡片 -->
-                    <div class="leaderboard-stats-card">
-                        <div class="stats-card-header">
-                            <div class="stats-icon">
+                    <!-- 紧凑的排行榜表头 -->
+                    <div class="leaderboard-header-bar">
+                        <div class="header-bar-left">
+                            <div class="header-icon">
                                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
-                            <h2 class="stats-title">金币排行榜</h2>
-                            <p class="stats-subtitle">全球用户金币竞技场</p>
+                            <h1 class="header-title">金币排行榜</h1>
                         </div>
 
-                        <div class="stats-grid">
-                            <div class="stat-metric">
-                                <div class="metric-icon">👥</div>
-                                <div class="metric-content">
-                                    <span class="metric-number" id="bannerParticipantCount">0</span>
-                                    <span class="metric-label">参与者</span>
-                                </div>
+                        <div class="header-stats">
+                            <div class="mini-stat">
+                                <span class="mini-number" id="bannerParticipantCount">0</span>
+                                <span class="mini-label">参与者</span>
                             </div>
-                            <div class="stat-metric">
-                                <div class="metric-icon">💰</div>
-                                <div class="metric-content">
-                                    <span class="metric-number" id="bannerTotalCoins">0</span>
-                                    <span class="metric-label">总金币</span>
-                                </div>
+                            <div class="mini-stat">
+                                <span class="mini-number" id="bannerTotalCoins">0</span>
+                                <span class="mini-label">总金币</span>
                             </div>
                         </div>
 
-                        <div class="leaderboard-controls">
-                            <button id="refreshBannerBtn" class="control-btn refresh">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M4 4V9H4.58152M20 20V15H19.4185M4.58152 9C5.80611 7.7667 7.4179 7 9.17623 7C12.7136 7 15.5 9.7864 15.5 13.3238C15.5 16.8611 12.7136 19.6476 9.17623 19.6476C7.4179 19.6476 5.80611 19.2333 4.58152 18M19.4185 15C18.1939 16.2333 16.5821 16.6476 14.8238 16.6476C11.2864 16.6476 8.5 13.8611 8.5 10.3238C8.5 6.7864 11.2864 4 14.8238 4C16.5821 4 18.1939 4.2333 19.4185 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>刷新数据</span>
-                            </button>
-                        </div>
+                        <button id="refreshBannerBtn" class="mini-refresh-btn">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 4V9H4.58152M20 20V15H19.4185M4.58152 9C5.80611 7.7667 7.4179 7 9.17623 7C12.7136 7 15.5 9.7864 15.5 13.3238C15.5 16.8611 12.7136 19.6476 9.17623 19.6476C7.4179 19.6476 5.80611 19.2333 4.58152 18M19.4185 15C18.1939 16.2333 16.5821 16.6476 14.8238 16.6476C11.2864 16.6476 8.5 13.8611 8.5 10.3238C8.5 6.7864 11.2864 4 14.8238 4C16.5821 4 18.1939 4.2333 19.4185 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
                     </div>
 
                     <!-- 排行榜内容区域 -->
