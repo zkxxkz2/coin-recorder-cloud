@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v6.2.8</span>
+                <span class="version-badge">v6.3.0</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -65,91 +65,6 @@
         <div class="app-container">
             <!-- Tab内容区 -->
             <div class="tab-content active" data-tab-content="home">
-                <!-- 今日统计卡片 -->
-                <div class="stats-card">
-                    <div class="skeleton" id="statsSkeleton" style="display: none;">
-                        <div class="skeleton-grid">
-                            <div class="skeleton-stat"></div>
-                            <div class="skeleton-stat"></div>
-                            <div class="skeleton-stat"></div>
-                            <div class="skeleton-stat"></div>
-                        </div>
-                    </div>
-                    <div class="section-content" id="statsContent">
-                        <h3 class="card-title">📊 今日统计</h3>
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <span class="stat-label">今日金币</span>
-                                <span class="stat-value" id="todayCoins">-</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">记录次数</span>
-                                <span class="stat-value" id="recordDays">-</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">与昨日差值</span>
-                                <span class="stat-value" id="difference">-</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">总金币</span>
-                                <span class="stat-value" id="totalCoins">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-                <!-- 快速操作卡片 -->
-                <div class="action-card">
-            <div class="skeleton" id="inputSkeleton" style="display: none;">
-                <div class="skeleton-input"></div>
-                <div class="skeleton-button"></div>
-            </div>
-            <div class="section-content" id="inputContent">
-                        <h3 class="card-title">
-                            <span>💰 快速记录</span>
-                        <div class="current-time" id="currentTime">--:--</div>
-                        </h3>
-                        <form id="coinForm" class="quick-form">
-                    <div class="form-group">
-                                <input type="number" id="coinAmount" name="coinAmount" min="0" placeholder="输入今日金币数量" required>
-                    </div>
-                    <div class="form-group">
-                                <input type="text" id="note" name="note" maxlength="50" placeholder="备注（可选）">
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn-primary">添加记录</button>
-                                <button type="button" id="makeupRecordBtn" class="btn-secondary" style="display: none;">补签</button>
-                    </div>
-                </form>
-            </div>
-                </div>
-
-                <!-- 连击统计卡片 -->
-                <div class="streak-card">
-                    <div class="skeleton" id="streakSkeleton" style="display: none;">
-                        <div class="skeleton-streak"></div>
-                    </div>
-                    <div class="section-content" id="streakContent">
-                        <h3 class="card-title">🔥 连击统计</h3>
-                        <div class="streak-display">
-                            <div class="streak-main">
-                                <span class="streak-number" id="currentStreak">0</span>
-                                <span class="streak-unit">天连击</span>
-                            </div>
-                            <div class="streak-info">
-                                <div class="streak-item">
-                                    <span>最长连击</span>
-                                    <span id="longestStreak">0天</span>
-                                </div>
-                                <div class="streak-item">
-                                    <span>今日状态</span>
-                                    <span id="todayComplete">未完成</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- 挑战进度卡片 -->
                 <div class="challenge-card">
                     <div class="skeleton" id="challengeSkeleton" style="display: none;">
@@ -185,6 +100,91 @@
                         </div>
                         <div id="noChallengeInfo" class="no-challenge">
                             <p>还没有设定挑战，点击右上角设置目标吧！</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快速操作卡片 -->
+                <div class="action-card">
+            <div class="skeleton" id="inputSkeleton" style="display: none;">
+                <div class="skeleton-input"></div>
+                <div class="skeleton-button"></div>
+            </div>
+            <div class="section-content" id="inputContent">
+                        <h3 class="card-title">
+                            <span>💰 快速记录</span>
+                        <div class="current-time" id="currentTime">--:--</div>
+                        </h3>
+                        <form id="coinForm" class="quick-form">
+                    <div class="form-group">
+                                <input type="number" id="coinAmount" name="coinAmount" min="0" placeholder="输入今日金币数量" required>
+                    </div>
+                    <div class="form-group">
+                                <input type="text" id="note" name="note" maxlength="50" placeholder="备注（可选）">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">添加记录</button>
+                                <button type="button" id="makeupRecordBtn" class="btn-secondary" style="display: none;">补签</button>
+                    </div>
+                </form>
+            </div>
+                </div>
+
+                <!-- 今日统计卡片 -->
+                <div class="stats-card">
+                    <div class="skeleton" id="statsSkeleton" style="display: none;">
+                        <div class="skeleton-grid">
+                            <div class="skeleton-stat"></div>
+                            <div class="skeleton-stat"></div>
+                            <div class="skeleton-stat"></div>
+                            <div class="skeleton-stat"></div>
+                        </div>
+                    </div>
+                    <div class="section-content" id="statsContent">
+                        <h3 class="card-title">📊 今日统计</h3>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <span class="stat-label">今日金币</span>
+                                <span class="stat-value" id="todayCoins">-</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">记录次数</span>
+                                <span class="stat-value" id="recordDays">-</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">与昨日差值</span>
+                                <span class="stat-value" id="difference">-</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">总金币</span>
+                                <span class="stat-value" id="totalCoins">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- 连击统计卡片 -->
+                <div class="streak-card">
+                    <div class="skeleton" id="streakSkeleton" style="display: none;">
+                        <div class="skeleton-streak"></div>
+                    </div>
+                    <div class="section-content" id="streakContent">
+                        <h3 class="card-title">🔥 连击统计</h3>
+                        <div class="streak-display">
+                            <div class="streak-main">
+                                <span class="streak-number" id="currentStreak">0</span>
+                                <span class="streak-unit">天连击</span>
+                            </div>
+                            <div class="streak-info">
+                                <div class="streak-item">
+                                    <span>最长连击</span>
+                                    <span id="longestStreak">0天</span>
+                                </div>
+                                <div class="streak-item">
+                                    <span>今日状态</span>
+                                    <span id="todayComplete">未完成</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
