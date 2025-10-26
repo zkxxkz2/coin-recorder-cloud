@@ -2016,6 +2016,52 @@ body {
     padding: 10px 20px;
     font-size: 14px;
   }
+
+  /* 历史记录移动端优化 */
+  .history-list {
+    max-height: 500px;
+    gap: 10px;
+  }
+
+  .history-item {
+    padding: 16px 14px;
+    min-height: 64px;
+    border-left: 4px solid var(--border-color);
+  }
+
+  .history-date {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .history-coins {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .history-note {
+    font-size: 13px;
+    margin-top: 4px;
+    color: var(--text-secondary);
+  }
+
+  .history-difference {
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+
+  .history-actions {
+    gap: 6px;
+  }
+
+  .history-actions button {
+    padding: 8px 10px;
+    font-size: 13px;
+    min-width: 60px;
+  }
 }
 
 @media (max-width: 400px) {
@@ -6760,5 +6806,51 @@ button,
 
     .control-text {
         font-size: 12px;
+    }
+
+    /* 历史记录移动端优化 */
+    .history-list {
+        max-height: 500px;
+        gap: 10px;
+    }
+
+    .history-item {
+        padding: 16px 14px;
+        min-height: 64px;
+        border-left: 4px solid var(--border-color);
+    }
+
+    .history-date {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .history-coins {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .history-note {
+        font-size: 13px;
+        margin-top: 4px;
+        color: var(--text-secondary);
+    }
+
+    .history-difference {
+        font-size: 14px;
+        padding: 6px 10px;
+        border-radius: 8px;
+    }
+
+    .history-actions {
+        gap: 6px;
+    }
+
+    .history-actions button {
+        padding: 8px 10px;
+        font-size: 13px;
+        min-width: 60px;
     }
 }
