@@ -6,6 +6,8 @@ class SimpleIntegration {
     constructor() {
         this.isInitialized = false;
         this.currentUser = null;
+        // 同步服务引用
+        this.syncService = syncService;
         // 排行榜数据缓存
         this.leaderboardDataCache = {
             users: null,
