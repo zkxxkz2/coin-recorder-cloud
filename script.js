@@ -512,10 +512,10 @@ class CoinTracker {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        bottom: 10,
-                        left: 10,
-                        right: 10
+                        top: 5,
+                        bottom: 5,
+                        left: 5,
+                        right: 5
                     }
                 },
                 plugins: {
@@ -523,10 +523,10 @@ class CoinTracker {
                         display: true,
                         position: 'top',
                         labels: {
-                            boxWidth: 12,
-                            padding: 8,
+                            boxWidth: 10,
+                            padding: 4,
                             font: {
-                                size: 11
+                                size: window.innerWidth <= 600 ? 9 : 11
                             }
                         }
                     },
@@ -534,11 +534,11 @@ class CoinTracker {
                         display: true,
                         text: '金币总数趋势图',
                         font: {
-                            size: 14
+                            size: window.innerWidth <= 600 ? 12 : 14
                         },
                         padding: {
-                            top: 5,
-                            bottom: 10
+                            top: 2,
+                            bottom: 5
                         }
                     }
                 },
@@ -546,21 +546,21 @@ class CoinTracker {
                     x: {
                         display: true,
                         ticks: {
-                            maxRotation: 45,
+                            maxRotation: window.innerWidth <= 600 ? 25 : 45,
                             minRotation: 0,
                             font: {
-                                size: 10
+                                size: window.innerWidth <= 600 ? 9 : 10
                             },
-                            maxTicksLimit: 8
+                            maxTicksLimit: window.innerWidth <= 600 ? 6 : 8
                         },
                         title: {
-                            display: true,
+                            display: window.innerWidth > 600,
                             text: '日期',
                             font: {
-                                size: 11
+                                size: window.innerWidth <= 600 ? 9 : 11
                             },
                             padding: {
-                                top: 8
+                                top: 5
                             }
                         }
                     },
@@ -568,17 +568,17 @@ class CoinTracker {
                         display: true,
                         ticks: {
                             font: {
-                                size: 10
+                                size: window.innerWidth <= 600 ? 9 : 10
                             }
                         },
                         title: {
-                            display: true,
+                            display: window.innerWidth > 600,
                             text: '总金币数',
                             font: {
-                                size: 11
+                                size: window.innerWidth <= 600 ? 9 : 11
                             },
                             padding: {
-                                bottom: 8
+                                bottom: 5
                             }
                         },
                         beginAtZero: true
@@ -608,10 +608,10 @@ class CoinTracker {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        bottom: 10,
-                        left: 10,
-                        right: 10
+                        top: 5,
+                        bottom: 5,
+                        left: 5,
+                        right: 5
                     }
                 },
                 plugins: {
@@ -619,10 +619,10 @@ class CoinTracker {
                         display: true,
                         position: 'top',
                         labels: {
-                            boxWidth: 12,
-                            padding: 8,
+                            boxWidth: 10,
+                            padding: 4,
                             font: {
-                                size: 11
+                                size: window.innerWidth <= 600 ? 9 : 11
                             }
                         }
                     },
@@ -630,11 +630,11 @@ class CoinTracker {
                         display: true,
                         text: '每日金币变化图',
                         font: {
-                            size: 14
+                            size: window.innerWidth <= 600 ? 12 : 14
                         },
                         padding: {
-                            top: 5,
-                            bottom: 10
+                            top: 2,
+                            bottom: 5
                         }
                     }
                 },
@@ -642,21 +642,21 @@ class CoinTracker {
                     x: {
                         display: true,
                         ticks: {
-                            maxRotation: 45,
+                            maxRotation: window.innerWidth <= 600 ? 25 : 45,
                             minRotation: 0,
                             font: {
-                                size: 10
+                                size: window.innerWidth <= 600 ? 9 : 10
                             },
-                            maxTicksLimit: 8
+                            maxTicksLimit: window.innerWidth <= 600 ? 6 : 8
                         },
                         title: {
-                            display: true,
+                            display: window.innerWidth > 600,
                             text: '日期',
                             font: {
-                                size: 11
+                                size: window.innerWidth <= 600 ? 9 : 11
                             },
                             padding: {
-                                top: 8
+                                top: 5
                             }
                         }
                     },
@@ -664,17 +664,17 @@ class CoinTracker {
                         display: true,
                         ticks: {
                             font: {
-                                size: 10
+                                size: window.innerWidth <= 600 ? 9 : 10
                             }
                         },
                         title: {
-                            display: true,
+                            display: window.innerWidth > 600,
                             text: '每日变化',
                             font: {
-                                size: 11
+                                size: window.innerWidth <= 600 ? 9 : 11
                             },
                             padding: {
-                                bottom: 8
+                                bottom: 5
                             }
                         },
                         beginAtZero: true
@@ -704,10 +704,10 @@ class CoinTracker {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        bottom: 10,
-                        left: 10,
-                        right: 10
+                        top: 5,
+                        bottom: 5,
+                        left: 5,
+                        right: 5
                     }
                 },
                 plugins: {
@@ -715,10 +715,10 @@ class CoinTracker {
                         display: true,
                         position: 'top',
                         labels: {
-                            boxWidth: 12,
-                            padding: 8,
+                            boxWidth: 10,
+                            padding: 4,
                             font: {
-                                size: 11
+                                size: window.innerWidth <= 600 ? 9 : 11
                             }
                         }
                     },
@@ -726,11 +726,11 @@ class CoinTracker {
                         display: true,
                         text: '周统计图表',
                         font: {
-                            size: 14
+                            size: window.innerWidth <= 600 ? 12 : 14
                         },
                         padding: {
-                            top: 5,
-                            bottom: 10
+                            top: 2,
+                            bottom: 5
                         }
                     }
                 },
@@ -738,15 +738,15 @@ class CoinTracker {
                     x: {
                         ticks: {
                             font: {
-                                size: 10
+                                size: window.innerWidth <= 600 ? 9 : 10
                             },
-                            maxTicksLimit: 8
+                            maxTicksLimit: window.innerWidth <= 600 ? 6 : 8
                         }
                     },
                     y: {
                         ticks: {
                             font: {
-                                size: 10
+                                size: window.innerWidth <= 600 ? 9 : 10
                             }
                         },
                         beginAtZero: true
@@ -775,10 +775,10 @@ class CoinTracker {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        bottom: 10,
-                        left: 10,
-                        right: 10
+                        top: 5,
+                        bottom: 5,
+                        left: 5,
+                        right: 5
                     }
                 },
                 plugins: {
@@ -786,10 +786,10 @@ class CoinTracker {
                         display: true,
                         position: 'top',
                         labels: {
-                            boxWidth: 12,
-                            padding: 8,
+                            boxWidth: 10,
+                            padding: 4,
                             font: {
-                                size: 11
+                                size: window.innerWidth <= 600 ? 9 : 11
                             }
                         }
                     },
@@ -797,11 +797,11 @@ class CoinTracker {
                         display: true,
                         text: '月统计图表',
                         font: {
-                            size: 14
+                            size: window.innerWidth <= 600 ? 12 : 14
                         },
                         padding: {
-                            top: 5,
-                            bottom: 10
+                            top: 2,
+                            bottom: 5
                         }
                     }
                 },
@@ -809,15 +809,15 @@ class CoinTracker {
                     x: {
                         ticks: {
                             font: {
-                                size: 10
+                                size: window.innerWidth <= 600 ? 9 : 10
                             },
-                            maxTicksLimit: 8
+                            maxTicksLimit: window.innerWidth <= 600 ? 6 : 8
                         }
                     },
                     y: {
                         ticks: {
                             font: {
-                                size: 10
+                                size: window.innerWidth <= 600 ? 9 : 10
                             }
                         },
                         beginAtZero: true
