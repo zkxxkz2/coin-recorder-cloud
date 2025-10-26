@@ -510,25 +510,76 @@ class CoinTracker {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                },
                 plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
                     title: {
                         display: true,
-                        text: '金币总数趋势图'
+                        text: '金币总数趋势图',
+                        font: {
+                            size: 14
+                        },
+                        padding: {
+                            top: 5,
+                            bottom: 10
+                        }
                     }
                 },
                 scales: {
                     x: {
                         display: true,
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 0,
+                            font: {
+                                size: 10
+                            },
+                            maxTicksLimit: 8
+                        },
                         title: {
                             display: true,
-                            text: '日期'
+                            text: '日期',
+                            font: {
+                                size: 11
+                            },
+                            padding: {
+                                top: 8
+                            }
                         }
                     },
                     y: {
                         display: true,
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
                         title: {
                             display: true,
-                            text: '总金币数'
+                            text: '总金币数',
+                            font: {
+                                size: 11
+                            },
+                            padding: {
+                                bottom: 8
+                            }
                         },
                         beginAtZero: true
                     }
@@ -555,25 +606,76 @@ class CoinTracker {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                },
                 plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
                     title: {
                         display: true,
-                        text: '每日金币变化图'
+                        text: '每日金币变化图',
+                        font: {
+                            size: 14
+                        },
+                        padding: {
+                            top: 5,
+                            bottom: 10
+                        }
                     }
                 },
                 scales: {
                     x: {
                         display: true,
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 0,
+                            font: {
+                                size: 10
+                            },
+                            maxTicksLimit: 8
+                        },
                         title: {
                             display: true,
-                            text: '日期'
+                            text: '日期',
+                            font: {
+                                size: 11
+                            },
+                            padding: {
+                                top: 8
+                            }
                         }
                     },
                     y: {
                         display: true,
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
                         title: {
                             display: true,
-                            text: '每日变化'
+                            text: '每日变化',
+                            font: {
+                                size: 11
+                            },
+                            padding: {
+                                bottom: 8
+                            }
                         },
                         beginAtZero: true
                     }
@@ -600,14 +702,53 @@ class CoinTracker {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                },
                 plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
                     title: {
                         display: true,
-                        text: '周统计图表'
+                        text: '周统计图表',
+                        font: {
+                            size: 14
+                        },
+                        padding: {
+                            top: 5,
+                            bottom: 10
+                        }
                     }
                 },
                 scales: {
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            maxTicksLimit: 8
+                        }
+                    },
                     y: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
                         beginAtZero: true
                     }
                 }
@@ -632,14 +773,53 @@ class CoinTracker {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                },
                 plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
                     title: {
                         display: true,
-                        text: '月统计图表'
+                        text: '月统计图表',
+                        font: {
+                            size: 14
+                        },
+                        padding: {
+                            top: 5,
+                            bottom: 10
+                        }
                     }
                 },
                 scales: {
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            maxTicksLimit: 8
+                        }
+                    },
                     y: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
                         beginAtZero: true
                     }
                 }
@@ -2666,16 +2846,18 @@ class CoinTracker {
         // 等待 simpleIntegration 完全初始化
         if (!this.simpleIntegration.syncService?.isInitialized) {
             console.log('等待云端同步服务初始化...');
+            this.showMessage('正在等待云端同步服务准备就绪...', 'info');
             let attempts = 0;
-            while (!this.simpleIntegration.syncService?.isInitialized && attempts < 50) {
-                await new Promise(resolve => setTimeout(resolve, 100));
+            while (!this.simpleIntegration.syncService?.isInitialized && attempts < 100) {
+                await new Promise(resolve => setTimeout(resolve, 200));
                 attempts++;
             }
 
             if (!this.simpleIntegration.syncService?.isInitialized) {
-                this.showMessage('云端同步服务正在初始化，请稍后重试', 'warning');
+                this.showMessage('云端同步服务初始化超时，请点击"下载数据"后再试', 'error');
                 return;
             }
+            this.showMessage('云端同步服务已就绪', 'success', 2000);
         }
 
         // 检查是否正在同步中
