@@ -2686,7 +2686,10 @@ class CoinTracker {
 
         // 显示校验中状态
         validateBtn.disabled = true;
-        validateBtn.innerHTML = '<span class="btn-icon">⏳</span><span>校验中...</span>';
+        const actionIcon = validateBtn.querySelector('.action-icon');
+        const actionLabel = validateBtn.querySelector('.action-label');
+        if (actionIcon) actionIcon.textContent = '⏳';
+        if (actionLabel) actionLabel.textContent = '校验中...';
         validationResult.style.display = 'block';
         validationStatusIcon.textContent = '⏳';
         validationStatusText.textContent = '正在校验数据...';
@@ -2720,7 +2723,8 @@ class CoinTracker {
         } finally {
             // 恢复按钮状态
             validateBtn.disabled = false;
-            validateBtn.innerHTML = '<span class="btn-icon">🔍</span><span>开始校验</span>';
+            if (actionIcon) actionIcon.textContent = '🔍';
+            if (actionLabel) actionLabel.textContent = '数据校验';
         }
     }
 
