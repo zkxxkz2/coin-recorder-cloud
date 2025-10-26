@@ -6025,3 +6025,740 @@ button,
         font-size: 12px;
     }
 }
+
+/* ============================================
+   现代化设置页面样式
+   ============================================ */
+
+/* 现代化卡片基础样式 */
+.modern-card {
+    background: var(--bg-primary);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.05),
+        0 1px 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+.modern-card:hover {
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.1),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* 卡片头部 */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.header-content {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.01em;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* 账户信息增强 */
+.account-info {
+    text-align: center;
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    border-radius: 12px;
+    border: 1px dashed var(--border-color);
+}
+
+.info-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.account-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* 现代化按钮 */
+.modern-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.modern-btn:hover::before {
+    left: 100%;
+}
+
+.modern-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.modern-btn:active {
+    transform: translateY(0);
+}
+
+.modern-btn .btn-icon {
+    font-size: 20px;
+}
+
+/* 用户信息卡片 */
+.modern-user-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.user-avatar-circle {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatar-emoji {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-size: 32px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.avatar-status {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid var(--bg-primary);
+    background: #10b981;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.user-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.user-name-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.user-email-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.user-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.user-stats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--border-color);
+}
+
+/* 操作按钮组 */
+.action-group {
+    margin-bottom: 20px;
+}
+
+.action-group:last-child {
+    margin-bottom: 0;
+}
+
+.group-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    padding-left: 4px;
+}
+
+.user-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.user-actions-grid.single-row {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.modern-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.modern-action-btn:hover::before {
+    opacity: 1;
+}
+
+.modern-action-btn:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+}
+
+.modern-action-btn:active {
+    transform: translateY(-2px);
+}
+
+.action-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s;
+}
+
+.modern-action-btn:hover .action-icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.action-icon {
+    font-size: 24px;
+}
+
+.action-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.action-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.modern-action-btn.logout {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.modern-action-btn.logout .action-icon-wrapper {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.modern-action-btn.logout:hover {
+    border-color: #ef4444;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.2);
+}
+
+/* 历史记录控制按钮 */
+.modern-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.control-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.control-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.control-btn:hover::before {
+    left: 100%;
+}
+
+.control-btn:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+.control-icon {
+    font-size: 20px;
+}
+
+.control-text {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.control-btn.export-btn:hover {
+    border-color: #10b981;
+}
+
+.control-btn.import-btn:hover {
+    border-color: #3b82f6;
+}
+
+.control-btn.clear-btn:hover {
+    border-color: #ef4444;
+}
+
+/* 历史列表 */
+.modern-list {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-item {
+    background: var(--bg-secondary);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.history-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.history-item:hover::before {
+    opacity: 1;
+}
+
+.history-item:hover {
+    background: var(--bg-tertiary);
+    transform: translateX(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 卡片进入动画 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modern-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .modern-card {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+    }
+
+    .card-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .account-info {
+        padding: 16px;
+    }
+
+    .info-icon {
+        font-size: 36px;
+        margin-bottom: 8px;
+    }
+
+    .account-desc {
+        font-size: 13px;
+    }
+
+    .modern-user-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 16px;
+    }
+
+    .avatar-emoji {
+        width: 56px;
+        height: 56px;
+        font-size: 28px;
+    }
+
+    .avatar-status {
+        width: 16px;
+        height: 16px;
+        border-width: 2px;
+    }
+
+    .user-details {
+        width: 100%;
+        align-items: center;
+    }
+
+    .user-name-display {
+        justify-content: center;
+    }
+
+    .user-stats {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 12px;
+    }
+
+    .stat-item {
+        align-items: center;
+    }
+
+    .stat-value {
+        font-size: 16px;
+    }
+
+    .user-actions-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .user-actions-grid.single-row {
+        grid-template-columns: 1fr;
+    }
+
+    .modern-action-btn {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 14px 16px;
+        text-align: left;
+    }
+
+    .action-icon-wrapper {
+        width: 40px;
+        height: 40px;
+    }
+
+    .action-icon {
+        font-size: 20px;
+    }
+
+    .modern-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .control-btn {
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        padding: 14px 16px;
+    }
+
+    .control-icon {
+        font-size: 18px;
+    }
+
+    .control-text {
+        font-size: 14px;
+    }
+}
+
+/* 超窄屏优化 */
+@media (max-width: 480px) {
+    .modern-card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .card-header {
+        gap: 8px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+
+    .header-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+
+    .card-title {
+        font-size: 1rem;
+    }
+
+    .card-subtitle {
+        font-size: 0.75rem;
+    }
+
+    .account-info {
+        padding: 12px;
+    }
+
+    .info-icon {
+        font-size: 32px;
+        margin-bottom: 6px;
+    }
+
+    .account-desc {
+        font-size: 12px;
+    }
+
+    .modern-user-card {
+        padding: 12px;
+    }
+
+    .avatar-emoji {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+    }
+
+    .avatar-status {
+        width: 14px;
+        height: 14px;
+    }
+
+    .user-stats {
+        padding: 8px 10px;
+        gap: 12px;
+    }
+
+    .stat-value {
+        font-size: 14px;
+    }
+
+    .modern-action-btn {
+        padding: 12px 14px;
+    }
+
+    .action-icon-wrapper {
+        width: 36px;
+        height: 36px;
+    }
+
+    .action-icon {
+        font-size: 18px;
+    }
+
+    .action-label {
+        font-size: 12px;
+    }
+
+    .action-desc {
+        font-size: 10px;
+    }
+
+    .modern-controls {
+        padding: 12px;
+        gap: 6px;
+    }
+
+    .control-btn {
+        padding: 12px 14px;
+    }
+
+    .control-icon {
+        font-size: 16px;
+    }
+
+    .control-text {
+        font-size: 12px;
+    }
+}

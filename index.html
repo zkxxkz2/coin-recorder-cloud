@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v6.1.2</span>
+                <span class="version-badge">v6.2.0</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -453,50 +453,99 @@
             <!-- 设置Tab -->
             <div class="tab-content" data-tab-content="settings">
                 <!-- 账户管理卡片 -->
-                <div class="account-card">
-                    <h3 class="card-title">👤 账户管理</h3>
+                <div class="account-card modern-card">
+                    <div class="card-header">
+                        <div class="header-icon">👤</div>
+                        <div class="header-content">
+                            <h3 class="card-title">账户管理</h3>
+                            <p class="card-subtitle">云端数据同步与账户设置</p>
+                        </div>
+                    </div>
                     
                     <!-- 未登录状态 -->
                     <div id="loginSection" class="account-section">
                         <div class="account-info">
-                            <p class="account-desc">登录后可同步数据到云端，防止数据丢失</p>
+                            <div class="info-icon">☁️</div>
+                            <p class="account-desc">登录后可同步数据到云端，防止数据丢失，实现跨设备数据共享</p>
                         </div>
-                        <button id="loginBtn" class="btn-primary btn-block">
-                            <span>🔐</span>
+                        <button id="loginBtn" class="btn-primary btn-block modern-btn">
+                            <span class="btn-icon">🔐</span>
                             <span>登录/注册</span>
                         </button>
                     </div>
                     
                     <!-- 已登录状态 -->
                     <div id="userStatus" class="account-section" style="display: none;">
-                        <div class="user-info-card">
-                            <div class="user-avatar">👤</div>
+                        <div class="user-info-card modern-user-card">
+                            <div class="user-avatar-circle">
+                                <span class="avatar-emoji">👤</span>
+                                <div class="avatar-status online"></div>
+                            </div>
                             <div class="user-details">
                                 <div class="user-name-display">
                                     <span id="userEmail" class="user-email-text"></span>
+                                    <span class="user-badge">已验证</span>
                                 </div>
-                                <div class="user-actions-grid">
-                                    <button id="syncFromCloudBtn" class="action-card-btn">
-                                        <span class="action-icon">⬇️</span>
-                                        <span class="action-label">下载数据</span>
-                                    </button>
-                                    <button id="syncToCloudBtn" class="action-card-btn">
+                                <div class="user-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">记录</span>
+                                        <span class="stat-value" id="userRecordCount">-</span>
+                                    </div>
+                                    <div class="stat-divider"></div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">金币</span>
+                                        <span class="stat-value" id="userCoinsCount">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据操作组 -->
+                        <div class="action-group">
+                            <div class="group-label">数据操作</div>
+                            <div class="user-actions-grid">
+                                <button id="syncToCloudBtn" class="action-card-btn modern-action-btn" data-action="upload">
+                                    <div class="action-icon-wrapper">
                                         <span class="action-icon">⬆️</span>
-                                        <span class="action-label">上传数据</span>
-                                    </button>
-                                    <button id="validateDataBtn" class="action-card-btn">
+                                    </div>
+                                    <span class="action-label">上传数据</span>
+                                    <span class="action-desc">同步到云端</span>
+                                </button>
+                                <button id="syncFromCloudBtn" class="action-card-btn modern-action-btn" data-action="download">
+                                    <div class="action-icon-wrapper">
+                                        <span class="action-icon">⬇️</span>
+                                    </div>
+                                    <span class="action-label">下载数据</span>
+                                    <span class="action-desc">从云端同步</span>
+                                </button>
+                                <button id="validateDataBtn" class="action-card-btn modern-action-btn" data-action="validate">
+                                    <div class="action-icon-wrapper">
                                         <span class="action-icon">🔍</span>
-                                        <span class="action-label">数据校验</span>
-                                    </button>
-                                    <button id="showBinIdBtn" class="action-card-btn">
+                                    </div>
+                                    <span class="action-label">数据校验</span>
+                                    <span class="action-desc">检查完整性</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 账户操作组 -->
+                        <div class="action-group">
+                            <div class="group-label">账户管理</div>
+                            <div class="user-actions-grid single-row">
+                                <button id="showBinIdBtn" class="action-card-btn modern-action-btn" data-action="account">
+                                    <div class="action-icon-wrapper">
                                         <span class="action-icon">🔑</span>
-                                        <span class="action-label">账户ID</span>
-                                    </button>
-                                    <button id="logoutBtn" class="action-card-btn logout">
+                                    </div>
+                                    <span class="action-label">账户ID</span>
+                                    <span class="action-desc">查看标识</span>
+                                </button>
+                                <button id="logoutBtn" class="action-card-btn modern-action-btn logout" data-action="logout">
+                                    <div class="action-icon-wrapper">
                                         <span class="action-icon">🚪</span>
-                                        <span class="action-label">退出登录</span>
-                                    </button>
-                                </div>
+                                    </div>
+                                    <span class="action-label">退出登录</span>
+                                    <span class="action-desc">安全退出</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -512,20 +561,35 @@
                 </div>
 
                 <!-- 历史记录卡片 -->
-                <div class="settings-card">
+                <div class="settings-card modern-card">
                     <div class="skeleton" id="historySkeleton" style="display: none;">
                         <div class="skeleton-list"></div>
                     </div>
                     <div class="section-content" id="historyContent">
-                        <h3 class="card-title">📜 历史记录</h3>
-                        <div class="history-controls">
-                            <button id="exportBtn" class="btn-secondary">导出数据</button>
-                            <button id="importBtn" class="btn-secondary">导入数据</button>
-                            <button id="clearBtn" class="btn-danger">清空记录</button>
+                        <div class="card-header">
+                            <div class="header-icon">📜</div>
+                            <div class="header-content">
+                                <h3 class="card-title">历史记录</h3>
+                                <p class="card-subtitle">查看和管理所有记录</p>
+                            </div>
+                        </div>
+                        <div class="history-controls modern-controls">
+                            <button id="exportBtn" class="control-btn export-btn">
+                                <span class="control-icon">📥</span>
+                                <span class="control-text">导出</span>
+                            </button>
+                            <button id="importBtn" class="control-btn import-btn">
+                                <span class="control-icon">📤</span>
+                                <span class="control-text">导入</span>
+                            </button>
+                            <button id="clearBtn" class="control-btn clear-btn">
+                                <span class="control-icon">🗑️</span>
+                                <span class="control-text">清空</span>
+                            </button>
                         </div>
                         <!-- 隐藏的文件输入 -->
                         <input type="file" id="importFileInput" accept=".csv" style="display: none;">
-                        <div class="history-list" id="historyList"></div>
+                        <div class="history-list modern-list" id="historyList"></div>
                     </div>
                 </div>
             </div>
