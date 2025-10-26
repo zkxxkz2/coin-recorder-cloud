@@ -411,12 +411,18 @@ class CoinTracker {
         });
         const earliestRecord = sortedRecords[0];
 
-        historyList.innerHTML = this.coinData.map((record, index) => {
+        // 倒序排序：最新的记录排在前面
+        const reversedData = [...this.coinData].reverse();
+
+        historyList.innerHTML = reversedData.map((record, displayIndex) => {
+            // 获取原始索引
+            const originalIndex = this.coinData.length - 1 - displayIndex;
+            
             // 判断是否为首次记录（基于时间戳，而不是索引）
             const isFirstRecord = record === earliestRecord;
             
             return `
-            <div class="history-item" data-index="${index}">
+            <div class="history-item" data-index="${originalIndex}">
                 <div class="history-content">
                     <div class="history-date">${this.formatDate(record.date)}</div>
                     <div class="history-coins">金币: ${record.coins}</div>
@@ -427,13 +433,13 @@ class CoinTracker {
                         ${isFirstRecord ? '首次记录' : this.formatDifference(record.difference)}
                     </div>
                     <div class="action-buttons">
-                        <button class="edit-btn" onclick="coinTracker.editRecord(${index})" title="编辑">
+                        <button class="edit-btn" onclick="coinTracker.editRecord(${originalIndex})" title="编辑">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                             </svg>
                         </button>
-                        <button class="delete-btn" onclick="coinTracker.deleteRecord(${index})" title="删除">
+                        <button class="delete-btn" onclick="coinTracker.deleteRecord(${originalIndex})" title="删除">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="3,6 5,6 21,6"/>
                                 <path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
