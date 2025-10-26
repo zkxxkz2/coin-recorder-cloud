@@ -695,6 +695,8 @@ class SimpleIntegration {
         const userStatus = document.getElementById('userStatus');
         const loginBtn = document.getElementById('loginBtn');
         const userEmail = document.getElementById('userEmail');
+        const userRecordCount = document.getElementById('userRecordCount');
+        const userCoinsCount = document.getElementById('userCoinsCount');
 
         if (user) {
             // 用户已登录
@@ -703,13 +705,18 @@ class SimpleIntegration {
                 loginBtn.style.display = 'flex';
                 loginBtn.style.opacity = '1';
                 loginBtn.title = '切换账户';
-                // 更新按钮文案为“切换账户”，保留图标
+                // 更新按钮文案为"切换账户"，保留图标
                 const spans = loginBtn.querySelectorAll('span');
                 if (spans && spans.length >= 2) {
                     spans[1].textContent = '切换账户';
                 }
             }
             if (userEmail) userEmail.textContent = user.username;
+            
+            // 更新用户统计数据
+            if (userRecordCount || userCoinsCount) {
+                this.updateUserStats();
+            }
         } else {
             // 用户未登录
             if (userStatus) userStatus.style.display = 'none';
@@ -722,6 +729,57 @@ class SimpleIntegration {
                     spans[1].textContent = '登录/注册';
                 }
             }
+        }
+    }
+    
+    // 更新用户统计数据
+    updateUserStats() {
+        try {
+            const recordCount = document.getElementById('userRecordCount');
+            const coinsCount = document.getElementById('userCoinsCount');
+            
+            // 从localStorage获取历史记录数据
+            let history = [];
+            try {
+                const stored = localStorage.getItem('coinHistory');
+                if (stored) {
+                    history = JSON.parse(stored);
+                }
+            } catch (e) {
+                console.error('读取历史记录失败:', e);
+            }
+            
+            const recordCountValue = Array.isArray(history) ? history.length : 0;
+            
+            // 计算总金币数（取最新的金币值）
+            let totalCoins = 0;
+            if (Array.isArray(history) && history.length > 0) {
+                // 按日期排序，取最新的记录
+                const sortedHistory = history.slice().sort((a, b) => {
+                    const dateA = new Date(a.date || a.timestamp || 0);
+                    const dateB = new Date(b.date || b.timestamp || 0);
+                    return dateB - dateA;
+                });
+                const latestRecord = sortedHistory[0];
+                if (latestRecord && latestRecord.currentCoins) {
+                    totalCoins = parseFloat(latestRecord.currentCoins) || 0;
+                }
+            }
+            
+            // 更新显示
+            if (recordCount) {
+                recordCount.textContent = recordCountValue.toLocaleString();
+            }
+            if (coinsCount) {
+                coinsCount.textContent = totalCoins.toLocaleString();
+            }
+        } catch (error) {
+            console.error('更新用户统计数据失败:', error);
+            // 如果出错，显示默认值
+            const recordCount = document.getElementById('userRecordCount');
+            const coinsCount = document.getElementById('userCoinsCount');
+            if (recordCount) recordCount.textContent = '-';
+            if (coinsCount) coinsCount.textContent = '-';
         }
     }
 
