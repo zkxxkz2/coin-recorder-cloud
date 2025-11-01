@@ -3302,7 +3302,8 @@ class LeaderboardManager {
             refreshBannerBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (window.simpleIntegration) {
-                    window.simpleIntegration.refreshLeaderboard();
+                    // 使用完整的手动刷新方法，而不是简单的 loadLeaderboard
+                    window.simpleIntegration.refreshLeaderboardData();
                 }
             });
         }

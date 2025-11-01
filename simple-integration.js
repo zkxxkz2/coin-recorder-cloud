@@ -424,10 +424,12 @@ class SimpleIntegration {
                 const isJoinedInCloud = await this.verifyUserInLeaderboard(user, publicLeaderboardBinId);
                 
                 if (isJoinedInCloud) {
-                    // 云端确认已加入，显示横幅并加载排行榜数据
-                    console.log('用户已加入排行榜，显示排行榜内容');
+                    // 云端确认已加入，只显示横幅，不自动加载排行榜数据
+                    // 用户需要手动点击刷新按钮才会获取排行榜数据
+                    console.log('用户已加入排行榜，显示排行榜横幅（等待手动刷新）');
                     this.showLeaderboardBanner();
-                    await this.loadLeaderboardBanner();
+                    // 不自动加载数据，等待用户手动刷新
+                    this.showEmptyLeaderboard();
 
                     // 确保UI正确显示
                     this.switchLeaderboardTab('main');
