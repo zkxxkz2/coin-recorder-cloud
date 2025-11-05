@@ -57,6 +57,7 @@
             <button id="themeToggle" class="header-icon-btn theme-toggle-btn" title="切换主题">
                 <span class="theme-icon">🌙</span>
                             </button>
+            <button id="installBtn" class="header-icon-btn" title="添加到桌面">➕</button>
                         </div>
     </header>
 
@@ -894,6 +895,28 @@
         </div>
     </div>
 
+    <!-- iOS 添加到主屏幕指引模态框 -->
+    <div id="a2hsIosModal" class="modal" style="display: none;">
+        <div class="modal-backdrop">
+            <div class="modal-content">
+                <button class="modal-close a2hs-ios-close">&times;</button>
+                <h3 class="modal-title">📱 添加到主屏幕</h3>
+                <div class="section-content">
+                    <p>在 iOS Safari 上，请按以下步骤操作：</p>
+                    <ol>
+                        <li>点击浏览器底部的“分享”按钮（一个向上的箭头图标）。</li>
+                        <li>在弹出的菜单中选择“添加到主屏幕”。</li>
+                        <li>确认名称后点击“添加”。</li>
+                    </ol>
+                    <p style="font-size:12px;color:var(--text-secondary);">提示：该功能需要使用 Safari 打开本页面。</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-primary a2hs-ios-ok">我知道了</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="script.js"></script>
 
     <!-- Service Worker注册 -->
@@ -912,26 +935,75 @@
         }
 
         // PWA安装提示
-        let deferredPrompt;
+        // 将变量挂到 window，便于其他脚本访问
+        window.deferredPrompt = null;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
-            deferredPrompt = e;
+            window.deferredPrompt = e;
         });
 
         function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
+            if (window.deferredPrompt) {
+                window.deferredPrompt.prompt();
+                window.deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('User accepted the install prompt');
                     }
-                    deferredPrompt = null;
+                    window.deferredPrompt = null;
                 });
             }
         }
 
         // Tab切换逻辑
         document.addEventListener('DOMContentLoaded', () => {
+            // A2HS 相关绑定
+            const installBtn = document.getElementById('installBtn');
+            const iosModal = document.getElementById('a2hsIosModal');
+            const iosClose = iosModal ? iosModal.querySelector('.a2hs-ios-close') : null;
+            const iosOk = iosModal ? iosModal.querySelector('.a2hs-ios-ok') : null;
+
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+            function showIosGuide() {
+                if (!iosModal) return;
+                iosModal.style.display = 'flex';
+                setTimeout(() => iosModal.classList.add('show'), 10);
+            }
+
+            function hideIosGuide() {
+                if (!iosModal) return;
+                iosModal.classList.remove('show');
+                setTimeout(() => { iosModal.style.display = 'none'; }, 300);
+            }
+
+            if (installBtn) {
+                installBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // 已安装则提示
+                    if (isStandalone) {
+                        alert('已添加到主屏幕');
+                        return;
+                    }
+                    // Android/支持 beforeinstallprompt 的浏览器
+                    if (window.deferredPrompt) {
+                        installApp();
+                        return;
+                    }
+                    // iOS Safari 显示指引
+                    if (isIOS) {
+                        showIosGuide();
+                        return;
+                    }
+                    // 其他浏览器：提示使用浏览器菜单添加
+                    alert('请使用浏览器菜单中的“添加到主屏幕”或“安装应用”进行添加。');
+                });
+            }
+
+            if (iosClose) iosClose.addEventListener('click', hideIosGuide);
+            if (iosOk) iosOk.addEventListener('click', hideIosGuide);
+
             const navItems = document.querySelectorAll('.nav-item');
             const tabContents = document.querySelectorAll('.tab-content');
 
