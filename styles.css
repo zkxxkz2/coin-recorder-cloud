@@ -129,6 +129,24 @@ body {
     transform: scale(1.05);
 }
 
+/* A2HS 安装按钮在小屏仅显示图标，中大屏显示文字 */
+#installBtn {
+    width: auto;
+    padding: 0 10px;
+    border-radius: 18px;
+    gap: 6px;
+}
+
+#installBtn .install-text {
+    display: none;
+}
+
+@media (min-width: 420px) {
+    #installBtn .install-text {
+        display: inline;
+    }
+}
+
 
 /* ============================================
    主要内容区域

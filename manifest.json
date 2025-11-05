@@ -1,7 +1,7 @@
 {
   "name": "金币记录器",
   "short_name": "金币记录器",
-  "version": "6.4.2",
+  "version": "6.4.3",
   "description": "记录每天的金币变化，追踪金币增长趋势的可视化工具",
   "start_url": "/coin-recorder-cloud/",
   "display": "standalone",
