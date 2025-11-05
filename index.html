@@ -50,7 +50,7 @@
         <div class="header-left">
             <h1 class="app-title">
                 <span>金币记录器</span>
-                <span class="version-badge">v6.4.0</span>
+                <span class="version-badge">v6.4.1</span>
             </h1>
                 </div>
         <div class="header-right">
@@ -924,7 +924,7 @@
         // 注册Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('./sw.js', { scope: '/coin-recorder-cloud/' })
                     .then(registration => {
                         console.log('SW registered: ', registration);
                     })

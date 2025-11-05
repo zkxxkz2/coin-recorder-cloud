@@ -159,7 +159,10 @@ coin-recorder-cloud/
 
 ## 📋 Version History
 
-### v6.4.0 (最新版本)
+### v6.4.1 (最新版本)
+- **GitHub Pages 路径适配（加强版）**：将 PWA `start_url`/`scope` 指向显式仓库子路径 `/coin-recorder-cloud/`，并为 Service Worker 指定相同 scope，避免安装后 404。
+
+### v6.4.0
 - **A2HS 添加到主屏幕**：新增“添加到桌面”按钮；Android 触发安装提示，iOS 弹出指引
 - **GitHub Pages 适配**：将 PWA start_url/scope 与 Service Worker 路径改为相对路径
 
@@ -451,7 +454,7 @@ coin-recorder-cloud/
 
 ---
 
-**版本**: v6.4.0
+**版本**: v6.4.1
 **最后更新**: 2025年10月
 
 > 💡 **提示**: 建议定期备份数据，避免意外丢失。使用云端同步功能可以更好地保护您的数据。
