@@ -698,7 +698,7 @@ class CoinTracker {
             data: {
                 labels: [],
                 datasets: [{
-                    label: '周总金币',
+                    label: '周积攒金币',
                     data: [],
                     backgroundColor: '#3498db',
                     borderColor: '#2980b9',
@@ -730,7 +730,7 @@ class CoinTracker {
                     },
                     title: {
                         display: true,
-                        text: '周统计图表',
+                        text: '周统计图表（积攒）',
                         font: {
                             size: window.innerWidth <= 600 ? 12 : 14
                         },
@@ -769,7 +769,7 @@ class CoinTracker {
             data: {
                 labels: [],
                 datasets: [{
-                    label: '月总金币',
+                    label: '月积攒金币',
                     data: [],
                     backgroundColor: '#9b59b6',
                     borderColor: '#8e44ad',
@@ -801,7 +801,7 @@ class CoinTracker {
                     },
                     title: {
                         display: true,
-                        text: '月统计图表',
+                        text: '月统计图表（积攒）',
                         font: {
                             size: window.innerWidth <= 600 ? 12 : 14
                         },
@@ -1176,14 +1176,14 @@ class CoinTracker {
         const config = this.getChartConfig(
             chartType, 
             weeklyChartData, 
-            '周总金币', 
+            '周积攒金币', 
             '#3498db', 
             'rgba(52, 152, 219, 0.1)'
         );
 
         this.weeklyChart.data.labels = labels;
         this.weeklyChart.data.datasets[0] = {
-            label: '周总金币',
+            label: '周积攒金币',
             ...config
         };
         this.weeklyChart.update();
@@ -1201,21 +1201,21 @@ class CoinTracker {
         const config = this.getChartConfig(
             chartType, 
             monthlyChartData, 
-            '月总金币', 
+            '月积攒金币', 
             '#9b59b6', 
             'rgba(155, 89, 182, 0.1)'
         );
 
         this.monthlyChart.data.labels = labels;
         this.monthlyChart.data.datasets[0] = {
-            label: '月总金币',
+            label: '月积攒金币',
             ...config
         };
         this.monthlyChart.update();
     }
 
 
-    // 计算周统计（自然周，显示周末的数额）
+    // 计算周统计（自然周，累计当周差值之和）
     calculateWeeklyStats(data = null) {
         const chartData = data || this.coinData;
         const weeks = {};
@@ -1246,28 +1246,23 @@ class CoinTracker {
                     records: []
                 };
             }
-            weeks[weekKey].total += record.coins;
+            // 使用差值累加（当周积攒的金币，可为正/负，反映净变化）
+            weeks[weekKey].total += (record.difference || 0);
             weeks[weekKey].count++;
             weeks[weekKey].records.push(record);
         });
 
-        // 计算每周末的数额（该周最后一天的金币数）
+        // 输出为最近8周的“净增量”
         return Object.entries(weeks)
-            .map(([weekStart, data], index) => {
-                // 按日期排序，获取该周最后一天的金币数
-                const sortedRecords = data.records.sort((a, b) => new Date(a.date) - new Date(b.date));
-                const lastRecord = sortedRecords[sortedRecords.length - 1];
-                
-                return {
-                    week: index + 1,
-                    total: lastRecord ? lastRecord.coins : 0,
-                    weekStart: weekStart
-                };
-            })
-            .slice(-8); // 只显示最近8周
+            .map(([weekStart, data], index) => ({
+                week: index + 1,
+                total: data.total,
+                weekStart
+            }))
+            .slice(-8);
     }
 
-    // 计算月统计（自然月，显示月末的数额）
+    // 计算月统计（自然月，累计当月差值之和）
     calculateMonthlyStats(data = null) {
         const chartData = data || this.coinData;
         const months = {};
@@ -1285,24 +1280,18 @@ class CoinTracker {
                     records: []
                 };
             }
-            months[monthKey].total += record.coins;
+            // 使用差值累加（当月积攒的金币）
+            months[monthKey].total += (record.difference || 0);
             months[monthKey].count++;
             months[monthKey].records.push(record);
         });
-
-        // 计算每月末的数额（该月最后一天的金币数）
+        // 输出为最近6个月的“净增量”
         return Object.values(months)
-            .map(month => {
-                // 按日期排序，获取该月最后一天的金币数
-                const sortedRecords = month.records.sort((a, b) => new Date(a.date) - new Date(b.date));
-                const lastRecord = sortedRecords[sortedRecords.length - 1];
-                
-                return {
-                    ...month,
-                    total: lastRecord ? lastRecord.coins : 0
-                };
-            })
-            .slice(-6); // 只显示最近6个月
+            .map(month => ({
+                ...month,
+                total: month.total
+            }))
+            .slice(-6);
     }
 
     // 切换图表标签页
